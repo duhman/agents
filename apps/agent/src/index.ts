@@ -24,70 +24,101 @@ export interface ProcessEmailParams {
 export async function processEmail(params: ProcessEmailParams) {
   const { source, customerEmail, rawEmail } = params;
 
-  // 1. PII masking
-  const maskedEmail = maskPII(rawEmail);
+  try {
+    // 1. PII masking (REQUIRED FIRST)
+    const maskedEmail = maskPII(rawEmail);
+    const maskedCustomerEmail = maskPII(customerEmail);
 
-  // 2. Extract structured data with OpenAI
-  const extraction = await extractFields(maskedEmail);
+    // 2. Extract structured data with OpenAI
+    const extraction = await extractFields(maskedEmail);
 
-  // 3. Store ticket
-  const ticket = await createTicket({
-    source,
-    customerEmail: maskPII(customerEmail),
-    rawEmailMasked: maskedEmail,
-    reason: extraction.reason === "unknown" ? undefined : extraction.reason,
-    moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
-  });
-
-  // 4. Generate draft if it's a cancellation
-  if (extraction.is_cancellation) {
-    const draftText = generateDraft({
-      language: extraction.language,
-      reason: extraction.reason,
-      moveDate: extraction.move_date
+    // 3. Store ticket
+    const ticket = await createTicket({
+      source,
+      customerEmail: maskedCustomerEmail,
+      rawEmailMasked: maskedEmail,
+      reason: extraction.reason === "unknown" ? undefined : extraction.reason,
+      moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
     });
 
-    const confidence = calculateConfidence(extraction);
+    // 4. Generate draft if it's a cancellation
+    if (extraction.is_cancellation) {
+      const draftText = generateDraft({
+        language: extraction.language,
+        reason: extraction.reason,
+        moveDate: extraction.move_date
+      });
 
-    const draft = await createDraft({
-      ticketId: ticket.id,
-      language: extraction.language,
-      draftText,
-      confidence: confidence.toString(),
-      model: "gpt-4"
-    });
+      const confidence = calculateConfidence(extraction);
+
+      const draft = await createDraft({
+        ticketId: ticket.id,
+        language: extraction.language,
+        draftText,
+        confidence: confidence.toString(),
+        model: "gpt-4o-2024-08-06" // Use correct model name
+      });
+
+      return {
+        ticket,
+        draft,
+        extraction,
+        confidence
+      };
+    }
 
     return {
       ticket,
-      draft,
       extraction,
-      confidence
+      confidence: 0
     };
+  } catch (error: any) {
+    // Log error with context for debugging
+    console.error("Email processing error:", {
+      source,
+      error: error.message,
+      stack: error.stack
+    });
+    throw error; // Re-throw to be handled by caller
   }
-
-  return {
-    ticket,
-    extraction,
-    confidence: 0
-  };
 }
 
 async function extractFields(maskedEmail: string): Promise<ExtractionResult> {
-  const completion = await openai.beta.chat.completions.parse({
-    model: "gpt-4o-2024-08-06",
-    messages: [
-      { role: "system", content: systemPolicyEN },
-      { role: "user", content: extractionPrompt(maskedEmail) }
-    ],
-    response_format: zodResponseFormat(extractionSchema, "extraction")
-  });
+  try {
+    const completion = await openai.beta.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        { role: "system", content: systemPolicyEN },
+        { role: "user", content: extractionPrompt(maskedEmail) }
+      ],
+      response_format: zodResponseFormat(extractionSchema, "extraction"),
+      temperature: 0, // Deterministic for policy-critical extractions
+      timeout: 30000, // 30 second timeout
+    });
 
-  const parsed = completion.choices[0]?.message?.parsed;
-  if (!parsed) {
-    throw new Error("Failed to parse extraction response");
+    const parsed = completion.choices[0]?.message?.parsed;
+    if (!parsed) {
+      throw new Error("Failed to parse extraction response from OpenAI");
+    }
+
+    // Additional validation with Zod
+    return extractionSchema.parse(parsed);
+  } catch (error: any) {
+    // Enhanced error handling for OpenAI API issues
+    if (error.code === 'insufficient_quota') {
+      throw new Error("OpenAI API quota exceeded. Please check your billing.");
+    } else if (error.code === 'rate_limit_exceeded') {
+      throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
+    } else if (error.code === 'timeout') {
+      throw new Error("OpenAI API request timed out. Please try again.");
+    } else if (error.name === 'ZodError') {
+      console.error("Schema validation error:", error.errors);
+      throw new Error("Invalid extraction format from OpenAI");
+    }
+    
+    console.error("OpenAI extraction error:", error);
+    throw new Error(`Extraction failed: ${error.message || 'Unknown error'}`);
   }
-
-  return extractionSchema.parse(parsed);
 }
 
 function calculateConfidence(extraction: ExtractionResult): number {
