@@ -1,0 +1,106 @@
+{
+  "customModes": [
+    {
+      "name": "Agent Development",
+      "slug": "agent-dev",
+      "description": "Optimized for working on OpenAI agent logic and prompt engineering",
+      "icon": "🤖",
+      "capabilities": {
+        "edit": true,
+        "read": true,
+        "create": true,
+        "search": true
+      },
+      "tools": [
+        "codebase_search",
+        "read_file",
+        "search_replace",
+        "grep",
+        "run_terminal_cmd"
+      ],
+      "mcpServers": ["exa", "context7"],
+      "defaultContext": [
+        "@documentation/project/prd.md",
+        "@documentation/project/policies.md",
+        "@packages/prompts/src/templates.ts",
+        "@apps/agent/src/index.ts"
+      ],
+      "instructions": "Focus on OpenAI structured outputs, Zod schema validation, PII masking, and confidence scoring. Always use zodResponseFormat() and .optional().nullable() pattern. Refer to extraction schema in prompts package."
+    },
+    {
+      "name": "Database Schema",
+      "slug": "db-schema",
+      "description": "For database schema changes and migrations",
+      "icon": "🗄️",
+      "capabilities": {
+        "edit": true,
+        "read": true,
+        "create": false,
+        "search": true
+      },
+      "tools": [
+        "read_file",
+        "search_replace",
+        "run_terminal_cmd"
+      ],
+      "mcpServers": ["context7"],
+      "defaultContext": [
+        "@packages/db/src/schema.ts",
+        "@packages/db/drizzle.config.ts",
+        "@packages/db/src/repositories.ts"
+      ],
+      "instructions": "Use Drizzle ORM patterns. For dev: drizzle-kit push. For prod: drizzle-kit generate then migrate. Always use workspace references. Set verbose and strict to true."
+    },
+    {
+      "name": "Slack HITM",
+      "slug": "slack-hitm",
+      "description": "For Slack Bot interactive messages and HITM workflow",
+      "icon": "💬",
+      "capabilities": {
+        "edit": true,
+        "read": true,
+        "create": false,
+        "search": true
+      },
+      "tools": [
+        "codebase_search",
+        "read_file",
+        "search_replace"
+      ],
+      "mcpServers": ["context7"],
+      "defaultContext": [
+        "@apps/slack-bot/src/index.ts",
+        "@packages/db/src/repositories.ts",
+        "@documentation/project/policies.md"
+      ],
+      "instructions": "Focus on Slack Bolt interactive messages, modals, and action handlers. Ack within 3s, process async. Store all decisions in human_reviews table."
+    },
+    {
+      "name": "Evaluation & Fine-Tuning",
+      "slug": "eval-ft",
+      "description": "For evaluation harness and fine-tuning workflows",
+      "icon": "📊",
+      "capabilities": {
+        "edit": true,
+        "read": true,
+        "create": false,
+        "search": true
+      },
+      "tools": [
+        "read_file",
+        "search_replace",
+        "run_terminal_cmd"
+      ],
+      "mcpServers": ["exa", "context7"],
+      "defaultContext": [
+        "@ops/scripts/eval.ts",
+        "@ops/scripts/export-jsonl.ts",
+        "@ops/scripts/finetune.ts",
+        "@packages/evaluation/"
+      ],
+      "instructions": "Follow PRD JSONL format. Track metrics: accuracy, edit rate, policy compliance. Require 500+ examples before FT. Update config/models.json with model IDs."
+    }
+  ],
+  "defaultMode": "agent-dev"
+}
+

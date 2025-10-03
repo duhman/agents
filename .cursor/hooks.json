@@ -1,0 +1,68 @@
+{
+  "hooks": {
+    "pre-request": {
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Load Project Context",
+          "condition": "always",
+          "action": "inject_context",
+          "context": [
+            "@documentation/project/prd.md",
+            "@documentation/project/policies.md",
+            ".cursorrules"
+          ]
+        },
+        {
+          "name": "Check for PII",
+          "condition": "code_contains",
+          "patterns": ["email", "phone", "address", "@", "\\d{3}-\\d{3}-\\d{4}"],
+          "action": "warn",
+          "message": "⚠️ Detected potential PII. Ensure maskPII() is used before any LLM calls or storage."
+        },
+        {
+          "name": "OpenAI Pattern Check",
+          "condition": "file_type",
+          "types": ["typescript", "javascript"],
+          "action": "validate",
+          "rules": [
+            {
+              "pattern": "openai.*completions.*create(?!.*parse)",
+              "suggestion": "Use client.beta.chat.completions.parse() with zodResponseFormat() for structured outputs"
+            },
+            {
+              "pattern": "\\.optional\\(\\)(?!.*\\.nullable\\(\\))",
+              "suggestion": "Add .nullable() after .optional() for OpenAI structured outputs"
+            }
+          ]
+        }
+      ]
+    },
+    "post-response": {
+      "enabled": true,
+      "rules": [
+        {
+          "name": "Check Schema Changes",
+          "condition": "file_modified",
+          "files": ["packages/db/src/schema.ts"],
+          "action": "remind",
+          "message": "📋 Remember to run `pnpm db:push` to sync schema changes to database"
+        },
+        {
+          "name": "Check Prompt Changes",
+          "condition": "file_modified",
+          "files": ["packages/prompts/src/templates.ts"],
+          "action": "remind",
+          "message": "🧪 Remember to run `pnpm eval` to test extraction accuracy after prompt changes"
+        },
+        {
+          "name": "Format Code",
+          "condition": "code_generated",
+          "action": "auto_format",
+          "formatter": "prettier"
+        }
+      ]
+    }
+  }
+}
+

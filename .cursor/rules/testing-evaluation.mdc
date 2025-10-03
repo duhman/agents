@@ -1,0 +1,165 @@
+---
+description: Testing and evaluation patterns for agent accuracy
+globs: ops/scripts/eval.ts, packages/evaluation/**/*.ts
+alwaysApply: false
+---
+
+# Testing & Evaluation Best Practices
+
+## Golden Set Testing
+
+Maintain a golden set of test cases for regression testing:
+
+```typescript
+interface GoldenExample {
+  email: string;
+  expected: {
+    is_cancellation: boolean;
+    reason: string;
+    language: string;
+  };
+}
+
+const goldenSet: GoldenExample[] = [
+  {
+    email: "Hei, jeg skal flytte til Oslo 15. mars.",
+    expected: {
+      is_cancellation: true,
+      reason: "moving",
+      language: "no"
+    }
+  }
+];
+```
+
+## Accuracy Metrics
+
+Track key metrics:
+
+- **Intent accuracy**: Cancellation vs. non-cancellation detection
+- **Field extraction**: Reason, move date, language
+- **Policy compliance**: End-of-month policy mentioned
+
+```typescript
+const accuracy = (correct / total) * 100;
+
+if (accuracy < 90) {
+  console.error("✗ Accuracy below threshold (90%)");
+  process.exit(1);
+}
+```
+
+## PII Masking Tests
+
+Always test PII masking:
+
+```typescript
+import { maskPII } from "@agents/core";
+
+test("masks email addresses", () => {
+  const input = "Contact me at test@example.com";
+  const output = maskPII(input);
+  expect(output).toBe("Contact me at [email]");
+  expect(output).not.toContain("@example.com");
+});
+
+test("masks phone numbers", () => {
+  const input = "Call me at +47 123 45 678";
+  const output = maskPII(input);
+  expect(output).toBe("Call me at [phone]");
+});
+
+test("masks addresses", () => {
+  const input = "I live at 123 Main Street";
+  const output = maskPII(input);
+  expect(output).toBe("I live at [address]");
+});
+```
+
+## Schema Validation Tests
+
+Test Zod schemas with both valid and invalid inputs:
+
+```typescript
+import { extractionSchema } from "@agents/prompts";
+
+test("validates extraction schema", () => {
+  const valid = {
+    is_cancellation: true,
+    reason: "moving",
+    move_date: "2024-03-15",
+    language: "no",
+    policy_risks: []
+  };
+  
+  const result = extractionSchema.safeParse(valid);
+  expect(result.success).toBe(true);
+});
+
+test("rejects invalid extraction", () => {
+  const invalid = {
+    is_cancellation: "yes", // ❌ Should be boolean
+    reason: "invalid_reason", // ❌ Not in enum
+    language: "no"
+  };
+  
+  const result = extractionSchema.safeParse(invalid);
+  expect(result.success).toBe(false);
+});
+```
+
+## Draft Generation Tests
+
+Test draft templates for both languages:
+
+```typescript
+import { generateDraft } from "@agents/prompts";
+
+test("generates Norwegian draft", () => {
+  const draft = generateDraft({
+    language: "no",
+    reason: "moving",
+    moveDate: "2024-03-15"
+  });
+  
+  expect(draft).toContain("Takk for din henvendelse");
+  expect(draft).toContain("ved utgangen av måneden");
+  expect(draft).toContain("2024-03-15");
+});
+
+test("generates English draft", () => {
+  const draft = generateDraft({
+    language: "en",
+    reason: "moving",
+    moveDate: null
+  });
+  
+  expect(draft).toContain("Thank you for contacting us");
+  expect(draft).toContain("end of the month");
+});
+```
+
+## Running Evaluations
+
+Always run evaluation after prompt changes:
+
+```bash
+# After modifying packages/prompts/src/templates.ts
+pnpm eval
+```
+
+## Fine-Tuning Validation
+
+Require minimum dataset size before fine-tuning:
+
+```typescript
+if (jsonlLines.length < 500) {
+  console.warn(`⚠️ Only ${jsonlLines.length} examples. Recommend 500+ for fine-tuning.`);
+}
+```
+
+## References
+
+- @ops/scripts/eval.ts - Evaluation implementation
+- @packages/prompts/src/templates.ts - Draft templates
+- @packages/core/src/index.ts - PII masking

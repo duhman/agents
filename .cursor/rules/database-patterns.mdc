@@ -1,0 +1,92 @@
+---
+description: Drizzle ORM patterns and database best practices
+globs: packages/db/**/*.ts
+alwaysApply: false
+---
+
+# Drizzle ORM Best Practices
+
+## Development vs Production
+
+✅ **Development:** Use `drizzle-kit push` for rapid prototyping
+```bash
+cd packages/db && pnpm drizzle-kit push
+```
+
+✅ **Production:** Use `drizzle-kit generate` + `migrate` for versioned migrations
+```bash
+cd packages/db
+pnpm drizzle-kit generate  # Generate migration files
+pnpm drizzle-kit migrate   # Apply migrations
+```
+
+## Configuration
+
+Always set in `drizzle.config.ts`:
+
+```typescript
+export default defineConfig({
+  schema: "./src/schema.ts",
+  out: "./migrations",
+  dialect: "postgresql",
+  verbose: true,  // ✅ Enable for debugging
+  strict: true,   // ✅ Enable for safety
+  dbCredentials: {
+    url: process.env.DATABASE_URL
+  }
+});
+```
+
+## Schema Patterns
+
+✅ **DO:** Use UUID primary keys and timestamps
+```typescript
+export const tickets = pgTable("tickets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+```
+
+✅ **DO:** Use proper foreign key references
+```typescript
+export const drafts = pgTable("drafts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").references(() => tickets.id)
+});
+```
+
+## Repository Pattern
+
+Export type-safe repositories from `@agents/db`:
+
+```typescript
+// packages/db/src/repositories.ts
+export async function createTicket(data: {
+  source: string;
+  customerEmail: string;
+  rawEmailMasked: string;
+  reason?: string;
+  moveDate?: Date;
+}) {
+  const [ticket] = await db.insert(tickets).values(data).returning();
+  return ticket;
+}
+```
+
+## Workspace References
+
+Always use workspace protocol in package.json:
+
+```json
+{
+  "dependencies": {
+    "@agents/db": "workspace:*"
+  }
+}
+```
+
+## References
+
+- @packages/db/src/schema.ts - Database schema
+- @packages/db/src/repositories.ts - CRUD operations
+- @packages/db/drizzle.config.ts - Drizzle configuration

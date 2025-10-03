@@ -1,0 +1,54 @@
+---
+description: Core principles for the agents project (privacy, compliance, schema-driven)
+globs:
+alwaysApply: true
+---
+
+# Core Principles
+
+This project automates customer email responses using OpenAI + Slack HITM.
+
+## 1. Privacy First
+
+- Mask PII (emails/phones/addresses) before any LLM calls
+- Use env variables for secrets; never hardcode tokens
+- Store masked versions in database
+- Never log raw customer data
+- Always use `maskPII()` from `@agents/core` before LLM calls
+
+## 2. Policy Compliance
+
+- Norwegian default; English fallback
+- End-of-month cancellation policy
+- Encourage app self-service
+- Be polite, concise, branded
+
+## 3. Schema-Driven Development
+
+- Use Zod schemas for validation
+- OpenAI structured outputs with `zodResponseFormat()`
+- Always use `.nullable()` with `.optional()` for optional fields
+- Validate all inputs/outputs with `safeParse`
+
+## 4. Data Flow
+
+- tickets → drafts → human_reviews
+- Store provenance and decisions
+- Export approved pairs for fine-tuning
+- Minimum 500 examples before fine-tuning
+
+## 5. Code Quality
+
+- TypeScript strict mode
+- Prefer explicit types over `any`
+- Handle errors gracefully
+- Log meaningful context with structured logging
+
+## Key Files
+
+- `@documentation/project/prd.md` - Requirements & KPIs
+- `@documentation/project/policies.md` - Tone/policy
+- `@documentation/project/prompts.md` - Prompt templates
+- `@packages/prompts/src/templates.ts` - Extraction schema + drafting
+- `@packages/core/src/index.ts` - PII masking
+- `@packages/db/src/schema.ts` - Database schema

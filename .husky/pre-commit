@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linter
+pnpm lint-staged
+
+# Check if critical files changed
+SCHEMA_CHANGED=$(git diff --cached --name-only | grep "packages/db/src/schema.ts" || true)
+PROMPTS_CHANGED=$(git diff --cached --name-only | grep "packages/prompts/src/templates.ts" || true)
+PACKAGE_CHANGED=$(git diff --cached --name-only | grep "package.json" || true)
+
+# If critical files changed, update Cursor rules
+if [ -n "$SCHEMA_CHANGED" ] || [ -n "$PROMPTS_CHANGED" ] || [ -n "$PACKAGE_CHANGED" ]; then
+  echo "🤖 Critical files changed. Updating Cursor rules..."
+  tsx .cursor/automation/rules-updater.ts
+  
+  # Stage updated rule files
+  git add .cursor/rules/
+  git add .cursormemory
+  git add .cursor/automation/last-run.json
+  
+  echo "✅ Cursor rules updated and staged"
+fi
+

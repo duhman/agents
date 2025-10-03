@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Post-merge: Checking for rule updates..."
+
+# Run automation to sync with merged changes
+tsx .cursor/automation/rules-updater.ts
+
+echo "✅ Cursor rules synchronized with latest changes"
+

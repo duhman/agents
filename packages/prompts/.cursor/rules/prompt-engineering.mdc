@@ -1,0 +1,99 @@
+---
+description: Prompt engineering guidelines and schema patterns
+globs:
+alwaysApply: true
+---
+
+# Prompt Engineering Rules
+
+## Schema-First Approach
+
+Always define Zod schemas before writing prompts:
+
+```typescript
+export const extractionSchema = z.object({
+  is_cancellation: z.boolean(),
+  reason: z.enum(["moving", "other", "unknown"]),
+  move_date: z.string().date().nullable().optional(),
+  language: z.enum(["no", "en"]),
+  policy_risks: z.array(z.string()).default([])
+});
+```
+
+## System Prompts
+
+Maintain separate system prompts for each language:
+
+```typescript
+export const systemPolicyNO = `Du er en kundeservicerådgiver for Elaway...`;
+export const systemPolicyEN = `You are a customer service advisor for Elaway...`;
+```
+
+## Extraction Prompts
+
+Keep extraction prompts clear and structured:
+
+```typescript
+export const extractionPrompt = (email: string) => `Analyze this customer email and extract:
+- is_cancellation: true if requesting cancellation
+- reason: "moving" if relocating, "other" if different, "unknown" if unclear
+- move_date: ISO date (YYYY-MM-DD) if mentioned, null otherwise
+- language: "no" for Norwegian, "en" for English
+- policy_risks: list any ambiguities
+
+Email:
+${email}`;
+```
+
+## Draft Templates
+
+Use deterministic templates, not LLM generation:
+
+```typescript
+export function generateDraft(params: DraftParams): string {
+  const { language, reason, moveDate } = params;
+  
+  // Build template deterministically
+  let body = language === "no" 
+    ? "Takk for din henvendelse..."
+    : "Thank you for contacting us...";
+    
+  // Add conditional sections
+  if (moveDate) {
+    body += `\n\n${formatMoveDate(moveDate, language)}`;
+  }
+  
+  return body;
+}
+```
+
+## Policy Compliance
+
+Every draft must include:
+
+- ✅ End-of-month cancellation policy
+- ✅ App self-service instructions
+- ✅ Polite, branded tone
+- ✅ Language-appropriate formatting
+
+## Testing Prompts
+
+After changing prompts, always run:
+
+```bash
+pnpm eval
+```
+
+Target accuracy: ≥90% on golden set
+
+## Temperature Settings
+
+- **Extraction**: `temperature: 0` (deterministic)
+- **Classification**: `temperature: 0` (consistent)
+- **Fine-tuning**: Use approved human replies (no temperature)
+
+## References
+
+- @documentation/project/policies.md - Tone and policy guidelines
+- @documentation/project/prompts.md - Prompt templates overview
+- @ops/scripts/eval.ts - Evaluation script

@@ -1,0 +1,70 @@
+---
+description: OpenAI API best practices and patterns
+globs: apps/agent/**/*.ts, packages/prompts/**/*.ts, ops/scripts/eval.ts, ops/scripts/finetune.ts
+alwaysApply: false
+---
+
+# OpenAI Best Practices
+
+## Structured Outputs
+
+✅ **DO:**
+```typescript
+import { zodResponseFormat } from "openai/helpers/zod";
+
+const completion = await openai.beta.chat.completions.parse({
+  model: "gpt-4o-2024-08-06",
+  messages: [/* ... */],
+  response_format: zodResponseFormat(extractionSchema, "extraction")
+});
+
+const result = completion.choices[0]?.message?.parsed;
+```
+
+❌ **DON'T:**
+```typescript
+// Don't use regular completions.create for structured outputs
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o",
+  messages: [/* ... */]
+});
+```
+
+## Schema Patterns
+
+✅ **DO:** Use `.optional().nullable()` for optional fields
+```typescript
+export const extractionSchema = z.object({
+  move_date: z.string().date().nullable().optional(),
+  policy_risks: z.array(z.string()).default([])
+});
+```
+
+❌ **DON'T:** Use only `.optional()` without `.nullable()`
+```typescript
+move_date: z.string().date().optional(), // ❌ Missing .nullable()
+```
+
+## Model Selection
+
+- **Structured outputs**: `gpt-4o-2024-08-06`
+- **Temperature**: `~0` for policy-critical extractions
+- **Fine-tuning**: `gpt-4o-mini-2024-07-18` (cost-effective)
+
+## Validation
+
+Always validate OpenAI responses:
+
+```typescript
+const parsed = completion.choices[0]?.message?.parsed;
+if (!parsed) {
+  throw new Error("Failed to parse extraction response");
+}
+
+return extractionSchema.parse(parsed); // Additional safeParse validation
+```
+
+## References
+
+- @packages/prompts/src/templates.ts - Extraction schema
+- @apps/agent/src/index.ts - Classification implementation

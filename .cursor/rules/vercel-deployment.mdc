@@ -1,0 +1,113 @@
+---
+description: Vercel deployment patterns and serverless constraints
+globs: apps/ingestor/**/*.ts, vercel.json
+alwaysApply: false
+---
+
+# Vercel Deployment Best Practices
+
+## Function Constraints
+
+⚠️ **Critical:** Keep functions <5s execution time
+
+✅ **DO:** Return quickly, enqueue long-running tasks
+```typescript
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Validate input
+  const { source, customerEmail, rawEmail } = req.body;
+  
+  // Enqueue async job (Inngest/QStash)
+  await enqueueProcessing({ source, customerEmail, rawEmail });
+  
+  // Return immediately
+  return res.status(202).json({ queued: true });
+}
+```
+
+❌ **DON'T:** Block on long operations
+```typescript
+export default async function handler(req, res) {
+  await processEmail(req.body);        // ❌ May timeout
+  await generateDraft();                // ❌ Too slow
+  await postToSlack();                  // ❌ Stacks delays
+  return res.json({ success: true });
+}
+```
+
+## Database Connections
+
+Use pooled connections for Postgres:
+
+```typescript
+import postgres from "postgres";
+
+// ✅ Use connection pooling
+const connectionString = process.env.DATABASE_URL; // Must include pooling params
+const queryClient = postgres(connectionString);
+```
+
+Vercel Postgres connection string format:
+```
+postgres://user:pass@host/db?pgbouncer=true&connection_limit=1
+```
+
+## Environment Variables
+
+Always use environment variables for secrets:
+
+```typescript
+const env = envSchema.parse(process.env);
+
+// ✅ DO: Use validated env vars
+const apiKey = env.OPENAI_API_KEY;
+
+// ❌ DON'T: Hardcode secrets
+const apiKey = "sk-..."; // ❌ Never!
+```
+
+## Cron Jobs
+
+Define in `vercel.json`:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/export-training-data",
+      "schedule": "0 0 1 * *"  // Monthly on 1st at midnight
+    }
+  ]
+}
+```
+
+Protect cron endpoints:
+
+```typescript
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const authHeader = req.headers.authorization;
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  // ... process cron job
+}
+```
+
+## Error Handling
+
+Always return proper HTTP status codes:
+
+```typescript
+try {
+  await processEmail(data);
+  return res.status(200).json({ success: true });
+} catch (error) {
+  console.error("Processing error:", error);
+  return res.status(500).json({ error: error.message });
+}
+```
+
+## References
+
+- @apps/ingestor/api/webhook.ts - Webhook handler
+- @apps/ingestor/api/cron/export-training-data.ts - Cron example
+- @vercel.json - Deployment configuration

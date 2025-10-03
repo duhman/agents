@@ -1,0 +1,75 @@
+---
+description: Database schema and migration guidelines
+globs:
+alwaysApply: true
+---
+
+# Database Schema Rules
+
+## Schema Design Principles
+
+1. Always use UUID primary keys: `uuid("id").primaryKey().defaultRandom()`
+2. Always add timestamps: `timestamp("created_at", { withTimezone: true }).defaultNow().notNull()`
+3. Use proper foreign key references: `references(() => parentTable.id)`
+4. Use appropriate column types (text, varchar, date, numeric)
+
+## Making Schema Changes
+
+### Development (Local)
+
+```bash
+# Edit src/schema.ts
+# Then push directly to database
+pnpm drizzle-kit push
+```
+
+### Production
+
+```bash
+# 1. Edit src/schema.ts
+# 2. Generate migration
+pnpm drizzle-kit generate
+
+# 3. Review migration in migrations/
+# 4. Apply migration
+pnpm drizzle-kit migrate
+```
+
+## Repository Pattern
+
+When adding new tables, always create corresponding repository functions:
+
+```typescript
+// In src/repositories.ts
+export async function createEntity(data: EntityInput) {
+  const [entity] = await db.insert(entities).values(data).returning();
+  return entity;
+}
+
+export async function getEntityById(id: string) {
+  return db.query.entities.findFirst({
+    where: eq(entities.id, id)
+  });
+}
+```
+
+## Column Naming
+
+- Use snake_case for database columns: `customer_email`, `created_at`
+- Use camelCase in TypeScript: `customerEmail`, `createdAt`
+- Drizzle handles conversion automatically
+
+## Testing Schema Changes
+
+After schema changes:
+
+1. Test with `pnpm db:push` locally
+2. Verify with `pnpm db:studio` (Drizzle Studio)
+3. Test repository functions
+4. Check in migration files for production
+
+## References
+
+- @packages/db/src/schema.ts - Current schema
+- @packages/db/src/repositories.ts - Repository functions
+- @packages/db/drizzle.config.ts - Drizzle configuration

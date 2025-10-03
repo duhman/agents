@@ -1,0 +1,84 @@
+---
+description: Agent-specific workflow for email processing and classification
+globs:
+alwaysApply: true
+---
+
+# Agent Workflow Rules
+
+This directory contains the core agent logic for email classification and draft generation.
+
+## Processing Flow
+
+Every email must follow this exact flow:
+
+1. **PII Masking** → 2. **OpenAI Extraction** → 3. **Store Ticket** → 4. **Generate Draft** (if cancellation) → 5. **Calculate Confidence**
+
+```typescript
+export async function processEmail(params: ProcessEmailParams) {
+  // 1. PII masking (REQUIRED FIRST)
+  const maskedEmail = maskPII(rawEmail);
+  
+  // 2. Extract with OpenAI
+  const extraction = await extractFields(maskedEmail);
+  
+  // 3. Store ticket
+  const ticket = await createTicket({/* ... */});
+  
+  // 4. Draft if cancellation
+  if (extraction.is_cancellation) {
+    const draftText = generateDraft({/* ... */});
+    const confidence = calculateConfidence(extraction);
+    const draft = await createDraft({/* ... */});
+    
+    return { ticket, draft, extraction, confidence };
+  }
+  
+  return { ticket, extraction, confidence: 0 };
+}
+```
+
+## Confidence Scoring
+
+Keep scoring consistent:
+
+```typescript
+function calculateConfidence(extraction: ExtractionResult): number {
+  let confidence = 0.5; // Base score
+  
+  if (extraction.is_cancellation) confidence += 0.3;
+  if (extraction.reason !== "unknown") confidence += 0.1;
+  if (extraction.move_date) confidence += 0.1;
+  if (extraction.policy_risks.length === 0) confidence += 0.1;
+  
+  return Math.min(confidence, 1.0);
+}
+```
+
+## Error Handling
+
+Always handle extraction failures:
+
+```typescript
+const parsed = completion.choices[0]?.message?.parsed;
+if (!parsed) {
+  throw new Error("Failed to parse extraction response");
+}
+
+return extractionSchema.parse(parsed); // Validate with Zod
+```
+
+## Testing
+
+Test locally with:
+
+```bash
+cd apps/agent
+pnpm dev
+```
+
+## References
+
+- @packages/prompts/src/templates.ts - Extraction schema and prompts
+- @packages/core/src/index.ts - PII masking utilities
+- @packages/db/src/repositories.ts - Database operations

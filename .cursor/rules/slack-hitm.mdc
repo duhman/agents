@@ -1,0 +1,107 @@
+---
+description: Slack HITM workflow patterns and interactive components
+globs: apps/slack-bot/**/*.ts
+alwaysApply: false
+---
+
+# Slack HITM (Human-in-the-Middle) Patterns
+
+## Performance Constraints
+
+⚠️ **Critical:** Slack webhooks timeout at 3 seconds
+
+✅ **DO:** Acknowledge immediately, process async
+```typescript
+app.action("approve", async ({ ack, body, client }) => {
+  await ack(); // ✅ Acknowledge first (<3s)
+  
+  // Then process async
+  await processApproval(body);
+});
+```
+
+❌ **DON'T:** Process before acknowledging
+```typescript
+app.action("approve", async ({ ack, body }) => {
+  await processApproval(body); // ❌ May timeout
+  await ack();
+});
+```
+
+## Interactive Components
+
+### Buttons with Metadata
+
+Store context in button values as JSON:
+
+```typescript
+{
+  type: "button",
+  action_id: "approve",
+  value: JSON.stringify({ ticketId, draftId, draftText })
+}
+```
+
+### Modals for Edits
+
+Use modals for complex edits with `private_metadata`:
+
+```typescript
+await client.views.open({
+  trigger_id: body.trigger_id,
+  view: {
+    type: "modal",
+    callback_id: "edit_modal",
+    private_metadata: JSON.stringify({ ticketId, draftId, channelId, messageTs }),
+    blocks: [/* ... */]
+  }
+});
+```
+
+## Human Review Storage
+
+Always log decisions to database:
+
+```typescript
+await createHumanReview({
+  ticketId,
+  draftId,
+  decision: "approve" | "edit" | "reject",
+  finalText: draftText,
+  reviewerSlackId: userId
+});
+```
+
+## Message Formatting
+
+✅ **DO:** Use blocks for rich formatting
+```typescript
+blocks: [
+  {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: `*Confidence:* ${(confidence * 100).toFixed(0)}%`
+    }
+  }
+]
+```
+
+## Error Handling
+
+Always handle Slack API errors:
+
+```typescript
+try {
+  await client.chat.postMessage({/* ... */});
+} catch (error) {
+  console.error("Slack API error:", error);
+  // Fallback or retry logic
+}
+```
+
+## References
+
+- @apps/slack-bot/src/index.ts - HITM implementation
+- @packages/db/src/repositories.ts - Human review storage
+- @documentation/project/policies.md - Review policies

@@ -1,0 +1,119 @@
+---
+description: Monorepo structure and workspace management with pnpm
+globs: package.json, pnpm-workspace.yaml, turbo.json, packages/*/package.json, apps/*/package.json
+alwaysApply: false
+---
+
+# Monorepo Workspace Patterns
+
+## Workspace Protocol
+
+✅ **DO:** Use workspace protocol for internal dependencies
+```json
+{
+  "name": "@agents/agent",
+  "dependencies": {
+    "@agents/core": "workspace:*",
+    "@agents/prompts": "workspace:*",
+    "@agents/db": "workspace:*"
+  }
+}
+```
+
+❌ **DON'T:** Use version numbers or relative paths
+```json
+{
+  "dependencies": {
+    "@agents/core": "0.1.0",  // ❌ Don't use versions
+    "@agents/db": "file:../../packages/db"  // ❌ Don't use file:
+  }
+}
+```
+
+## Project Structure
+
+```
+/apps            - Applications (ingestor, agent, slack-bot, mailer)
+/packages        - Shared libraries (core, prompts, db, evaluation)
+/ops             - Scripts (export, eval, finetune)
+/infra           - Infrastructure (docker-compose)
+/docs            - Documentation
+```
+
+## Build Order
+
+Turborepo handles build dependencies automatically:
+
+```json
+{
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],  // ✅ Wait for dependencies first
+      "outputs": ["dist/**", ".next/**"]
+    }
+  }
+}
+```
+
+Build order: `core` → `prompts` → `db` → `apps`
+
+## Running Commands
+
+✅ **DO:** Use workspace filters
+```bash
+# Run specific package
+pnpm --filter @agents/agent dev
+
+# Run from root with Turbo
+pnpm build  # Builds all packages in dependency order
+pnpm dev    # Runs all dev servers in parallel
+```
+
+## Shared Configuration
+
+- Root `tsconfig.json` - Base TypeScript config
+- Each package extends root: `"extends": "../../tsconfig.json"`
+- Shared `.prettierrc`, `.eslintrc.json` at root
+
+## Package Naming
+
+Use scoped names with `@agents/` prefix:
+
+```json
+{
+  "name": "@agents/package-name"
+}
+```
+
+## TypeScript Setup
+
+Each package has its own tsconfig.json:
+
+```json
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"]
+}
+```
+
+## Common Commands
+
+```bash
+pnpm agent:dev       # Test agent locally
+pnpm slack:dev       # Test Slack bot
+pnpm db:push         # Push schema (dev)
+pnpm db:studio       # Open Drizzle Studio
+pnpm eval            # Run evaluation
+pnpm export-jsonl    # Export training data
+pnpm finetune        # Launch fine-tuning job
+```
+
+## References
+
+- @package.json - Root package configuration
+- @pnpm-workspace.yaml - Workspace definition
+- @turbo.json - Build pipeline

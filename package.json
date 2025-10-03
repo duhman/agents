@@ -1,0 +1,56 @@
+{
+  "name": "agents-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=8"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev --parallel",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test": "turbo test",
+    "db:push": "pnpm --filter @agents/db push",
+    "db:studio": "pnpm --filter @agents/db studio",
+    "agent:dev": "pnpm --filter @agents/agent dev",
+    "slack:dev": "pnpm --filter @agents/slack-bot dev",
+    "eval": "tsx ops/scripts/eval.ts",
+    "export-jsonl": "tsx ops/scripts/export-jsonl.ts",
+    "finetune": "tsx ops/scripts/finetune.ts",
+    "cursor:sync": "tsx .cursor/automation/rules-updater.ts",
+    "cursor:watch": "tsx .cursor/automation/file-watcher.ts",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "chokidar": "^3.5.3",
+    "eslint": "^8.50.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "lodash": "^4.17.21",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}
+
+

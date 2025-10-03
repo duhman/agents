@@ -1,0 +1,27 @@
+{
+  "cursor.enableExplicitFileListing": true,
+  "cursor.chat.defaultContext": [
+    "documentation/project/prd.md",
+    "documentation/project/policies.md",
+    "documentation/project/prompts.md",
+    ".cursormemory"
+  ],
+  "cursor.includeFileTree": true,
+  "cursor.includeGitChanges": true,
+  "cursor.aiAssistant.model": "claude-sonnet-4",
+  "cursor.chat.includeWorkspaceSymbols": true,
+  "cursor.chat.maxTokens": 8000,
+  "cursor.memories.enabled": true,
+  "cursor.memories.autoLoad": true,
+  "cursor.hooks.enabled": true,
+  "cursor.hooks.pre-request": true,
+  "cursor.hooks.post-response": true,
+  "cursor.mcp.enabled": true,
+  "cursor.mcp.servers": ["exa", "context7"],
+  "cursor.mcp.autoFetch": true,
+  "cursor.chat.customModes": true,
+  "cursor.agent.parallelEdits": true,
+  "cursor.codebase.indexing": true,
+  "cursor.codebase.embeddings": true
+}
+
