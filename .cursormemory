@@ -25,6 +25,10 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Optional fields: Must use `.optional().nullable()` pattern
 - Drizzle: Use `push` for dev, `generate` + `migrate` for prod
 - Workspace references: `"@agents/core": "workspace:*"`
+- **NEW (Jan 2025)**: OpenAI Agents SDK available (`@openai/agents`) - under evaluation
+  - Features: agent handoffs, guardrails, tools, built-in tracing
+  - Current implementation already follows best practices
+  - See `@OPENAI_AGENTS_SDK_ANALYSIS.md` for details
 
 ## File Locations
 - Documentation: `documentation/` (prd, policies, prompts, guides)

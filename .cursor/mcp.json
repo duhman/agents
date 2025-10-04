@@ -25,6 +25,7 @@
       "config": {
         "libraries": [
           "/openai/openai-node",
+          "/openai/openai-agents-js",
           "/drizzle-team/drizzle-orm-docs",
           "/vercel/next.js",
           "/slackapi/bolt-js"

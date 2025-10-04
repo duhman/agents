@@ -15,6 +15,17 @@ cp .env.example .env  # Add your OPENAI_API_KEY and other vars
 cd apps/agent && pnpm dev  # Test classification
 ```
 
+## Agents SDK (Optional)
+
+Enable the OpenAI Agents SDK path (feature-flagged):
+
+```bash
+# Default is disabled
+echo "USE_AGENTS_SDK=1" >> .env
+```
+
+See `documentation/cursor/AGENTS_SDK_MIGRATION.md` and `documentation/cursor/AGENTS_SDK_GUIDE.md`.
+
 ## 🏆 Award-Winning Improvements
 
 This project demonstrates best-in-class implementation of OpenAI, Drizzle ORM, Slack Bolt, and Vercel serverless patterns. See [`AWARD_WINNING_IMPROVEMENTS.md`](AWARD_WINNING_IMPROVEMENTS.md) for details on:

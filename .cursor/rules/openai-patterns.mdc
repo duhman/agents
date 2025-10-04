@@ -1,34 +1,55 @@
 ---
-description: OpenAI API best practices and patterns
+description: OpenAI API best practices and patterns (Updated January 2025)
 globs: apps/agent/**/*.ts, packages/prompts/**/*.ts, ops/scripts/eval.ts, ops/scripts/finetune.ts
 alwaysApply: false
 ---
 
 # OpenAI Best Practices
 
-## Structured Outputs
+## ⚠️ NEW: OpenAI Agents SDK (January 2025)
 
-✅ **DO:**
+OpenAI released an official **Agents SDK** for TypeScript: `@openai/agents`
+
+**Current Status**: Our implementation uses direct OpenAI API calls (best practice)  
+**SDK Offers**: Agent handoffs, guardrails, tools, built-in tracing  
+**Documentation**: https://openai.github.io/openai-agents-js/  
+**See**: `@OPENAI_AGENTS_SDK_ANALYSIS.md` for full evaluation
+
+**Our Recommendation**: Current implementation is excellent. SDK is optional enhancement for future (agent handoffs, guardrails, tracing).
+
+---
+
+## Structured Outputs (Current Approach - ✅ Correct)
+
+✅ **DO:** Use beta.chat.completions.parse with zodResponseFormat
 ```typescript
 import { zodResponseFormat } from "openai/helpers/zod";
 
 const completion = await openai.beta.chat.completions.parse({
   model: "gpt-4o-2024-08-06",
   messages: [/* ... */],
-  response_format: zodResponseFormat(extractionSchema, "extraction")
+  response_format: zodResponseFormat(extractionSchema, "extraction"),
+  temperature: 0, // Deterministic for policy-critical tasks
+  timeout: 30000, // 30s timeout
 });
 
-const result = completion.choices[0]?.message?.parsed;
+const parsed = completion.choices[0]?.message?.parsed;
+if (!parsed) {
+  throw new Error("Failed to parse extraction response from OpenAI");
+}
+
+return extractionSchema.parse(parsed);
 ```
 
-❌ **DON'T:**
+❌ **DON'T:** Use regular completions.create for structured outputs
 ```typescript
-// Don't use regular completions.create for structured outputs
 const completion = await openai.chat.completions.create({
   model: "gpt-4o",
   messages: [/* ... */]
 });
 ```
+
+---
 
 ## Schema Patterns
 
@@ -45,15 +66,57 @@ export const extractionSchema = z.object({
 move_date: z.string().date().optional(), // ❌ Missing .nullable()
 ```
 
-## Model Selection
+---
 
-- **Structured outputs**: `gpt-4o-2024-08-06`
-- **Temperature**: `~0` for policy-critical extractions
+## Model Selection (January 2025)
+
+- **Structured outputs**: `gpt-4o-2024-08-06` (current best)
+- **Temperature**: `0` for deterministic, policy-critical extractions
+- **Timeout**: `30000` (30s) for serverless environments
 - **Fine-tuning**: `gpt-4o-mini-2024-07-18` (cost-effective)
+
+---
+
+## Error Handling (Production-Grade)
+
+Always handle OpenAI-specific error codes:
+
+```typescript
+try {
+  const completion = await openai.beta.chat.completions.parse({
+    // ... config
+    timeout: 30000,
+  });
+  
+  const parsed = completion.choices[0]?.message?.parsed;
+  if (!parsed) {
+    throw new Error("Failed to parse extraction response from OpenAI");
+  }
+  
+  return extractionSchema.parse(parsed);
+} catch (error: any) {
+  // Handle specific OpenAI error codes
+  if (error.code === 'insufficient_quota') {
+    throw new Error("OpenAI API quota exceeded. Please check your billing.");
+  } else if (error.code === 'rate_limit_exceeded') {
+    throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
+  } else if (error.code === 'timeout') {
+    throw new Error("OpenAI API request timed out. Please try again.");
+  } else if (error.name === 'ZodError') {
+    console.error("Schema validation error:", error.errors);
+    throw new Error("Invalid extraction format from OpenAI");
+  }
+  
+  console.error("OpenAI extraction error:", error);
+  throw new Error(`Extraction failed: ${error.message || 'Unknown error'}`);
+}
+```
+
+---
 
 ## Validation
 
-Always validate OpenAI responses:
+Always validate OpenAI responses with Zod:
 
 ```typescript
 const parsed = completion.choices[0]?.message?.parsed;
@@ -61,10 +124,15 @@ if (!parsed) {
   throw new Error("Failed to parse extraction response");
 }
 
-return extractionSchema.parse(parsed); // Additional safeParse validation
+// Additional safeParse validation
+return extractionSchema.parse(parsed);
 ```
+
+---
 
 ## References
 
 - @packages/prompts/src/templates.ts - Extraction schema
 - @apps/agent/src/index.ts - Classification implementation
+- @OPENAI_AGENTS_SDK_ANALYSIS.md - Official Agents SDK evaluation
+- https://openai.github.io/openai-agents-js/ - Agents SDK docs

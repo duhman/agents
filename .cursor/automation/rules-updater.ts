@@ -45,6 +45,7 @@ class CursorRulesAutomation {
     if (changes.prompts) await this.updatePromptRules();
     if (changes.packages) await this.updateDependencyRules();
     if (changes.architecture) await this.updateArchitectureMemories();
+    if ((changes as any).agentsRuntime) await this.updateAgentsSdkRules();
     
     // 3. Validate all rules
     await this.validateRules();
@@ -66,7 +67,8 @@ class CursorRulesAutomation {
       schema: this.hasFileChanged("packages/db/src/schema.ts"),
       prompts: this.hasFileChanged("packages/prompts/src/templates.ts"),
       packages: this.hasFileChanged("package.json") || this.hasFileChanged("packages/*/package.json"),
-      architecture: this.hasFileChanged("documentation/project/plan.md")
+      architecture: this.hasFileChanged("documentation/project/plan.md"),
+      agentsRuntime: this.hasFileChanged("packages/agents-runtime/src/*.ts")
     };
 
     console.log("📊 Detected changes:", changes);
@@ -206,6 +208,41 @@ class CursorRulesAutomation {
     
     const plan = readFileSync(planPath, "utf-8");
     await this.extractAndUpdateArchitecture(plan);
+  }
+
+  /**
+   * Update Agents SDK rule with available agents/tools
+   */
+  private async updateAgentsSdkRules() {
+    console.log("📝 Updating Agents SDK rules...");
+
+    const agentsPath = join(this.projectRoot, "packages/agents-runtime/src/agents.ts");
+    const toolsPath = join(this.projectRoot, "packages/agents-runtime/src/tools.ts");
+
+    const agentsSrc = existsSync(agentsPath) ? readFileSync(agentsPath, "utf-8") : "";
+    const toolsSrc = existsSync(toolsPath) ? readFileSync(toolsPath, "utf-8") : "";
+
+    const agentNames = Array.from(agentsSrc.matchAll(/export const (\w+)\s*=\s*Agent/g)).map(m => m[1]);
+    const toolNames = Array.from(toolsSrc.matchAll(/export const (\w+)\s*=\s*tool\(/g)).map(m => m[1]);
+
+    const ruleFile = join(this.projectRoot, ".cursor/rules/agents-sdk.mdc");
+    if (!existsSync(ruleFile)) return;
+    let ruleContent = readFileSync(ruleFile, "utf-8");
+
+    const agentsList = agentNames.map(n => `- \`${n}\``).join("\n");
+    const toolsList = toolNames.map(n => `- \`${n}\``).join("\n");
+
+    ruleContent = this.updateSection(ruleContent, "## Available Agents", `## Available Agents\n\n${agentsList}\n`);
+    ruleContent = this.updateSection(ruleContent, "## Available Tools", `## Available Tools\n\n${toolsList}\n`);
+
+    writeFileSync(ruleFile, ruleContent);
+
+    this.updatesLog.push({
+      file: ruleFile,
+      action: "updated_agents_sdk_rules",
+      timestamp: new Date(),
+      changes: [`Agents: ${agentNames.length}`, `Tools: ${toolNames.length}`]
+    });
   }
 
   /**

@@ -60,6 +60,17 @@
           "condition": "code_generated",
           "action": "auto_format",
           "formatter": "prettier"
+        },
+        {
+          "name": "Agents SDK Validation",
+          "condition": "code_contains",
+          "patterns": ["@openai/agents"],
+          "action": "validate",
+          "rules": [
+            { "pattern": "new\\s+Agent\\(\\{[\\s\\S]*outputType", "suggestion": "Provide a Zod schema in Agent.outputType for typed outputs" },
+            { "pattern": "temperature\\s*:\\s*[^0]", "suggestion": "Use temperature: 0 for policy-critical extractions" },
+            { "pattern": "timeout\\s*:\\s*(?:[1-9]\\d{0,3}|1\\d{4}|2[0-8]\\d{3}|29000)", "suggestion": "Set timeout: 30000 (30s) for serverless reliability" }
+          ]
         }
       ]
     }

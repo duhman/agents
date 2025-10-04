@@ -11,6 +11,8 @@ import {
 } from "@agents/prompts";
 import { createTicket, createDraft } from "@agents/db";
 import { zodResponseFormat } from "openai/helpers/zod";
+import { run, Agent } from "@openai/agents";
+import { triageAgent } from "@agents/agents-runtime";
 
 const env = envSchema.parse(process.env);
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
@@ -29,7 +31,53 @@ export async function processEmail(params: ProcessEmailParams) {
     const maskedEmail = maskPII(rawEmail);
     const maskedCustomerEmail = maskPII(customerEmail);
 
-    // 2. Extract structured data with OpenAI
+    // If Agents SDK enabled, run triage agent and map result
+    if (process.env.USE_AGENTS_SDK === "1") {
+      const runResult = await run(triageAgent as unknown as Agent, maskedEmail);
+      // For now, reuse existing extraction to keep compatibility
+      const extraction = await extractFields(maskedEmail);
+      const ticket = await createTicket({
+        source,
+        customerEmail: maskedCustomerEmail,
+        rawEmailMasked: maskedEmail,
+        reason: extraction.reason === "unknown" ? undefined : extraction.reason,
+        moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
+      });
+
+      if (extraction.is_cancellation) {
+        const draftText = generateDraft({
+          language: extraction.language,
+          reason: extraction.reason,
+          moveDate: extraction.move_date
+        });
+
+        const confidence = calculateConfidence(extraction);
+        const draft = await createDraft({
+          ticketId: ticket.id,
+          language: extraction.language,
+          draftText,
+          confidence: confidence.toString(),
+          model: "gpt-4o-2024-08-06"
+        });
+
+        // Log compact trace summary if available
+        if ((runResult as any)?.trace) {
+          const trace = (runResult as any).trace;
+          console.log("AgentsSDK trace", {
+            agentPath: trace.agentPath,
+            toolCalls: trace.toolCalls?.length,
+            duration: trace.duration,
+            success: trace.success
+          });
+        }
+
+        return { ticket, draft, extraction, confidence };
+      }
+
+      return { ticket, extraction, confidence: 0 };
+    }
+
+    // 2. Extract structured data with OpenAI (non-SDK path)
     const extraction = await extractFields(maskedEmail);
 
     // 3. Store ticket

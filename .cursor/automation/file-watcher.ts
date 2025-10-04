@@ -13,6 +13,7 @@ import { debounce } from "lodash";
 const WATCH_PATTERNS = [
   "packages/db/src/schema.ts",
   "packages/prompts/src/templates.ts",
+  "packages/agents-runtime/src/*.ts",
   "package.json",
   "packages/*/package.json",
   "documentation/project/plan.md",

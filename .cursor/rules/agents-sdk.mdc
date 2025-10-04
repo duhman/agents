@@ -1,0 +1,44 @@
+---
+description: OpenAI Agents SDK patterns (Agents, Handoffs, Guardrails, Tools)
+globs: packages/agents-runtime/**/*.ts
+alwaysApply: false
+---
+
+# OpenAI Agents SDK Patterns
+
+## Agents
+```ts
+import { Agent, run } from '@openai/agents';
+const agent = new Agent({ name: 'Email Extractor', outputType: extractionSchema, model: 'gpt-4o-2024-08-06', temperature: 0, timeout: 30000 });
+const result = await run(agent, input);
+```
+
+## Handoffs
+```ts
+export const triageAgent = Agent.create({ name: 'Triage', handoffs: [cancellationAgent] });
+```
+
+## Tools (Zod-typed)
+```ts
+export const createTicketTool = tool({ name: 'create_ticket', parameters: z.object({ source: z.string(), customerEmail: z.string(), rawEmailMasked: z.string() }), execute: async (p) => (await createTicket(p)).id });
+```
+
+## Guardrails
+```ts
+export const inputGuardrails = [async (input) => { if (/\S+@\S+/.test(input)) throw new Error('PII detected'); return input; }];
+export const outputGuardrails = [async (output) => { if (!/end of the month|utgangen av måneden/i.test(output)) throw new Error('Missing policy'); return output; }];
+```
+
+## DO / DON'T
+- DO set `temperature: 0` and `timeout: 30000` for policy-critical paths
+- DO type outputs with Zod schemas via `outputType`
+- DO keep Slack HITM actions async and ack <3s
+- DON'T block webhooks on long tool operations
+
+## References
+- @packages/agents-runtime/src/agents.ts
+- @packages/agents-runtime/src/tools.ts
+- @packages/agents-runtime/src/guardrails.ts
+- @documentation/cursor/CURSOR_LATEST_FEATURES.md
+- https://openai.github.io/openai-agents-js/
+
