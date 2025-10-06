@@ -57,16 +57,19 @@ This directory contains core project documentation including requirements, techn
 ## 🎯 Quick Reference
 
 ### For Product Managers
+
 1. [`prd.md`](prd.md) - Understand goals, KPIs, and requirements
 2. [`policies.md`](policies.md) - Review business policies
 3. [`plan.md`](plan.md) - Technical architecture overview
 
 ### For Developers
+
 1. [`plan.md`](plan.md) - Technical implementation details
 2. [`prompts.md`](prompts.md) - Prompt engineering patterns
 3. [`datasets.md`](datasets.md) - Training data format
 
 ### For Data/ML Engineers
+
 1. [`datasets.md`](datasets.md) - Data pipeline contract
 2. [`prompts.md`](prompts.md) - Prompt structure
 3. [`prd.md`](prd.md) - Fine-tuning requirements
@@ -74,13 +77,16 @@ This directory contains core project documentation including requirements, techn
 ## 📊 Project Overview
 
 ### Goals
+
 - Automate subscription cancellation email responses
 - 95%+ policy compliance accuracy
 - <15 minute response time (from ~51 hours)
 - 70%+ deflection rate without human edits
 
 ### Tech Stack
+
 - **AI/LLM**: OpenAI (gpt-4o-2024-08-06, structured outputs, fine-tuning)
+- **RAG**: OpenAI Vector Store for contextual retrieval from HubSpot tickets (`OPENAI_VECTOR_STORE_ID`)
 - **Runtime**: Node.js 20, TypeScript
 - **Database**: PostgreSQL (Drizzle ORM)
 - **Validation**: Zod schemas
@@ -88,12 +94,14 @@ This directory contains core project documentation including requirements, techn
 - **Deployment**: Vercel Functions + Cron
 
 ### Data Flow
+
 ```
-Email → PII Mask → OpenAI Classify → Draft → Slack HITM → 
+Email → PII Mask → OpenAI Classify → (if relocation) Vector Store Search → Draft → Slack HITM →
 Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 ```
 
 ### Success Metrics
+
 - **Response time**: <15 minutes (goal: <2s for classification)
 - **Accuracy**: ≥95% policy compliance
 - **Deflection**: ≥70% handled without human edits post-FT
@@ -102,6 +110,7 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 ## 🔄 Process Flows
 
 ### Email Processing
+
 1. Inbound email received (webhook or polling)
 2. PII masking (emails, phones, addresses)
 3. OpenAI structured extraction (JSON schema)
@@ -110,6 +119,7 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 6. Store ticket and draft
 
 ### HITM Review
+
 1. Post draft to Slack with context
 2. Show: original (masked), extraction, draft, confidence
 3. Agent reviews: Approve / Edit / Reject
@@ -118,6 +128,7 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 6. Log for fine-tuning
 
 ### Fine-Tuning Loop
+
 1. Export approved reviews (≥500 examples)
 2. Generate JSONL training data
 3. Upload to OpenAI
@@ -129,16 +140,19 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 ## 📋 Key Policies
 
 ### Language
+
 - **Default**: Norwegian (NO)
 - **Fallback**: English (EN)
 - Auto-detect from customer email
 
 ### Cancellation
+
 - **Policy**: End-of-month cancellation
 - **Self-service**: Encourage app cancellation when possible
 - **Tone**: Polite, concise, branded
 
 ### Privacy
+
 - **PII Masking**: Before any LLM calls
 - **Storage**: Masked versions only
 - **Logging**: No raw customer data
@@ -151,6 +165,7 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 - [Codebase](../../) - Source code and implementation
 
 ### Implementation Files
+
 - Prompts: `packages/prompts/src/templates.ts`
 - Agent: `apps/agent/src/index.ts`
 - Slack HITM: `apps/slack-bot/src/index.ts`
@@ -161,4 +176,3 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 
 **Last Updated:** January 2025  
 **Maintained by:** Development Team
-

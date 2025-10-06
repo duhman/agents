@@ -18,10 +18,13 @@ DATABASE_URL=postgres://user:password@host:5432/database?pgbouncer=true&connecti
 
 ```bash
 OPENAI_API_KEY=sk-...
+# Optional: OpenAI Vector Store used for contextual search of HubSpot tickets
+OPENAI_VECTOR_STORE_ID=vs_...
 ```
 
 - **Description**: OpenAI API key for GPT-4o structured outputs
 - **Required**: Yes, for email classification and draft generation
+- **OPENAI_VECTOR_STORE_ID**: Optional; when set, agents can search the configured vector store for similar HubSpot tickets to enhance drafts
 
 ## Optional Variables
 

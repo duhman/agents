@@ -1,0 +1,44 @@
+---
+description: OpenAI Vector Store usage and RAG patterns for agents
+globs: packages/agents-runtime/src/**/*.ts, apps/agent/**/*.ts
+alwaysApply: false
+---
+
+# Vector Store (RAG) Patterns
+
+## Purpose
+
+Use OpenAI Vector Store to retrieve contextual snippets from historical HubSpot tickets to improve drafts for relocation-related cancellations.
+
+## Environment
+
+```bash
+OPENAI_VECTOR_STORE_ID=vs_...
+```
+
+## Tooling
+
+```typescript
+// @packages/agents-runtime/src/tools.ts
+export const vectorStoreSearchTool = tool({
+  name: "search_vector_store",
+  parameters: z.object({ query: z.string(), maxResults: z.number().min(1).max(10).default(5) })
+});
+```
+
+## Agent Integration
+
+- Include `vectorStoreSearchTool` in `cancellationAgent.tools`
+- Update instructions to: search vector store for relocation cases before drafting
+
+## DO / DON'T
+
+- **DO** mask PII before any calls
+- **DO** limit results (≤10) and avoid dumping raw transcripts
+- **DON'T** store or log raw vector contents with PII
+
+## References
+
+- @packages/agents-runtime/src/tools.ts
+- @packages/agents-runtime/src/agents.ts
+- @documentation/deployment/ENVIRONMENT_VARIABLES.md

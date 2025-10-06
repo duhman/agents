@@ -38,7 +38,7 @@ packages/prompts/.cursor/rules/
 
 **3 nested rules** for directory-specific guidance
 
-**Total: 10 rule files** replacing 1 monolithic `.cursorrules`
+**Total: 11 rule files** replacing 1 monolithic `.cursorrules`
 
 ---
 
@@ -53,7 +53,7 @@ These load in **every** AI request:
 - `schema-migrations.mdc` (when in `packages/db/`)
 - `prompt-engineering.mdc` (when in `packages/prompts/`)
 
-### 📎 Auto-Attached (6 rules)
+### 📎 Auto-Attached (7 rules)
 
 These load **only when working with matching files**:
 
@@ -63,6 +63,7 @@ These load **only when working with matching files**:
 - `vercel-deployment.mdc` → `api/**/*.ts`, `vercel.json`
 - `monorepo-workspace.mdc` → `package.json`, `pnpm-workspace.yaml`, `turbo.json`
 - `testing-evaluation.mdc` → `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`
+- `vector-store.mdc` → `packages/agents-runtime/src/**/*.ts`, `apps/agent/**/*.ts`
 
 ---
 
@@ -118,6 +119,8 @@ Added `.cursorrules` to `.gitignore` (legacy file)
 
 ### 3. Created `.cursor/rules/README.md`
 
+### 4. Added `vector-store.mdc` rule (RAG patterns)
+
 Comprehensive guide for team members on how rules work
 
 ---
@@ -142,6 +145,7 @@ Comprehensive guide for team members on how rules work
 - [ ] **Next:** Test context-aware loading (open files, check which rules load)
 - [ ] **Next:** Delete legacy `.cursorrules` file
 - [ ] **Next:** Delete obsolete `docs/rules/cancellation-agent.md`
+- [x] **Next:** Add `vector-store.mdc` rule for RAG usage
 - [ ] **Next:** Commit changes and notify team
 
 ---

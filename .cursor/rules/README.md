@@ -6,16 +6,17 @@ This directory contains project-specific rules for Cursor AI in modern `.mdc` fo
 
 ### Root Rules (`.cursor/rules/`)
 
-| Rule File                   | Type          | Description                                          | Applies To                                                              |
-| --------------------------- | ------------- | ---------------------------------------------------- | ----------------------------------------------------------------------- |
-| `core-principles.mdc`       | Always        | Core principles (Privacy, Compliance, Schema-Driven) | All files                                                               |
-| `openai-patterns.mdc`       | Auto-Attached | OpenAI v5 API best practices with retry logic        | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`, `ops/scripts/eval.ts` |
-| `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns with date handling              | `packages/db/**/*.ts`                                                   |
-| `observability-logging.mdc` | Auto-Attached | Structured logging and observability patterns        | `apps/**/*.ts`, `packages/core/**/*.ts`                                 |
-| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow                                  | `apps/slack-bot/**/*.ts`                                                |
-| `vercel-deployment.mdc`     | Auto-Attached | Vercel deployment patterns                           | `apps/ingestor/**/*.ts`, `vercel.json`                                  |
-| `monorepo-workspace.mdc`    | Auto-Attached | Monorepo structure                                   | `package.json`, `pnpm-workspace.yaml`, `turbo.json`                     |
-| `testing-evaluation.mdc`    | Auto-Attached | Testing and evaluation                               | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`                    |
+| Rule File                   | Type          | Description                                          | Applies To                                                  |
+| --------------------------- | ------------- | ---------------------------------------------------- | ----------------------------------------------------------- |
+| `core-principles.mdc`       | Always        | Core principles (Privacy, Compliance, Schema-Driven) | All files                                                   |
+| `openai-patterns.mdc`       | Auto-Attached | OpenAI v5 API best practices with retry logic        | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`            |
+| `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns with date handling              | `packages/db/**/*.ts`                                       |
+| `observability-logging.mdc` | Auto-Attached | Structured logging and observability patterns        | `apps/**/*.ts`, `packages/core/**/*.ts`                     |
+| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow                                  | `apps/slack-bot/**/*.ts`                                    |
+| `vercel-deployment.mdc`     | Auto-Attached | Vercel deployment patterns                           | `apps/ingestor/**/*.ts`, `vercel.json`                      |
+| `monorepo-workspace.mdc`    | Auto-Attached | Monorepo structure                                   | `package.json`, `pnpm-workspace.yaml`, `turbo.json`         |
+| `testing-evaluation.mdc`    | Auto-Attached | Testing and evaluation                               | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`        |
+| `vector-store.mdc`          | Auto-Attached | OpenAI Vector Store RAG usage for agents             | `packages/agents-runtime/src/**/*.ts`, `apps/agent/**/*.ts` |
 
 ### Nested Rules
 
@@ -95,6 +96,9 @@ See `CURSOR_RULES_MIGRATION.md` for full migration details.
 
 ## References
 
+- `@packages/agents-runtime/src/tools.ts` - Vector store tool
+- `@packages/agents-runtime/src/agents.ts` - Agent uses vector store
+- `@documentation/deployment/ENVIRONMENT_VARIABLES.md` - `OPENAI_VECTOR_STORE_ID` env var
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules)
 - [MDC Format](https://github.com/nuxt-contrib/mdc)
 - Migration guide: `CURSOR_RULES_MIGRATION.md`

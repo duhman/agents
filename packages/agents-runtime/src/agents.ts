@@ -9,6 +9,7 @@ import {
 } from "@agents/prompts";
 import {
   maskPiiTool,
+  vectorStoreSearchTool,
   createTicketTool,
   createDraftTool,
   calculateConfidenceTool,
@@ -91,19 +92,21 @@ POLICY COMPLIANCE:
 // Comprehensive cancellation handler agent
 export const cancellationAgent = new Agent({
   name: "Cancellation Handler",
-  instructions: `You are Elaway's automated cancellation request handler. You process customer emails requesting subscription cancellations and generate appropriate responses.
+  instructions: `You are Elaway's automated cancellation request handler specializing in relocation-related subscription cancellations. You process customer emails requesting subscription cancellations and generate appropriate responses.
 
 WORKFLOW:
 1. Extract structured information from customer emails
-2. Create database records for tracking
-3. Generate policy-compliant draft responses
-4. Calculate confidence scores for human review
-5. Post to Slack for HITM review
+2. Search the OpenAI Vector Store for similar relocation cancellation cases to gather context
+3. Create database records for tracking
+4. Generate policy-compliant draft responses (use context when available)
+5. Calculate confidence scores for human review
+6. Post to Slack for HITM review
 
 You have access to all necessary tools to complete the full cancellation workflow. Use them in the correct sequence to ensure proper data persistence and response generation.
 
 CRITICAL REQUIREMENTS:
 - Always mask PII before processing
+- When relocation/moving is indicated, search the vector store for context before drafting
 - Create ticket record for audit trail
 - Generate draft only for cancellation requests
 - Calculate confidence score based on extraction quality
@@ -114,12 +117,18 @@ CRITICAL REQUIREMENTS:
     confidence: z.number().min(0).max(1).describe("Overall confidence score"),
     extraction: extractionSchema.describe("Extracted email information"),
     draft_text: z.string().optional().nullable().describe("Generated response text"),
+    context_used: z
+      .array(z.string())
+      .optional()
+      .nullable()
+      .describe("Context snippets from vector store used in drafting"),
     success: z.boolean().describe("Whether processing completed successfully"),
     error: z.string().optional().nullable().describe("Error message if processing failed")
   }),
   model: "gpt-4o-2024-08-06",
   tools: [
     maskPiiTool,
+    vectorStoreSearchTool,
     createTicketTool,
     createDraftTool,
     calculateConfidenceTool,

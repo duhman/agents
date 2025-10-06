@@ -9,6 +9,7 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - **Pattern**: Email ingestion → OpenAI classification + drafting → Slack HITM → Send reply → Store feedback → Fine-tune
 - **Tech Stack**: Node 20, TypeScript, OpenAI API, Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
 - **Monorepo**: pnpm workspaces with Turborepo for parallel builds
+- **RAG**: OpenAI Vector Store integrated for contextual retrieval (env: `OPENAI_VECTOR_STORE_ID`)
 
 ## Key Constraints
 
@@ -31,6 +32,7 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Drizzle: Use `push` for dev, `generate` + `migrate` for prod
 - Workspace references: `"@agents/core": "workspace:*"`
 - **OpenAI Agents SDK**: Adopted as primary runtime (`@openai/agents`) with Agents, Handoffs, Tools, and tracing. Guardrails implemented as functions.
+- **Vector Store Tool**: `search_vector_store` available in `@agents/agents-runtime`, used by `cancellationAgent` to fetch context for relocation cases.
 
 ## File Locations
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   OPENAI_API_KEY: z.string().min(1),
+  OPENAI_VECTOR_STORE_ID: z.string().min(1).optional(),
   SLACK_BOT_TOKEN: z.string().min(1).optional(),
   SLACK_SIGNING_SECRET: z.string().min(1).optional(),
   HUBSPOT_ACCESS_TOKEN: z.string().min(1).optional()
