@@ -4,7 +4,7 @@
   "main": "./src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "DOTENV_CONFIG_PATH=../../.env node --require dotenv/config --enable-source-maps ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "build": "tsc"
   },
   "dependencies": {
@@ -20,4 +20,3 @@
     "typescript": "^5.3.0"
   }
 }
-

@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { App } from "@slack/bolt";
+import slackBolt from "@slack/bolt";
+const { App } = slackBolt as any;
 import { envSchema } from "@agents/core";
 import { createHumanReview, getTicketById, getDraftById } from "@agents/db";
 
@@ -162,7 +163,12 @@ app.action("edit", async ({ ack, body, client }) => {
     view: {
       type: "modal",
       callback_id: "edit_modal",
-      private_metadata: JSON.stringify({ ticketId, draftId, channelId: (body as any).channel.id, messageTs: (body as any).message.ts }),
+      private_metadata: JSON.stringify({
+        ticketId,
+        draftId,
+        channelId: (body as any).channel.id,
+        messageTs: (body as any).message.ts
+      }),
       title: {
         type: "plain_text",
         text: "Edit Draft"
@@ -274,4 +280,3 @@ app.action("reject", async ({ ack, body, client }) => {
 const port = process.env.PORT || 3000;
 await app.start(port);
 console.log(`⚡️ Slack bot running on port ${port}`);
-
