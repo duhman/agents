@@ -1,5 +1,5 @@
-import { db } from "./client";
-import { tickets, drafts, humanReviews } from "./schema";
+import { db } from "./client.js";
+import { tickets, drafts, humanReviews } from "./schema.js";
 import { eq } from "drizzle-orm";
 
 export async function createTicket(data: {

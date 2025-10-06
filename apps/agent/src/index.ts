@@ -1,30 +1,23 @@
 import "dotenv/config";
-import OpenAI from "openai";
+import { run } from "@openai/agents";
 import {
   maskPII,
-  envSchema,
-  withRetry,
   generateRequestId,
   logInfo,
   logError,
   logWarn,
-  type LogContext
+  type LogContext,
+  envSchema
 } from "@agents/core";
 import {
-  extractionSchema,
-  extractionPrompt,
-  systemPolicyNO,
-  systemPolicyEN,
-  generateDraft,
-  type ExtractionResult
-} from "@agents/prompts";
-import { createTicket, createDraft } from "@agents/db";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { run, Agent } from "@openai/agents";
-import { triageAgent } from "@agents/agents-runtime";
+  emailProcessingAgent,
+  triageAgent,
+  cancellationAgent,
+  extractionAgent,
+  draftingAgent
+} from "@agents/agents-runtime";
 
 const env = envSchema.parse(process.env);
-const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 export interface ProcessEmailParams {
   source: string;
@@ -32,15 +25,24 @@ export interface ProcessEmailParams {
   rawEmail: string;
 }
 
-export async function processEmail(params: ProcessEmailParams) {
+export interface ProcessEmailResult {
+  success: boolean;
+  ticket?: { id: string } | null;
+  draft?: { id: string; draftText: string } | null;
+  confidence: number;
+  route?: string;
+  extraction?: any;
+  error?: string;
+}
+
+export async function processEmail(params: ProcessEmailParams): Promise<ProcessEmailResult> {
   const { source, customerEmail, rawEmail } = params;
   const requestId = generateRequestId();
   const startTime = Date.now();
-
   const logContext: LogContext = { requestId };
 
   try {
-    logInfo("Starting email processing", logContext, {
+    logInfo("Starting email processing with Agents SDK", logContext, {
       source,
       customerEmail: maskPII(customerEmail)
     });
@@ -49,188 +51,266 @@ export async function processEmail(params: ProcessEmailParams) {
     const maskedEmail = maskPII(rawEmail);
     const maskedCustomerEmail = maskPII(customerEmail);
 
-    // If Agents SDK enabled, run triage agent and map result
-    if (process.env.USE_AGENTS_SDK === "1") {
-      const runResult = await run(triageAgent as unknown as Agent, maskedEmail);
-      // For now, reuse existing extraction to keep compatibility
-      const extraction = await extractFields(maskedEmail, logContext);
-      const ticket = await createTicket({
-        source,
-        customerEmail: maskedCustomerEmail,
-        rawEmailMasked: maskedEmail,
-        reason: extraction.reason === "unknown" ? undefined : extraction.reason,
-        moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
-      });
+    // 2. Prepare input for the main orchestrator agent
+    const agentInput = `Process this email for Elaway customer service:
 
-      if (extraction.is_cancellation) {
-        const draftText = generateDraft({
-          language: extraction.language,
-          reason: extraction.reason,
-          moveDate: extraction.move_date
-        });
+Source: ${source}
+Customer Email: ${maskedCustomerEmail}
+Email Content: ${maskedEmail}
 
-        const confidence = calculateConfidence(extraction);
-        const draft = await createDraft({
-          ticketId: ticket.id,
-          language: extraction.language,
-          draftText,
-          confidence: confidence.toString(),
-          model: "gpt-4o-2024-08-06"
-        });
+Please extract information, create appropriate records, and generate a response if this is a cancellation request.`;
 
-        // Log compact trace summary if available
-        if ((runResult as any)?.trace) {
-          const trace = (runResult as any).trace;
-          console.log("AgentsSDK trace", {
-            agentPath: trace.agentPath,
-            toolCalls: trace.toolCalls?.length,
-            duration: trace.duration,
-            success: trace.success
-          });
-        }
+    // 3. Run the main orchestrator agent
+    const result = await run(emailProcessingAgent, agentInput);
 
-        return { ticket, draft, extraction, confidence };
-      }
-
-      return { ticket, extraction, confidence: 0 };
-    }
-
-    // 2. Extract structured data with OpenAI (non-SDK path)
-    const extraction = await extractFields(maskedEmail, logContext);
-
-    // 3. Store ticket
-    const ticket = await createTicket({
-      source,
-      customerEmail: maskedCustomerEmail,
-      rawEmailMasked: maskedEmail,
-      reason: extraction.reason === "unknown" ? undefined : extraction.reason,
-      moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
-    });
-
-    // 4. Generate draft if it's a cancellation
-    if (extraction.is_cancellation) {
-      const draftText = generateDraft({
-        language: extraction.language,
-        reason: extraction.reason,
-        moveDate: extraction.move_date
-      });
-
-      const confidence = calculateConfidence(extraction);
-
-      const draft = await createDraft({
-        ticketId: ticket.id,
-        language: extraction.language,
-        draftText,
-        confidence: confidence.toString(),
-        model: "gpt-4o-2024-08-06" // Use correct model name
-      });
-
-      const duration = Date.now() - startTime;
-      logInfo(
-        "Email processing completed successfully",
-        { ...logContext, ticketId: ticket.id, duration },
-        {
-          isCancellation: extraction.is_cancellation,
-          confidence,
-          language: extraction.language
-        }
-      );
-
-      return {
-        ticket,
-        draft,
-        extraction,
-        confidence
-      };
+    if (!result.finalOutput) {
+      throw new Error("Agent run completed but no final output received");
     }
 
     const duration = Date.now() - startTime;
-    logInfo("Email processing completed (no cancellation)", {
-      ...logContext,
-      ticketId: ticket.id,
-      duration
-    });
+    logInfo(
+      "Email processing completed successfully",
+      {
+        ...logContext,
+        duration
+      },
+      {
+        success: result.finalOutput.success,
+        ticketId: result.finalOutput.ticket_id,
+        draftId: result.finalOutput.draft_id,
+        confidence: result.finalOutput.confidence,
+        route: result.finalOutput.route
+      }
+    );
 
     return {
-      ticket,
-      extraction,
-      confidence: 0
+      success: result.finalOutput.success,
+      ticket: result.finalOutput.ticket_id ? { id: result.finalOutput.ticket_id } : null,
+      draft: result.finalOutput.draft_id
+        ? {
+            id: result.finalOutput.draft_id,
+            draftText: result.finalOutput.draft_text || ""
+          }
+        : null,
+      confidence: result.finalOutput.confidence,
+      route: result.finalOutput.route,
+      extraction: result.finalOutput.extraction,
+      error: result.finalOutput.error
     };
   } catch (error: any) {
     const duration = Date.now() - startTime;
     logError("Email processing failed", { ...logContext, duration }, error);
-    throw error; // Re-throw to be handled by caller
+
+    return {
+      success: false,
+      ticket: null,
+      draft: null,
+      confidence: 0,
+      route: "error",
+      error: error.message || "Unknown error occurred"
+    };
   }
 }
 
-async function extractFields(
-  maskedEmail: string,
-  logContext: LogContext
-): Promise<ExtractionResult> {
+/**
+ * Simplified function for direct email triage
+ * Useful for testing or when you only need routing decisions
+ */
+export async function triageEmail(email: string): Promise<any> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
   try {
-    logInfo("Starting OpenAI extraction", logContext);
+    logInfo("Starting email triage", logContext);
 
-    const completion = await withRetry(
-      async () => {
-        return await openai.chat.completions.parse({
-          model: "gpt-4o-2024-08-06",
-          messages: [
-            { role: "system", content: systemPolicyEN },
-            { role: "user", content: extractionPrompt(maskedEmail) }
-          ],
-          response_format: zodResponseFormat(extractionSchema, "extraction"),
-          temperature: 0, // Deterministic for policy-critical extractions
-          timeout: 30000 // 30 second timeout
-        });
-      },
-      3,
-      1000
-    );
+    const result = await run(triageAgent, email);
 
-    const parsed = completion.choices[0]?.message?.parsed;
-    if (!parsed) {
-      throw new Error("Failed to parse extraction response from OpenAI");
+    if (!result.finalOutput) {
+      throw new Error("Triage agent run completed but no final output received");
     }
 
-    // Additional validation with Zod
-    const result = extractionSchema.parse(parsed);
-    logInfo("OpenAI extraction completed successfully", logContext, {
-      isCancellation: result.is_cancellation,
-      reason: result.reason,
-      language: result.language
+    logInfo("Email triage completed", logContext, {
+      route: result.finalOutput.route,
+      confidence: result.finalOutput.confidence,
+      keywords: result.finalOutput.keywords_found
     });
 
-    return result;
+    return result.finalOutput;
   } catch (error: any) {
-    // Enhanced error handling for OpenAI API issues
-    if (error.code === "insufficient_quota") {
-      logError("OpenAI API quota exceeded", logContext, error);
-      throw new Error("OpenAI API quota exceeded. Please check your billing.");
-    } else if (error.code === "rate_limit_exceeded") {
-      logError("OpenAI API rate limit exceeded", logContext, error);
-      throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
-    } else if (error.code === "timeout") {
-      logError("OpenAI API request timed out", logContext, error);
-      throw new Error("OpenAI API request timed out. Please try again.");
-    } else if (error.name === "ZodError") {
-      logError("Schema validation error", logContext, error);
-      throw new Error("Invalid extraction format from OpenAI");
-    }
-
-    logError("OpenAI extraction error", logContext, error);
-    throw new Error(`Extraction failed: ${error.message || "Unknown error"}`);
+    logError("Email triage failed", logContext, error);
+    throw error;
   }
 }
 
-function calculateConfidence(extraction: ExtractionResult): number {
-  let confidence = 0.5;
+/**
+ * Simplified function for direct cancellation handling
+ * Useful when you already know it's a cancellation request
+ */
+export async function handleCancellation(params: {
+  source: string;
+  customerEmail: string;
+  rawEmail: string;
+  extraction?: any;
+}): Promise<any> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
 
-  if (extraction.is_cancellation) confidence += 0.3;
-  if (extraction.reason !== "unknown") confidence += 0.1;
-  if (extraction.move_date) confidence += 0.1;
-  if (extraction.policy_risks.length === 0) confidence += 0.1;
+  try {
+    logInfo("Starting cancellation handling", logContext);
 
-  return Math.min(confidence, 1.0);
+    const input = `Handle this cancellation request:
+
+Source: ${params.source}
+Customer Email: ${params.customerEmail}
+Email Content: ${params.rawEmail}
+${params.extraction ? `Extraction: ${JSON.stringify(params.extraction)}` : ""}
+
+Please process this cancellation request and generate appropriate response.`;
+
+    const result = await run(cancellationAgent, input);
+
+    if (!result.finalOutput) {
+      throw new Error("Cancellation agent run completed but no final output received");
+    }
+
+    logInfo("Cancellation handling completed", logContext, {
+      success: result.finalOutput.success,
+      ticketId: result.finalOutput.ticket_id,
+      draftId: result.finalOutput.draft_id,
+      confidence: result.finalOutput.confidence
+    });
+
+    return result.finalOutput;
+  } catch (error: any) {
+    logError("Cancellation handling failed", logContext, error);
+    throw error;
+  }
+}
+
+/**
+ * Direct extraction function using the extraction agent
+ * Useful for testing or when you only need structured data extraction
+ */
+export async function extractEmailData(email: string): Promise<any> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting email data extraction", logContext);
+
+    const result = await run(extractionAgent, email);
+
+    if (!result.finalOutput) {
+      throw new Error("Extraction agent run completed but no final output received");
+    }
+
+    logInfo("Email data extraction completed", logContext, {
+      isCancellation: result.finalOutput.is_cancellation,
+      reason: result.finalOutput.reason,
+      language: result.finalOutput.language
+    });
+
+    return result.finalOutput;
+  } catch (error: any) {
+    logError("Email data extraction failed", logContext, error);
+    throw error;
+  }
+}
+
+/**
+ * Direct draft generation function using the drafting agent
+ * Useful for testing or when you only need draft generation
+ */
+export async function generateEmailDraft(params: {
+  language: "no" | "en";
+  reason: string;
+  moveDate?: string;
+  customerName?: string;
+}): Promise<any> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting email draft generation", logContext);
+
+    const input = `Generate a draft response for this cancellation request:
+
+Language: ${params.language}
+Reason: ${params.reason}
+Move Date: ${params.moveDate || "Not specified"}
+Customer Name: ${params.customerName || "Not provided"}
+
+Please generate a professional, policy-compliant response.`;
+
+    const result = await run(draftingAgent, input);
+
+    if (!result.finalOutput) {
+      throw new Error("Drafting agent run completed but no final output received");
+    }
+
+    logInfo("Email draft generation completed", logContext, {
+      language: result.finalOutput.language,
+      confidence: result.finalOutput.confidence,
+      policyCompliant: result.finalOutput.policy_compliant
+    });
+
+    return result.finalOutput;
+  } catch (error: any) {
+    logError("Email draft generation failed", logContext, error);
+    throw error;
+  }
+}
+
+/**
+ * Health check function to verify agent system is working
+ */
+export async function healthCheck(): Promise<{
+  status: "healthy" | "unhealthy";
+  agents: string[];
+  timestamp: string;
+  error?: string;
+}> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting health check", logContext);
+
+    const agents = [
+      "emailProcessingAgent",
+      "triageAgent",
+      "cancellationAgent",
+      "extractionAgent",
+      "draftingAgent"
+    ];
+
+    // Test with a simple email to verify agents are working
+    const testResult = await run(triageAgent, "Test email for health check");
+
+    if (!testResult.finalOutput) {
+      throw new Error("Health check failed - no final output from triage agent");
+    }
+
+    logInfo("Health check completed successfully", logContext, {
+      agentsCount: agents.length,
+      testResult: testResult.finalOutput.route
+    });
+
+    return {
+      status: "healthy",
+      agents,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error: any) {
+    logError("Health check failed", logContext, error);
+
+    return {
+      status: "unhealthy",
+      agents: [],
+      timestamp: new Date().toISOString(),
+      error: error.message
+    };
+  }
 }
 
 // Example usage (for local testing)
@@ -244,13 +324,21 @@ Mvh,
 Ole
   `;
 
+  console.log("Testing Agents SDK implementation...");
+
   processEmail({
     source: "test",
     customerEmail: "test@example.com",
     rawEmail: testEmail
   })
     .then(result => {
-      console.log("✓ Processed:", result);
+      console.log("✓ Processed with Agents SDK:", {
+        success: result.success,
+        ticketId: result.ticket?.id,
+        draftId: result.draft?.id,
+        confidence: result.confidence,
+        route: result.route
+      });
     })
     .catch(err => {
       console.error("✗ Error:", err);

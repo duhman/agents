@@ -78,15 +78,28 @@ NODE_ENV=development
 - **Description**: Node.js environment
 - **Values**: `development`, `production`
 
-### Experimental Features
+### Agents SDK Configuration
 
 ```bash
 USE_AGENTS_SDK=1
 ```
 
-- **Description**: Enable OpenAI Agents SDK (experimental)
-- **Required**: No, defaults to disabled
-- **Values**: `1` to enable, omit to disable
+- **Description**: Enable OpenAI Agents SDK (now default)
+- **Required**: Yes, Agents SDK is now the primary implementation
+- **Values**: `1` to enable (recommended), `0` to disable (legacy mode)
+- **Default**: `1` (Agents SDK enabled)
+
+### Agent Performance Tuning
+
+```bash
+AGENT_TIMEOUT_MS=30000
+AGENT_MAX_RETRIES=3
+AGENT_TEMPERATURE=0
+```
+
+- **Description**: Agent performance and behavior configuration
+- **Required**: No, uses sensible defaults
+- **Values**: Timeout in milliseconds, retry count, temperature (0-1)
 
 ## Local Development Setup
 

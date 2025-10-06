@@ -1,4 +1,3 @@
-export * from "./schema";
-export * from "./client";
-export * from "./repositories";
-
+export * from "./schema.js";
+export * from "./client.js";
+export * from "./repositories.js";
