@@ -9,7 +9,13 @@ export async function createTicket(data: {
   reason?: string;
   moveDate?: Date;
 }) {
-  const [ticket] = await db.insert(tickets).values(data).returning();
+  const [ticket] = await db
+    .insert(tickets)
+    .values({
+      ...data,
+      moveDate: data.moveDate?.toISOString().split("T")[0] // Convert Date to YYYY-MM-DD string
+    })
+    .returning();
   return ticket;
 }
 
@@ -46,4 +52,3 @@ export async function getDraftById(id: string) {
     where: eq(drafts.id, id)
   });
 }
-

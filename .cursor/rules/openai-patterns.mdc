@@ -6,6 +6,44 @@ alwaysApply: false
 
 # OpenAI Best Practices
 
+## ✅ LATEST: OpenAI v5 API Migration (January 2025)
+
+**BREAKING CHANGE**: `beta.chat.completions.parse()` → `chat.completions.parse()`
+
+✅ **DO:** Use main namespace (latest)
+
+```typescript
+import { zodResponseFormat } from "openai/helpers/zod";
+
+const completion = await openai.chat.completions.parse({
+  model: "gpt-4o-2024-08-06",
+  messages: [
+    /* ... */
+  ],
+  response_format: zodResponseFormat(extractionSchema, "extraction"),
+  temperature: 0, // Deterministic for policy-critical tasks
+  timeout: 30000 // 30s timeout
+});
+
+const parsed = completion.choices[0]?.message?.parsed;
+if (!parsed) {
+  throw new Error("Failed to parse extraction response from OpenAI");
+}
+
+return extractionSchema.parse(parsed);
+```
+
+❌ **DON'T:** Use deprecated beta namespace
+
+```typescript
+// ❌ DEPRECATED - Will be removed
+const completion = await openai.beta.chat.completions.parse({
+  // ...
+});
+```
+
+---
+
 ## ⚠️ NEW: OpenAI Agents SDK (January 2025)
 
 OpenAI released an official **Agents SDK** for TypeScript: `@openai/agents`
@@ -19,51 +57,125 @@ OpenAI released an official **Agents SDK** for TypeScript: `@openai/agents`
 
 ---
 
-## Structured Outputs (Current Approach - ✅ Correct)
+## Schema Patterns (Updated)
 
-✅ **DO:** Use beta.chat.completions.parse with zodResponseFormat
-```typescript
-import { zodResponseFormat } from "openai/helpers/zod";
+✅ **DO:** Use `.optional().nullable()` for optional fields (correct order)
 
-const completion = await openai.beta.chat.completions.parse({
-  model: "gpt-4o-2024-08-06",
-  messages: [/* ... */],
-  response_format: zodResponseFormat(extractionSchema, "extraction"),
-  temperature: 0, // Deterministic for policy-critical tasks
-  timeout: 30000, // 30s timeout
-});
-
-const parsed = completion.choices[0]?.message?.parsed;
-if (!parsed) {
-  throw new Error("Failed to parse extraction response from OpenAI");
-}
-
-return extractionSchema.parse(parsed);
-```
-
-❌ **DON'T:** Use regular completions.create for structured outputs
-```typescript
-const completion = await openai.chat.completions.create({
-  model: "gpt-4o",
-  messages: [/* ... */]
-});
-```
-
----
-
-## Schema Patterns
-
-✅ **DO:** Use `.optional().nullable()` for optional fields
 ```typescript
 export const extractionSchema = z.object({
-  move_date: z.string().date().nullable().optional(),
+  move_date: z.string().date().optional().nullable(), // ✅ Correct order
   policy_risks: z.array(z.string()).default([])
 });
 ```
 
-❌ **DON'T:** Use only `.optional()` without `.nullable()`
+❌ **DON'T:** Use wrong order (will cause errors)
+
 ```typescript
-move_date: z.string().date().optional(), // ❌ Missing .nullable()
+move_date: z.string().date().nullable().optional(), // ❌ Wrong order
+```
+
+---
+
+## Retry Logic with Exponential Backoff
+
+✅ **DO:** Implement retry logic for OpenAI API calls
+
+```typescript
+import { withRetry } from "@agents/core";
+
+const completion = await withRetry(
+  async () => {
+    return await openai.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        /* ... */
+      ],
+      response_format: zodResponseFormat(extractionSchema, "extraction"),
+      temperature: 0,
+      timeout: 30000
+    });
+  },
+  3, // maxRetries
+  1000 // baseDelay
+);
+```
+
+**Retry Strategy:**
+
+- Only retry on `rate_limit_exceeded` and `timeout` errors
+- Exponential backoff: 1s, 2s, 4s delays
+- Don't retry on quota/auth errors
+
+---
+
+## Structured Logging (Production-Grade)
+
+✅ **DO:** Use structured logging with request IDs
+
+```typescript
+import { logInfo, logError, generateRequestId, type LogContext } from "@agents/core";
+
+const requestId = generateRequestId();
+const logContext: LogContext = { requestId };
+
+try {
+  logInfo("Starting OpenAI extraction", logContext);
+
+  const completion = await openai.chat.completions.parse({
+    // ... config
+  });
+
+  logInfo("OpenAI extraction completed successfully", logContext, {
+    isCancellation: result.is_cancellation,
+    reason: result.reason,
+    language: result.language
+  });
+
+  return result;
+} catch (error: any) {
+  logError("OpenAI extraction error", logContext, error);
+  throw error;
+}
+```
+
+---
+
+## Error Handling (Enhanced)
+
+Always handle OpenAI-specific error codes with structured logging:
+
+```typescript
+try {
+  const completion = await openai.chat.completions.parse({
+    // ... config
+    timeout: 30000
+  });
+
+  const parsed = completion.choices[0]?.message?.parsed;
+  if (!parsed) {
+    throw new Error("Failed to parse extraction response from OpenAI");
+  }
+
+  return extractionSchema.parse(parsed);
+} catch (error: any) {
+  // Enhanced error handling with structured logging
+  if (error.code === "insufficient_quota") {
+    logError("OpenAI API quota exceeded", logContext, error);
+    throw new Error("OpenAI API quota exceeded. Please check your billing.");
+  } else if (error.code === "rate_limit_exceeded") {
+    logError("OpenAI API rate limit exceeded", logContext, error);
+    throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
+  } else if (error.code === "timeout") {
+    logError("OpenAI API request timed out", logContext, error);
+    throw new Error("OpenAI API request timed out. Please try again.");
+  } else if (error.name === "ZodError") {
+    logError("Schema validation error", logContext, error);
+    throw new Error("Invalid extraction format from OpenAI");
+  }
+
+  logError("OpenAI extraction error", logContext, error);
+  throw new Error(`Extraction failed: ${error.message || "Unknown error"}`);
+}
 ```
 
 ---
@@ -74,58 +186,27 @@ move_date: z.string().date().optional(), // ❌ Missing .nullable()
 - **Temperature**: `0` for deterministic, policy-critical extractions
 - **Timeout**: `30000` (30s) for serverless environments
 - **Fine-tuning**: `gpt-4o-mini-2024-07-18` (cost-effective)
+- **OpenAI Version**: v5+ (latest with main namespace)
 
 ---
 
-## Error Handling (Production-Grade)
+## Request Validation
 
-Always handle OpenAI-specific error codes:
-
-```typescript
-try {
-  const completion = await openai.beta.chat.completions.parse({
-    // ... config
-    timeout: 30000,
-  });
-  
-  const parsed = completion.choices[0]?.message?.parsed;
-  if (!parsed) {
-    throw new Error("Failed to parse extraction response from OpenAI");
-  }
-  
-  return extractionSchema.parse(parsed);
-} catch (error: any) {
-  // Handle specific OpenAI error codes
-  if (error.code === 'insufficient_quota') {
-    throw new Error("OpenAI API quota exceeded. Please check your billing.");
-  } else if (error.code === 'rate_limit_exceeded') {
-    throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
-  } else if (error.code === 'timeout') {
-    throw new Error("OpenAI API request timed out. Please try again.");
-  } else if (error.name === 'ZodError') {
-    console.error("Schema validation error:", error.errors);
-    throw new Error("Invalid extraction format from OpenAI");
-  }
-  
-  console.error("OpenAI extraction error:", error);
-  throw new Error(`Extraction failed: ${error.message || 'Unknown error'}`);
-}
-```
-
----
-
-## Validation
-
-Always validate OpenAI responses with Zod:
+✅ **DO:** Validate webhook requests with middleware
 
 ```typescript
-const parsed = completion.choices[0]?.message?.parsed;
-if (!parsed) {
-  throw new Error("Failed to parse extraction response");
-}
+import { validateWebhookRequest } from "@agents/core";
 
-// Additional safeParse validation
-return extractionSchema.parse(parsed);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    const { source, customerEmail, rawEmail } = validateWebhookRequest(req.body);
+    // Process validated request...
+  } catch (error: any) {
+    return res.status(400).json({
+      error: error.message || "Validation error"
+    });
+  }
+}
 ```
 
 ---
@@ -134,5 +215,6 @@ return extractionSchema.parse(parsed);
 
 - @packages/prompts/src/templates.ts - Extraction schema
 - @apps/agent/src/index.ts - Classification implementation
+- @packages/core/src/index.ts - Retry logic and logging
 - @OPENAI_AGENTS_SDK_ANALYSIS.md - Official Agents SDK evaluation
 - https://openai.github.io/openai-agents-js/ - Agents SDK docs

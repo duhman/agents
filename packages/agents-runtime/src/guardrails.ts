@@ -1,3 +1,6 @@
+// Guardrails are not yet fully implemented in the current version
+// For now, we'll export placeholder functions that can be implemented later
+
 export async function inputGuardrailRequireMaskedPII(input: string): Promise<string> {
   // naive check: look for '@' and obvious phone patterns
   const hasEmail = /\S+@\S+/.test(input);
@@ -14,5 +17,3 @@ export async function outputGuardrailRequirePolicy(output: string): Promise<stri
   }
   return output;
 }
-
-

@@ -1,0 +1,230 @@
+---
+description: Structured logging, observability, and monitoring patterns
+globs: apps/**/*.ts, packages/core/**/*.ts
+alwaysApply: false
+---
+
+# Observability & Logging
+
+## Structured Logging (Production-Grade)
+
+✅ **DO:** Use structured logging with request IDs
+
+```typescript
+import { logInfo, logError, logWarn, generateRequestId, type LogContext } from "@agents/core";
+
+export async function processEmail(params: ProcessEmailParams) {
+  const requestId = generateRequestId();
+  const startTime = Date.now();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting email processing", logContext, {
+      source: params.source,
+      customerEmail: maskPII(params.customerEmail)
+    });
+
+    // Process email...
+
+    const duration = Date.now() - startTime;
+    logInfo(
+      "Email processing completed successfully",
+      {
+        ...logContext,
+        ticketId: ticket.id,
+        duration
+      },
+      {
+        isCancellation: extraction.is_cancellation,
+        confidence,
+        language: extraction.language
+      }
+    );
+
+    return result;
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    logError("Email processing failed", { ...logContext, duration }, error);
+    throw error;
+  }
+}
+```
+
+## Request ID Generation
+
+✅ **DO:** Generate UUID for every request
+
+```typescript
+import { generateRequestId } from "@agents/core";
+
+const requestId = generateRequestId(); // crypto.randomUUID()
+const logContext: LogContext = { requestId };
+```
+
+## Log Context Interface
+
+✅ **DO:** Use consistent LogContext structure
+
+```typescript
+export interface LogContext {
+  requestId: string;
+  userId?: string;
+  ticketId?: string;
+  duration?: number;
+  [key: string]: any;
+}
+```
+
+## Error Logging Patterns
+
+✅ **DO:** Log errors with context and stack traces
+
+```typescript
+try {
+  // API call...
+} catch (error: any) {
+  logError("OpenAI API error", logContext, error);
+  // Error object includes: message, stack, code, etc.
+}
+```
+
+❌ **DON'T:** Log raw customer data
+
+```typescript
+// ❌ NEVER log PII
+logInfo("Processing email", logContext, {
+  email: "customer@example.com" // ❌ Contains PII
+});
+
+// ✅ DO mask PII
+logInfo("Processing email", logContext, {
+  email: maskPII("customer@example.com") // ✅ Masked
+});
+```
+
+## Performance Monitoring
+
+✅ **DO:** Track processing duration
+
+```typescript
+const startTime = Date.now();
+
+// Process request...
+
+const duration = Date.now() - startTime;
+logInfo("Request completed", { ...logContext, duration });
+```
+
+## Health Check Endpoints
+
+✅ **DO:** Implement health checks for monitoring
+
+```typescript
+// apps/ingestor/api/health.ts
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const health = {
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    services: {
+      database: await checkDatabase(),
+      openai: await checkOpenAI(),
+      slack: await checkSlack()
+    }
+  };
+
+  const overallStatus = Object.values(health.services).every(
+    status => status.includes("healthy") || status.includes("configured")
+  )
+    ? "healthy"
+    : "unhealthy";
+
+  return res.status(overallStatus === "healthy" ? 200 : 503).json(health);
+}
+```
+
+## Retry Logic with Logging
+
+✅ **DO:** Log retry attempts
+
+```typescript
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (attempt === maxRetries) throw error;
+
+      // Only retry on specific errors
+      if (error.code === "rate_limit_exceeded" || error.code === "timeout") {
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      throw error;
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+```
+
+## Webhook Request Validation
+
+✅ **DO:** Validate and log webhook requests
+
+```typescript
+import { validateWebhookRequest, logInfo, logWarn } from "@agents/core";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
+  logInfo("Webhook received", logContext, {
+    method: req.method,
+    url: req.url,
+    userAgent: req.headers["user-agent"]
+  });
+
+  if (req.method !== "POST") {
+    logWarn("Invalid HTTP method", logContext, { method: req.method });
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { source, customerEmail, rawEmail } = validateWebhookRequest(req.body);
+    logInfo("Request validation successful", logContext, { source });
+    // Process...
+  } catch (error: any) {
+    logError("Request validation failed", logContext, error);
+    return res.status(400).json({ error: error.message });
+  }
+}
+```
+
+## Slack Error Handling
+
+✅ **DO:** Don't block webhooks on Slack failures
+
+```typescript
+// Fire and forget - don't await Slack posting to stay under 5s
+postReview({
+  ticketId: result.ticket.id,
+  draftId: result.draft.id
+  // ... other params
+}).catch(error => {
+  logError("Slack posting failed", logContext, error);
+  // Don't fail the webhook if Slack fails
+});
+```
+
+## References
+
+- @packages/core/src/index.ts - Logging utilities and retry logic
+- @apps/ingestor/api/webhook.ts - Webhook handler with logging
+- @apps/ingestor/api/health.ts - Health check endpoint
+- @apps/agent/src/index.ts - Email processing with observability

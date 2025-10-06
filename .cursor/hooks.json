@@ -10,6 +10,7 @@
           "context": [
             "@documentation/project/prd.md",
             "@documentation/project/policies.md",
+            "@AWARD_WINNING_IMPROVEMENTS.md",
             ".cursorrules"
           ]
         },
@@ -21,20 +22,31 @@
           "message": "⚠️ Detected potential PII. Ensure maskPII() is used before any LLM calls or storage."
         },
         {
-          "name": "OpenAI Pattern Check",
+          "name": "OpenAI v5 Pattern Check",
           "condition": "file_type",
           "types": ["typescript", "javascript"],
           "action": "validate",
           "rules": [
             {
-              "pattern": "openai.*completions.*create(?!.*parse)",
-              "suggestion": "Use client.beta.chat.completions.parse() with zodResponseFormat() for structured outputs"
+              "pattern": "openai\\.beta\\.chat\\.completions\\.parse",
+              "suggestion": "Use openai.chat.completions.parse() (v5 API - beta namespace deprecated)"
             },
             {
-              "pattern": "\\.optional\\(\\)(?!.*\\.nullable\\(\\))",
-              "suggestion": "Add .nullable() after .optional() for OpenAI structured outputs"
+              "pattern": "openai.*completions.*create(?!.*parse)",
+              "suggestion": "Use openai.chat.completions.parse() with zodResponseFormat() for structured outputs"
+            },
+            {
+              "pattern": "\\.nullable\\(\\)\\.optional\\(\\)",
+              "suggestion": "Use .optional().nullable() order for OpenAI structured outputs"
             }
           ]
+        },
+        {
+          "name": "Structured Logging Check",
+          "condition": "code_contains",
+          "patterns": ["console\\.log", "console\\.error", "console\\.warn"],
+          "action": "suggest",
+          "message": "💡 Consider using structured logging with logInfo/logError/logWarn from @agents/core for better observability"
         }
       ]
     },
@@ -56,24 +68,55 @@
           "message": "🧪 Remember to run `pnpm eval` to test extraction accuracy after prompt changes"
         },
         {
+          "name": "Check Core Changes",
+          "condition": "file_modified",
+          "files": ["packages/core/src/index.ts"],
+          "action": "remind",
+          "message": "🔄 Core utilities updated. Consider running `pnpm build` to ensure all packages compile correctly"
+        },
+        {
           "name": "Format Code",
           "condition": "code_generated",
           "action": "auto_format",
           "formatter": "prettier"
         },
         {
-          "name": "Agents SDK Validation",
+          "name": "Retry Logic Validation",
           "condition": "code_contains",
-          "patterns": ["@openai/agents"],
+          "patterns": ["openai.*chat.*completions"],
           "action": "validate",
           "rules": [
-            { "pattern": "new\\s+Agent\\(\\{[\\s\\S]*outputType", "suggestion": "Provide a Zod schema in Agent.outputType for typed outputs" },
-            { "pattern": "temperature\\s*:\\s*[^0]", "suggestion": "Use temperature: 0 for policy-critical extractions" },
-            { "pattern": "timeout\\s*:\\s*(?:[1-9]\\d{0,3}|1\\d{4}|2[0-8]\\d{3}|29000)", "suggestion": "Set timeout: 30000 (30s) for serverless reliability" }
+            {
+              "pattern": "(?!.*withRetry)",
+              "suggestion": "Wrap OpenAI API calls with withRetry() for production reliability"
+            },
+            {
+              "pattern": "temperature\\s*:\\s*[^0]",
+              "suggestion": "Use temperature: 0 for policy-critical extractions"
+            },
+            {
+              "pattern": "timeout\\s*:\\s*(?:[1-9]\\d{0,3}|1\\d{4}|2[0-8]\\d{3}|29000)",
+              "suggestion": "Set timeout: 30000 (30s) for serverless reliability"
+            }
+          ]
+        },
+        {
+          "name": "Request ID Validation",
+          "condition": "code_contains",
+          "patterns": ["processEmail", "handler"],
+          "action": "validate",
+          "rules": [
+            {
+              "pattern": "(?!.*generateRequestId)",
+              "suggestion": "Generate request ID with generateRequestId() for request tracking"
+            },
+            {
+              "pattern": "(?!.*LogContext)",
+              "suggestion": "Use LogContext interface for structured logging"
+            }
           ]
         }
       ]
     }
   }
 }
-

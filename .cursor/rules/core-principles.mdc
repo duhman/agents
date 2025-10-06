@@ -41,8 +41,10 @@ This project automates customer email responses using OpenAI + Slack HITM.
 
 - TypeScript strict mode
 - Prefer explicit types over `any`
-- Handle errors gracefully
-- Log meaningful context with structured logging
+- Handle errors gracefully with retry logic
+- Structured logging with request IDs for observability
+- Request validation middleware for webhooks
+- Exponential backoff for API failures
 
 ## Key Files
 

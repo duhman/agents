@@ -47,40 +47,42 @@ const goldenSet: GoldenExample[] = [
 
 async function runEvaluation() {
   console.log(`Running evaluation on ${goldenSet.length} examples...`);
-  
+
   let correct = 0;
   let total = goldenSet.length;
 
   for (const example of goldenSet) {
-    const completion = await openai.beta.chat.completions.parse({
+    const completion = await openai.chat.completions.parse({
       model: "gpt-4o-2024-08-06",
-      messages: [
-        { role: "user", content: extractionPrompt(example.email) }
-      ],
+      messages: [{ role: "user", content: extractionPrompt(example.email) }],
       response_format: zodResponseFormat(extractionSchema, "extraction")
     });
 
     const result = completion.choices[0]?.message?.parsed;
-    
+
     if (result) {
-      const match = 
+      const match =
         result.is_cancellation === example.expected.is_cancellation &&
         result.reason === example.expected.reason &&
         result.language === example.expected.language;
-      
+
       if (match) correct++;
-      
-      console.log(`  ${match ? "✓" : "✗"} Expected: ${JSON.stringify(example.expected)}, Got: ${JSON.stringify({
-        is_cancellation: result.is_cancellation,
-        reason: result.reason,
-        language: result.language
-      })}`);
+
+      console.log(
+        `  ${match ? "✓" : "✗"} Expected: ${JSON.stringify(example.expected)}, Got: ${JSON.stringify(
+          {
+            is_cancellation: result.is_cancellation,
+            reason: result.reason,
+            language: result.language
+          }
+        )}`
+      );
     }
   }
 
   const accuracy = (correct / total) * 100;
   console.log(`\n✓ Accuracy: ${accuracy.toFixed(1)}% (${correct}/${total})`);
-  
+
   if (accuracy < 90) {
     console.error("✗ Accuracy below threshold (90%)");
     process.exit(1);
@@ -91,4 +93,3 @@ runEvaluation().catch(err => {
   console.error("✗ Evaluation failed:", err);
   process.exit(1);
 });
-

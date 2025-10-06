@@ -9,11 +9,13 @@ alwaysApply: false
 ## Development vs Production
 
 ✅ **Development:** Use `drizzle-kit push` for rapid prototyping
+
 ```bash
 cd packages/db && pnpm drizzle-kit push
 ```
 
 ✅ **Production:** Use `drizzle-kit generate` + `migrate` for versioned migrations
+
 ```bash
 cd packages/db
 pnpm drizzle-kit generate  # Generate migration files
@@ -29,8 +31,8 @@ export default defineConfig({
   schema: "./src/schema.ts",
   out: "./migrations",
   dialect: "postgresql",
-  verbose: true,  // ✅ Enable for debugging
-  strict: true,   // ✅ Enable for safety
+  verbose: true, // ✅ Enable for debugging
+  strict: true, // ✅ Enable for safety
   dbCredentials: {
     url: process.env.DATABASE_URL
   }
@@ -40,6 +42,7 @@ export default defineConfig({
 ## Schema Patterns
 
 ✅ **DO:** Use UUID primary keys and timestamps
+
 ```typescript
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -48,6 +51,7 @@ export const tickets = pgTable("tickets", {
 ```
 
 ✅ **DO:** Use proper foreign key references
+
 ```typescript
 export const drafts = pgTable("drafts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -68,9 +72,31 @@ export async function createTicket(data: {
   reason?: string;
   moveDate?: Date;
 }) {
-  const [ticket] = await db.insert(tickets).values(data).returning();
+  const [ticket] = await db
+    .insert(tickets)
+    .values({
+      ...data,
+      moveDate: data.moveDate?.toISOString().split("T")[0] // Convert Date to YYYY-MM-DD string
+    })
+    .returning();
   return ticket;
 }
+```
+
+## Date Handling
+
+✅ **DO:** Convert Date objects to ISO date strings for Drizzle
+
+```typescript
+// Convert Date to YYYY-MM-DD string for date columns
+moveDate: data.moveDate?.toISOString().split("T")[0];
+```
+
+❌ **DON'T:** Pass Date objects directly to date columns
+
+```typescript
+// ❌ This will cause type errors
+moveDate: data.moveDate; // Date object
 ```
 
 ## Workspace References

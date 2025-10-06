@@ -9,12 +9,128 @@ export const envSchema = z.object({
 });
 
 export function maskPII(input: string): string {
-  return input
-    // emails
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
-    // phone-like
-    .replace(/\+?\d[\d\s().-]{7,}\d/g, "[phone]")
-    // simple address-like tokens (very conservative)
-    .replace(/\b\d{1,4}\s+\w+\s+(Street|St|Road|Rd|Ave|Avenue|Gate|Gata)\b/gi, "[address]");
+  return (
+    input
+      // emails
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+      // phone-like
+      .replace(/\+?\d[\d\s().-]{7,}\d/g, "[phone]")
+      // simple address-like tokens (very conservative)
+      .replace(/\b\d{1,4}\s+\w+\s+(Street|St|Road|Rd|Ave|Avenue|Gate|Gata)\b/gi, "[address]")
+  );
 }
 
+/**
+ * Retry logic with exponential backoff for OpenAI API calls
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (attempt === maxRetries) throw error;
+
+      // Only retry on specific OpenAI error codes
+      if (error.code === "rate_limit_exceeded" || error.code === "timeout") {
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms delay`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      // Don't retry on other errors (quota, auth, etc.)
+      throw error;
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
+/**
+ * Generate a UUID for request tracking
+ */
+export function generateRequestId(): string {
+  return crypto.randomUUID();
+}
+
+/**
+ * Structured logging interface
+ */
+export interface LogContext {
+  requestId: string;
+  userId?: string;
+  ticketId?: string;
+  duration?: number;
+  [key: string]: any;
+}
+
+/**
+ * Structured logging functions
+ */
+export function logInfo(message: string, context: LogContext, data?: any) {
+  console.log(
+    JSON.stringify({
+      level: "info",
+      message,
+      timestamp: new Date().toISOString(),
+      ...context,
+      ...data
+    })
+  );
+}
+
+export function logError(message: string, context: LogContext, error?: any) {
+  console.error(
+    JSON.stringify({
+      level: "error",
+      message,
+      timestamp: new Date().toISOString(),
+      ...context,
+      error: error?.message || error,
+      stack: error?.stack
+    })
+  );
+}
+
+export function logWarn(message: string, context: LogContext, data?: any) {
+  console.warn(
+    JSON.stringify({
+      level: "warn",
+      message,
+      timestamp: new Date().toISOString(),
+      ...context,
+      ...data
+    })
+  );
+}
+
+/**
+ * Webhook request validation schema
+ */
+export const webhookRequestSchema = z.object({
+  source: z.string().min(1),
+  customerEmail: z.string().email(),
+  rawEmail: z.string().min(1)
+});
+
+export type WebhookRequest = z.infer<typeof webhookRequestSchema>;
+
+/**
+ * Validate webhook request body
+ */
+export function validateWebhookRequest(body: any): WebhookRequest {
+  try {
+    return webhookRequestSchema.parse(body);
+  } catch (error: any) {
+    if (error.name === "ZodError") {
+      const errorMessage = error.errors
+        .map((e: any) => `${e.path.join(".")}: ${e.message}`)
+        .join(", ");
+      throw new Error(`Validation error: ${errorMessage}`);
+    }
+    throw error;
+  }
+}

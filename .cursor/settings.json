@@ -4,13 +4,14 @@
     "documentation/project/prd.md",
     "documentation/project/policies.md",
     "documentation/project/prompts.md",
+    "AWARD_WINNING_IMPROVEMENTS.md",
     ".cursormemory"
   ],
   "cursor.includeFileTree": true,
   "cursor.includeGitChanges": true,
   "cursor.aiAssistant.model": "claude-sonnet-4",
   "cursor.chat.includeWorkspaceSymbols": true,
-  "cursor.chat.maxTokens": 8000,
+  "cursor.chat.maxTokens": 12000,
   "cursor.memories.enabled": true,
   "cursor.memories.autoLoad": true,
   "cursor.hooks.enabled": true,
@@ -22,6 +23,19 @@
   "cursor.chat.customModes": true,
   "cursor.agent.parallelEdits": true,
   "cursor.codebase.indexing": true,
-  "cursor.codebase.embeddings": true
+  "cursor.codebase.embeddings": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.associations": {
+    "*.mdc": "markdown"
+  },
+  "markdown.preview.breaks": true,
+  "cursor.rules.enabled": true,
+  "cursor.rules.autoApply": true
 }
-

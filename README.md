@@ -7,6 +7,7 @@ OpenAI-first email agent system with Slack HITM, Vercel deployment, and fine-tun
 See [`documentation/deployment/QUICKSTART.md`](documentation/deployment/QUICKSTART.md) for step-by-step setup instructions (< 10 minutes).
 
 **TL;DR:**
+
 ```bash
 pnpm install
 cd infra && docker compose up -d
@@ -26,15 +27,18 @@ echo "USE_AGENTS_SDK=1" >> .env
 
 See `documentation/cursor/AGENTS_SDK_MIGRATION.md` and `documentation/cursor/AGENTS_SDK_GUIDE.md`.
 
-## 🏆 Award-Winning Improvements
+## 🏆 Award-Winning Improvements (Updated January 2025)
 
-This project demonstrates best-in-class implementation of OpenAI, Drizzle ORM, Slack Bolt, and Vercel serverless patterns. See [`AWARD_WINNING_IMPROVEMENTS.md`](AWARD_WINNING_IMPROVEMENTS.md) for details on:
+This project demonstrates best-in-class implementation of OpenAI v5, Drizzle ORM, Slack Bolt, and Vercel serverless patterns. See [`AWARD_WINNING_IMPROVEMENTS.md`](AWARD_WINNING_IMPROVEMENTS.md) for details on:
 
-- ⚡ **Serverless-optimized** database connection pooling
-- 🛡️ **Production-grade** OpenAI API error handling  
-- 📊 **Comprehensive observability** with request tracking
+- ⚡ **OpenAI v5 Migration**: Updated from `beta.chat.completions.parse()` to `chat.completions.parse()`
+- 🛡️ **Production-grade** OpenAI API error handling with retry logic
+- 📊 **Structured logging** with request IDs and observability
+- 🔄 **Exponential backoff** retry strategy for API failures
+- ✅ **Request validation** middleware for webhook security
 - 🚀 **3x faster** webhook performance (<2s response time)
-- ✅ **Latest best practices** from official documentation
+- 🎯 **Health check endpoints** for monitoring and debugging
+- 📋 **Enhanced Cursor rules** with latest patterns and validation
 
 All improvements researched using official docs and implemented for maximum simplicity and efficiency.
 
@@ -69,6 +73,7 @@ See [`documentation/README.md`](documentation/README.md) for complete documentat
 ## Cursor IDE Setup
 
 **Quick Start**:
+
 1. The project uses latest Cursor features (Rules, Memories, Hooks, MCP, Custom Modes)
 2. **Restart Cursor** after cloning to load all configurations
 3. Install recommended extensions (prompted automatically)
@@ -77,6 +82,7 @@ See [`documentation/README.md`](documentation/README.md) for complete documentat
 6. See [`documentation/cursor/CURSOR_OPTIMIZATION.md`](documentation/cursor/CURSOR_OPTIMIZATION.md) for all optimizations
 
 **Latest Features**:
+
 - 📋 **Cursor Rules**: Organized `.cursor/rules/` with `.mdc` files (context-aware)
 - 🤖 **Rules Automation**: Auto-sync rules with codebase changes (MCP + file watchers)
 - 🧠 **Cursor Memories**: Auto-loaded project knowledge
@@ -86,4 +92,3 @@ See [`documentation/README.md`](documentation/README.md) for complete documentat
 - ⚡ **Auto-context**: `@prd.md`, `@policies.md`, `.cursormemory`
 - 🎨 **Format on save**, ESLint auto-fix
 - 🚀 **Turborepo** for parallel builds
-

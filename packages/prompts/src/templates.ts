@@ -3,7 +3,7 @@ import { z } from "zod";
 export const extractionSchema = z.object({
   is_cancellation: z.boolean(),
   reason: z.enum(["moving", "other", "unknown"]),
-  move_date: z.string().date().nullable().optional(),
+  move_date: z.string().date().optional().nullable(),
   language: z.enum(["no", "en"]),
   policy_risks: z.array(z.string()).default([])
 });
@@ -42,39 +42,38 @@ export interface DraftParams {
 
 export function generateDraft(params: DraftParams): string {
   const { language, reason, moveDate } = params;
-  
+
   if (language === "no") {
     let body = `Takk for din henvendelse angående oppsigelse av abonnementet ditt.`;
-    
+
     if (reason === "moving") {
       body += `\n\nVi forstår at du skal flytte.`;
     }
-    
+
     body += `\n\nOppsigelsen trer i kraft ved utgangen av den måneden vi mottar beskjeden. Du kan enkelt si opp abonnementet ditt via appen.`;
-    
+
     if (moveDate) {
       body += `\n\nDu nevnte flyttedato ${moveDate}. Vær oppmerksom på at oppsigelsen gjelder fra månedens slutt.`;
     }
-    
+
     body += `\n\nHvis du har spørsmål, er du velkommen til å kontakte oss igjen.`;
-    
+
     return body;
   } else {
     let body = `Thank you for contacting us about canceling your subscription.`;
-    
+
     if (reason === "moving") {
       body += `\n\nWe understand you are relocating.`;
     }
-    
+
     body += `\n\nThe cancellation takes effect at the end of the month we receive your notice. You can easily cancel your subscription via the app.`;
-    
+
     if (moveDate) {
       body += `\n\nYou mentioned a move date of ${moveDate}. Please note that the cancellation applies from the end of the month.`;
     }
-    
+
     body += `\n\nIf you have any questions, feel free to contact us again.`;
-    
+
     return body;
   }
 }
-
