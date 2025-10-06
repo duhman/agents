@@ -11,13 +11,7 @@
         "create": true,
         "search": true
       },
-      "tools": [
-        "codebase_search",
-        "read_file",
-        "search_replace",
-        "grep",
-        "run_terminal_cmd"
-      ],
+      "tools": ["codebase_search", "read_file", "search_replace", "grep", "run_terminal_cmd"],
       "mcpServers": ["exa", "context7"],
       "defaultContext": [
         "@documentation/project/prd.md",
@@ -38,11 +32,7 @@
         "create": false,
         "search": true
       },
-      "tools": [
-        "read_file",
-        "search_replace",
-        "run_terminal_cmd"
-      ],
+      "tools": ["read_file", "search_replace", "run_terminal_cmd"],
       "mcpServers": ["context7"],
       "defaultContext": [
         "@packages/db/src/schema.ts",
@@ -62,11 +52,7 @@
         "create": false,
         "search": true
       },
-      "tools": [
-        "codebase_search",
-        "read_file",
-        "search_replace"
-      ],
+      "tools": ["codebase_search", "read_file", "search_replace"],
       "mcpServers": ["context7"],
       "defaultContext": [
         "@apps/slack-bot/src/index.ts",
@@ -86,11 +72,7 @@
         "create": false,
         "search": true
       },
-      "tools": [
-        "read_file",
-        "search_replace",
-        "run_terminal_cmd"
-      ],
+      "tools": ["read_file", "search_replace", "run_terminal_cmd"],
       "mcpServers": ["exa", "context7"],
       "defaultContext": [
         "@ops/scripts/eval.ts",
@@ -99,8 +81,7 @@
         "@packages/evaluation/"
       ],
       "instructions": "Follow PRD JSONL format. Track metrics: accuracy, edit rate, policy compliance. Require 500+ examples before FT. Update config/models.json with model IDs."
-    }
-    ,
+    },
     {
       "name": "Agents SDK",
       "slug": "agents-sdk",
@@ -112,18 +93,11 @@
         "create": true,
         "search": true
       },
-      "tools": [
-        "codebase_search",
-        "read_file",
-        "search_replace",
-        "grep",
-        "run_terminal_cmd"
-      ],
+      "tools": ["codebase_search", "read_file", "search_replace", "grep", "run_terminal_cmd"],
       "mcpServers": ["context7"],
       "defaultContext": [
         "@packages/agents-runtime/src/agents.ts",
         "@packages/agents-runtime/src/tools.ts",
-        "@packages/agents-runtime/src/guardrails.ts",
         "@packages/prompts/src/templates.ts"
       ],
       "instructions": "Use OpenAI Agents SDK patterns: typed tools with Zod, Agent.outputType, temperature 0, timeout 30000, handoffs for routing, guardrails for policy/PII."
@@ -131,4 +105,3 @@
   ],
   "defaultMode": "agent-dev"
 }
-

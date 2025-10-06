@@ -95,7 +95,7 @@ Please extract information, create appropriate records, and generate a response 
       confidence: result.finalOutput.confidence,
       route: result.finalOutput.route,
       extraction: result.finalOutput.extraction,
-      error: result.finalOutput.error
+      error: result.finalOutput.error ?? undefined
     };
   } catch (error: any) {
     const duration = Date.now() - startTime;

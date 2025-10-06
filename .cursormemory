@@ -1,14 +1,17 @@
 # Cursor Memories - Project Context
 
 ## Project Identity
+
 This is an OpenAI-powered email automation system for Elaway that handles subscription cancellation requests with a Human-in-the-Middle (HITM) review flow via Slack.
 
 ## Core Architecture
+
 - **Pattern**: Email ingestion → OpenAI classification + drafting → Slack HITM → Send reply → Store feedback → Fine-tune
 - **Tech Stack**: Node 20, TypeScript, OpenAI API, Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
 - **Monorepo**: pnpm workspaces with Turborepo for parallel builds
 
 ## Key Constraints
+
 - Norwegian language default, English fallback
 - End-of-month cancellation policy (must be mentioned in drafts)
 - PII masking before any LLM calls (emails/phones/addresses)
@@ -16,21 +19,21 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Minimum 500 approved examples required before fine-tuning
 
 ## Database Schema
+
 - `tickets`: customer email (masked), reason, move_date
 - `drafts`: AI-generated responses with confidence scores
 - `human_reviews`: approve/reject/edit decisions for training
 
-## Important Patterns
-- OpenAI: Always use `client.beta.chat.completions.parse()` with `zodResponseFormat()`
+## Important Patterns (2025)
+
+- OpenAI: Prefer `@openai/agents` for orchestration; for direct calls use `openai.chat.completions.parse()` with `zodResponseFormat()`
 - Optional fields: Must use `.optional().nullable()` pattern
 - Drizzle: Use `push` for dev, `generate` + `migrate` for prod
 - Workspace references: `"@agents/core": "workspace:*"`
-- **NEW (Jan 2025)**: OpenAI Agents SDK available (`@openai/agents`) - under evaluation
-  - Features: agent handoffs, guardrails, tools, built-in tracing
-  - Current implementation already follows best practices
-  - See `@OPENAI_AGENTS_SDK_ANALYSIS.md` for details
+- **OpenAI Agents SDK**: Adopted as primary runtime (`@openai/agents`) with Agents, Handoffs, Tools, and tracing. Guardrails implemented as functions.
 
 ## File Locations
+
 - Documentation: `documentation/` (prd, policies, prompts, guides)
 - Prompts & schemas: `packages/prompts/src/templates.ts`
 - Database schema: `packages/db/src/schema.ts`
@@ -39,12 +42,14 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Slack HITM: `apps/slack-bot/src/index.ts`
 
 ## Success Metrics (KPIs)
+
 - Response time: <15 minutes (goal: <2s for classification)
 - Accuracy: ≥95% policy compliance
 - Deflection: ≥70% handled without human edits post-FT
 - Edit rate: Track for continuous improvement
 
 ## Common Commands
+
 - `pnpm agent:dev` - Test agent locally
 - `pnpm db:push` - Push schema changes (dev)
 - `pnpm eval` - Run golden set evaluation
@@ -52,8 +57,8 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - `pnpm finetune` - Launch OpenAI fine-tuning
 
 ## Team Decisions
+
 - Decided to use Drizzle over Prisma for SQL-first approach
 - Chose Vercel for hosting due to serverless simplicity
 - External HubSpot data pipeline handles training data export
 - OrbStack (Docker-compatible) for local Postgres
-

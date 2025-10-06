@@ -42,7 +42,7 @@ export const createTicketTool = tool({
         source: params.source,
         customerEmail: params.customerEmail,
         rawEmailMasked: params.rawEmailMasked,
-        reason: params.reason,
+        reason: params.reason ?? undefined,
         moveDate: params.moveDate ? new Date(params.moveDate) : undefined
       });
 
@@ -178,7 +178,7 @@ export const generateDraftTool = tool({
         language: params.language,
         reason: params.reason,
         moveDate: params.moveDate,
-        customerName: params.customerName
+        customerName: params.customerName ?? undefined
       });
 
       const analysis = {

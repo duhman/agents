@@ -11,7 +11,7 @@
     "@agents/core": "workspace:*",
     "@agents/db": "workspace:*",
     "@agents/prompts": "workspace:*",
-    "@openai/agents": "^0.1.0",
+    "@openai/agents": "^0.1.9",
     "zod": "^3.22.0"
   },
   "devDependencies": {

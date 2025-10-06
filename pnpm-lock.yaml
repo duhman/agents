@@ -170,7 +170,7 @@ importers:
         specifier: workspace:*
         version: link:../prompts
       '@openai/agents':
-        specifier: ^0.1.0
+        specifier: ^0.1.9
         version: 0.1.9(ws@8.18.3)(zod@3.25.76)
       zod:
         specifier: ^3.22.0

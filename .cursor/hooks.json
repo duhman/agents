@@ -22,22 +22,26 @@
           "message": "⚠️ Detected potential PII. Ensure maskPII() is used before any LLM calls or storage."
         },
         {
-          "name": "OpenAI v5 Pattern Check",
-          "condition": "file_type",
-          "types": ["typescript", "javascript"],
+          "name": "Agents SDK Pattern Check",
+          "condition": "file_contains",
+          "patterns": ["@openai/agents"],
           "action": "validate",
           "rules": [
             {
-              "pattern": "openai\\.beta\\.chat\\.completions\\.parse",
-              "suggestion": "Use openai.chat.completions.parse() (v5 API - beta namespace deprecated)"
+              "pattern": "Agent\\(.*outputType",
+              "suggestion": "Type agent outputs with Zod schemas (outputType)"
             },
             {
-              "pattern": "openai.*completions.*create(?!.*parse)",
-              "suggestion": "Use openai.chat.completions.parse() with zodResponseFormat() for structured outputs"
+              "pattern": "handoffs:\\s*\[",
+              "suggestion": "Route work via handoffs rather than manual branching"
             },
             {
-              "pattern": "\\.nullable\\(\\)\\.optional\\(\\)",
-              "suggestion": "Use .optional().nullable() order for OpenAI structured outputs"
+              "pattern": "tool\\(.*parameters",
+              "suggestion": "Define tools with strict Zod parameter schemas"
+            },
+            {
+              "pattern": "\\.optional\\(\\)(?!\\.nullable\\(\\))",
+              "suggestion": "All optional fields must also be .nullable() in Agents SDK"
             }
           ]
         },

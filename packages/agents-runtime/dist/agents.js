@@ -94,15 +94,22 @@ CRITICAL REQUIREMENTS:
 - Post to Slack for human review`,
     outputType: z.object({
         ticket_id: z.string().describe("Database ID of created ticket"),
-        draft_id: z.string().optional().describe("Database ID of created draft"),
+        draft_id: z.string().optional().nullable().describe("Database ID of created draft"),
         confidence: z.number().min(0).max(1).describe("Overall confidence score"),
         extraction: extractionSchema.describe("Extracted email information"),
-        draft_text: z.string().optional().describe("Generated response text"),
+        draft_text: z.string().optional().nullable().describe("Generated response text"),
         success: z.boolean().describe("Whether processing completed successfully"),
-        error: z.string().optional().describe("Error message if processing failed")
+        error: z.string().optional().nullable().describe("Error message if processing failed")
     }),
     model: "gpt-4o-2024-08-06",
-    tools: [maskPiiTool, createTicketTool, createDraftTool, calculateConfidenceTool, generateDraftTool, postToSlackTool]
+    tools: [
+        maskPiiTool,
+        createTicketTool,
+        createDraftTool,
+        calculateConfidenceTool,
+        generateDraftTool,
+        postToSlackTool
+    ]
 });
 // Enhanced triage agent with proper routing logic
 export const triageAgent = new Agent({
@@ -155,14 +162,14 @@ CRITICAL SUCCESS FACTORS:
 - Maintain performance under load`,
     outputType: z.object({
         success: z.boolean().describe("Whether processing completed successfully"),
-        ticket_id: z.string().optional().describe("Created ticket ID if applicable"),
-        draft_id: z.string().optional().describe("Created draft ID if applicable"),
+        ticket_id: z.string().optional().nullable().describe("Created ticket ID if applicable"),
+        draft_id: z.string().optional().nullable().describe("Created draft ID if applicable"),
         confidence: z.number().min(0).max(1).describe("Overall confidence score"),
         route: z.string().describe("How the email was routed"),
-        extraction: extractionSchema.optional().describe("Extracted email information"),
-        draft_text: z.string().optional().describe("Generated response text"),
-        error: z.string().optional().describe("Error message if processing failed"),
-        processing_time_ms: z.number().optional().describe("Time taken to process")
+        extraction: extractionSchema.optional().nullable().describe("Extracted email information"),
+        draft_text: z.string().optional().nullable().describe("Generated response text"),
+        error: z.string().optional().nullable().describe("Error message if processing failed"),
+        processing_time_ms: z.number().optional().nullable().describe("Time taken to process")
     }),
     model: "gpt-4o-2024-08-06",
     handoffs: [triageAgent, cancellationAgent]

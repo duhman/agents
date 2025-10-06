@@ -32,8 +32,8 @@ export const createTicketTool = tool({
         source: z.string().describe("Source of the email (e.g., 'hubspot', 'email')"),
         customerEmail: z.string().email().describe("Customer's email address"),
         rawEmailMasked: z.string().describe("Masked version of the original email"),
-        reason: z.string().optional().describe("Cancellation reason if applicable"),
-        moveDate: z.string().optional().describe("Move date in ISO format if mentioned")
+        reason: z.string().optional().nullable().describe("Cancellation reason if applicable"),
+        moveDate: z.string().optional().nullable().describe("Move date in ISO format if mentioned")
     }),
     execute: async (params) => {
         try {
@@ -41,7 +41,7 @@ export const createTicketTool = tool({
                 source: params.source,
                 customerEmail: params.customerEmail,
                 rawEmailMasked: params.rawEmailMasked,
-                reason: params.reason,
+                reason: params.reason ?? undefined,
                 moveDate: params.moveDate ? new Date(params.moveDate) : undefined
             });
             logInfo("Ticket created successfully", { requestId: "tool-execution" }, {
@@ -152,8 +152,8 @@ export const generateDraftTool = tool({
     parameters: z.object({
         language: z.enum(["no", "en"]).describe("Language for the draft"),
         reason: z.string().describe("Cancellation reason"),
-        moveDate: z.string().optional().describe("Move date if mentioned"),
-        customerName: z.string().optional().describe("Customer name if available")
+        moveDate: z.string().optional().nullable().describe("Move date if mentioned"),
+        customerName: z.string().optional().nullable().describe("Customer name if available")
     }),
     execute: async (params) => {
         try {
@@ -161,7 +161,7 @@ export const generateDraftTool = tool({
                 language: params.language,
                 reason: params.reason,
                 moveDate: params.moveDate,
-                customerName: params.customerName
+                customerName: params.customerName ?? undefined
             });
             const analysis = {
                 word_count: draftText.split(" ").length,
@@ -233,11 +233,12 @@ export const extractEmailDataTool = tool({
         email: z.string().describe("Email text to analyze"),
         context: z
             .object({
-            source: z.string().optional(),
-            customerEmail: z.string().optional(),
-            timestamp: z.string().optional()
+            source: z.string().optional().nullable(),
+            customerEmail: z.string().optional().nullable(),
+            timestamp: z.string().optional().nullable()
         })
             .optional()
+            .nullable()
             .describe("Additional context for extraction")
     }),
     execute: async ({ email, context }) => {

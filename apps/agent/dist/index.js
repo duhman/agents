@@ -43,14 +43,16 @@ Please extract information, create appropriate records, and generate a response 
         return {
             success: result.finalOutput.success,
             ticket: result.finalOutput.ticket_id ? { id: result.finalOutput.ticket_id } : null,
-            draft: result.finalOutput.draft_id ? {
-                id: result.finalOutput.draft_id,
-                draftText: result.finalOutput.draft_text || ""
-            } : null,
+            draft: result.finalOutput.draft_id
+                ? {
+                    id: result.finalOutput.draft_id,
+                    draftText: result.finalOutput.draft_text || ""
+                }
+                : null,
             confidence: result.finalOutput.confidence,
             route: result.finalOutput.route,
             extraction: result.finalOutput.extraction,
-            error: result.finalOutput.error
+            error: result.finalOutput.error ?? undefined
         };
     }
     catch (error) {
@@ -105,7 +107,7 @@ export async function handleCancellation(params) {
 Source: ${params.source}
 Customer Email: ${params.customerEmail}
 Email Content: ${params.rawEmail}
-${params.extraction ? `Extraction: ${JSON.stringify(params.extraction)}` : ''}
+${params.extraction ? `Extraction: ${JSON.stringify(params.extraction)}` : ""}
 
 Please process this cancellation request and generate appropriate response.`;
         const result = await run(cancellationAgent, input);

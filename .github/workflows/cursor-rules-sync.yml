@@ -6,41 +6,46 @@ on:
     paths:
       - "packages/db/src/schema.ts"
       - "packages/prompts/src/templates.ts"
+      - "packages/agents-runtime/src/**/*.ts"
+      - "apps/agent/src/**/*.ts"
       - "package.json"
       - "packages/*/package.json"
-      - "documentation/project/plan.md"
-  
+      - "documentation/project/**/*.md"
+      - ".cursorrules"
+      - ".cursormemory"
+      - ".cursor/**/*.json"
+
   pull_request:
     types: [opened, synchronize]
-  
+
   workflow_dispatch:
 
 jobs:
   sync-rules:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Need history for git diff
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-      
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: Run Cursor Rules Automation
         run: tsx .cursor/automation/rules-updater.ts
-      
+
       - name: Check for rule changes
         id: check_changes
         run: |
@@ -49,7 +54,7 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Commit and push if changed
         if: steps.check_changes.outputs.changed == 'true' && github.event_name == 'push'
         run: |
@@ -60,7 +65,7 @@ jobs:
           git add .cursor/automation/last-run.json
           git commit -m "chore: auto-update Cursor rules [skip ci]"
           git push
-      
+
       - name: Create PR comment if rules out of sync
         if: steps.check_changes.outputs.changed == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -72,11 +77,10 @@ jobs:
               repo: context.repo.name,
               body: '⚠️ **Cursor rules need updating**\n\nYour changes require updates to Cursor rules. Please run:\n```bash\ntsx .cursor/automation/rules-updater.ts\n```\nThen commit the updated rule files.'
             })
-      
+
       - name: Upload automation report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cursor-rules-report
           path: .cursor/automation/last-run.json
-
