@@ -198,9 +198,6 @@ importers:
 
   packages/db:
     dependencies:
-      '@vercel/functions':
-        specifier: ^1.0.0
-        version: 1.6.0(@aws-sdk/credential-provider-web-identity@3.901.0)
       drizzle-orm:
         specifier: ^0.30.0
         version: 0.30.10(postgres@3.4.7)
@@ -1262,15 +1259,6 @@ packages:
 
   '@vercel/error-utils@2.0.3':
     resolution: {integrity: sha512-CqC01WZxbLUxoiVdh9B/poPbNpY9U+tO1N9oWHwTl5YAZxcqXmmWJ8KNMFItJCUUWdY3J3xv8LvAuQv2KZ5YdQ==}
-
-  '@vercel/functions@1.6.0':
-    resolution: {integrity: sha512-R6FKQrYT5MZs5IE1SqeCJWxMuBdHawFcCZboKKw8p7s+6/mcd55Gx6tWmyKnQTyrSEA04NH73Tc9CbqpEle8RA==}
-    engines: {node: '>= 16'}
-    peerDependencies:
-      '@aws-sdk/credential-provider-web-identity': '*'
-    peerDependenciesMeta:
-      '@aws-sdk/credential-provider-web-identity':
-        optional: true
 
   '@vercel/nft@0.27.3':
     resolution: {integrity: sha512-oySTdDSzUAFDXpsSLk9Q943o+/Yu/+TCFxnehpFQEf/3khi2stMpTHPVNwFdvZq/Z4Ky93lE+MGHpXCRpMkSCA==}
@@ -4751,10 +4739,6 @@ snapshots:
   '@vercel/build-utils@8.7.0': {}
 
   '@vercel/error-utils@2.0.3': {}
-
-  '@vercel/functions@1.6.0(@aws-sdk/credential-provider-web-identity@3.901.0)':
-    optionalDependencies:
-      '@aws-sdk/credential-provider-web-identity': 3.901.0
 
   '@vercel/nft@0.27.3':
     dependencies:

@@ -9,15 +9,17 @@ The project uses **Cursor's modern rules system** with organized `.mdc` files in
 ### Rules are automatically loaded after cloning:
 
 ✅ **Root-level rules** (`.cursor/rules/`):
+
 - `core-principles.mdc` - Always applied (Privacy, Compliance, Schema-Driven)
 - `openai-patterns.mdc` - Auto-attached for agent/prompts files
 - `database-patterns.mdc` - Auto-attached for DB files
 - `slack-hitm.mdc` - Auto-attached for Slack bot files
-- `vercel-deployment.mdc` - Auto-attached for ingestor/vercel.json
+- `vercel-deployment.mdc` - Auto-attached for api/vercel.json
 - `monorepo-workspace.mdc` - Auto-attached for package.json files
 - `testing-evaluation.mdc` - Auto-attached for eval/test files
 
 ✅ **Nested rules** (automatically apply in subdirectories):
+
 - `apps/agent/.cursor/rules/agent-workflow.mdc` - Agent-specific workflow
 - `packages/db/.cursor/rules/schema-migrations.mdc` - Database schema guidelines
 - `packages/prompts/.cursor/rules/prompt-engineering.mdc` - Prompt patterns
@@ -39,6 +41,7 @@ Pin these files in Cursor chat context for easy reference:
    - `@README.md` - Quick start guide
 
 **Usage:** When working on agent logic, drafting, or HITM flows, start prompts with:
+
 ```
 @prd.md @policies.md How should we handle...
 ```
@@ -63,19 +66,25 @@ Add these external docs for quick reference while coding:
 MCP servers extend Cursor with external tools and services.
 
 ### GitHub MCP (recommended)
+
 If your organization has GitHub MCP available:
+
 1. Cursor Settings → **MCP**
 2. Click **"Add new MCP Server"**
 3. Enter GitHub MCP server details
 4. Test with: "Open a PR for this branch"
 
 ### Deployment MCP (optional)
+
 If you're using a deployment provider with MCP support (e.g., Vercel, Railway):
+
 1. Add the provider's MCP server configuration
 2. Test with: "Deploy to staging"
 
 ### Fallback
+
 If MCP isn't available, use standard CLI tools:
+
 ```bash
 gh pr create
 vercel deploy
@@ -97,26 +106,34 @@ Protect your codebase and secrets:
 ## 6. Workflow Best Practices
 
 ### Use Ask Mode for Core Flows
+
 When implementing agent classification, drafting, or HITM logic:
+
 ```
 Ask: @prd.md How should we structure the OpenAI extraction call?
 ```
 
 ### Use Composer for Multi-File Changes
+
 For changes spanning multiple files (e.g., adding a new field to schema + repos + agent):
+
 1. Open Composer (`Cmd/Ctrl + I`)
 2. Select **"Run with plan"**
 3. Review the plan before applying
 4. Keep batches small (≤5 files) for easier review
 
 ### Use Inline Edit for Local Refactors
+
 For single-file changes:
+
 1. Select code
 2. Press `Cmd/Ctrl + K`
 3. Type your edit instruction
 
 ### Run Tests After AI Edits
+
 After Composer or agent-generated edits:
+
 ```bash
 pnpm test
 # or for specific package:
@@ -126,6 +143,7 @@ cd packages/db && pnpm drizzle-kit push
 ## 7. Name Your Chats
 
 Organize chats by feature for easy reference:
+
 - "Agent: OpenAI extraction schema"
 - "Slack HITM: Approve flow"
 - "DB: Add fine-tuning tracking"
@@ -161,16 +179,19 @@ tsx ops/scripts/finetune.ts
 ## 9. Troubleshooting
 
 ### Cursor not applying rules
+
 - Verify the rule file is imported in Settings → Rules
 - Check `alwaysApply: true` is set
 - Restart Cursor
 
 ### Context not found for @filename
+
 - Ensure file is in workspace
 - Try absolute path: `@/Users/.../file.md`
 - Pin frequently used files
 
 ### MCP server not responding
+
 - Check server logs in Settings → MCP → Server Details
 - Verify authentication tokens
 - Restart Cursor
@@ -195,4 +216,3 @@ tsx ops/scripts/finetune.ts
 This project has **migrated from the legacy `.cursorrules` file** to modern `.cursor/rules/` with `.mdc` format.
 
 See `CURSOR_RULES_MIGRATION.md` for full migration details.
-

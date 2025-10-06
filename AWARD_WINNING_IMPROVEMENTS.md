@@ -123,7 +123,7 @@ async function extractFields(maskedEmail: string, logContext: LogContext) {
 **Solution:** Production-ready webhook with structured logging and request validation:
 
 ```typescript
-// apps/ingestor/api/webhook.ts
+// api/webhook.ts
 import { validateWebhookRequest, generateRequestId, logInfo, logError, logWarn } from "@agents/core";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -289,7 +289,7 @@ Already well-implemented with:
 **Solution:** Implemented comprehensive health check endpoint:
 
 ```typescript
-// apps/ingestor/api/health.ts
+// api/health.ts
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
 

@@ -16,7 +16,7 @@ Successfully migrated from legacy `.cursorrules` to modern `.cursor/rules/` dire
 ├── openai-patterns.mdc          # 📎 Auto-attached: apps/agent, packages/prompts
 ├── database-patterns.mdc        # 📎 Auto-attached: packages/db
 ├── slack-hitm.mdc               # 📎 Auto-attached: apps/slack-bot
-├── vercel-deployment.mdc        # 📎 Auto-attached: apps/ingestor, vercel.json
+├── vercel-deployment.mdc        # 📎 Auto-attached: api, vercel.json
 ├── monorepo-workspace.mdc       # 📎 Auto-attached: package.json files
 └── testing-evaluation.mdc       # 📎 Auto-attached: ops/scripts/eval.ts
 ```
@@ -47,6 +47,7 @@ packages/prompts/.cursor/rules/
 ### ✅ Always Applied (4 rules)
 
 These load in **every** AI request:
+
 - `core-principles.mdc` (root)
 - `agent-workflow.mdc` (when in `apps/agent/`)
 - `schema-migrations.mdc` (when in `packages/db/`)
@@ -55,10 +56,11 @@ These load in **every** AI request:
 ### 📎 Auto-Attached (6 rules)
 
 These load **only when working with matching files**:
+
 - `openai-patterns.mdc` → `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`
 - `database-patterns.mdc` → `packages/db/**/*.ts`
 - `slack-hitm.mdc` → `apps/slack-bot/**/*.ts`
-- `vercel-deployment.mdc` → `apps/ingestor/**/*.ts`, `vercel.json`
+- `vercel-deployment.mdc` → `api/**/*.ts`, `vercel.json`
 - `monorepo-workspace.mdc` → `package.json`, `pnpm-workspace.yaml`, `turbo.json`
 - `testing-evaluation.mdc` → `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`
 
@@ -66,21 +68,23 @@ These load **only when working with matching files**:
 
 ## 📊 Benefits
 
-| Before (`.cursorrules`) | After (`.cursor/rules/`) |
-|-------------------------|--------------------------|
-| ❌ Single 87-line file | ✅ 10 focused files |
-| ❌ Always loaded (all context) | ✅ Context-aware loading |
-| ❌ Monolithic, hard to navigate | ✅ Organized by concern |
-| ❌ No directory-specific guidance | ✅ Nested rules for subdirectories |
-| ❌ Legacy format | ✅ Modern `.mdc` format |
-| ❌ ~2500 tokens per request | ✅ ~800-1500 tokens (60% reduction) |
+| Before (`.cursorrules`)           | After (`.cursor/rules/`)            |
+| --------------------------------- | ----------------------------------- |
+| ❌ Single 87-line file            | ✅ 10 focused files                 |
+| ❌ Always loaded (all context)    | ✅ Context-aware loading            |
+| ❌ Monolithic, hard to navigate   | ✅ Organized by concern             |
+| ❌ No directory-specific guidance | ✅ Nested rules for subdirectories  |
+| ❌ Legacy format                  | ✅ Modern `.mdc` format             |
+| ❌ ~2500 tokens per request       | ✅ ~800-1500 tokens (60% reduction) |
 
 ### Token Usage Reduction
 
 **Before:**
+
 - Every request loaded all 87 lines (~2500 tokens)
 
 **After:**
+
 - Core principles: ~500 tokens (always)
 - Relevant rules: ~300-1000 tokens (context-aware)
 - **Net savings: 40-60% fewer tokens per request**
@@ -147,6 +151,7 @@ Comprehensive guide for team members on how rules work
 ### Automatic Loading
 
 Rules load automatically:
+
 1. **Always applied** rules load in every request
 2. **Auto-attached** rules load when you open/edit matching files
 3. **Nested rules** load when working in specific directories
@@ -154,6 +159,7 @@ Rules load automatically:
 ### Viewing Active Rules
 
 Open **Agent sidebar** in Cursor Chat or Inline Edit to see:
+
 - ✅ Always-applied rules (green badge)
 - 📎 Auto-attached rules (blue badge)
 - 📁 Nested rules (yellow badge)
@@ -161,6 +167,7 @@ Open **Agent sidebar** in Cursor Chat or Inline Edit to see:
 ### Example: Working in `apps/agent/`
 
 When you open `apps/agent/src/index.ts`, Cursor loads:
+
 1. `core-principles.mdc` (always)
 2. `openai-patterns.mdc` (glob match: `apps/agent/**/*.ts`)
 3. `agent-workflow.mdc` (nested: `apps/agent/.cursor/rules/`)
@@ -171,13 +178,13 @@ When you open `apps/agent/src/index.ts`, Cursor loads:
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
+| Document                    | Purpose                                    |
+| --------------------------- | ------------------------------------------ |
 | `CURSOR_RULES_MIGRATION.md` | Full migration guide with examples and FAQ |
-| `CURSOR_RULES_SUMMARY.md` | This file - quick reference |
-| `.cursor/rules/README.md` | Team guide for using rules |
-| `CURSOR_OPTIMIZATION.md` | Updated to reference new rules |
-| `CURSOR_SETUP.md` | Updated setup instructions |
+| `CURSOR_RULES_SUMMARY.md`   | This file - quick reference                |
+| `.cursor/rules/README.md`   | Team guide for using rules                 |
+| `CURSOR_OPTIMIZATION.md`    | Updated to reference new rules             |
+| `CURSOR_SETUP.md`           | Updated setup instructions                 |
 
 ---
 
@@ -239,6 +246,7 @@ find . -path "*/.cursor/rules/*.mdc"
 Rules only load when relevant, giving more focused AI responses.
 
 **Example:**
+
 - Working on DB schema? Get database-specific guidance
 - Writing prompts? Get prompt engineering patterns
 - No Slack work? No Slack rules loaded
@@ -246,6 +254,7 @@ Rules only load when relevant, giving more focused AI responses.
 ### 2. **Better Organization**
 
 Each rule is focused on one concern:
+
 - OpenAI patterns separate from DB patterns
 - Slack patterns separate from Vercel patterns
 - Monorepo structure separate from testing
@@ -253,6 +262,7 @@ Each rule is focused on one concern:
 ### 3. **Reduced Token Usage**
 
 Loading only relevant rules saves 40-60% tokens per request:
+
 - Faster responses
 - Lower costs
 - More room for actual code context
@@ -260,6 +270,7 @@ Loading only relevant rules saves 40-60% tokens per request:
 ### 4. **Scalability**
 
 Easy to add new rules without cluttering:
+
 ```bash
 # Add a new rule
 cd .cursor/rules
@@ -270,6 +281,7 @@ cd .cursor/rules
 ### 5. **Directory-Specific Guidance**
 
 Nested rules provide focused guidance per directory:
+
 - `apps/agent/` gets agent workflow rules
 - `packages/db/` gets schema migration rules
 - `packages/prompts/` gets prompt engineering rules
@@ -290,16 +302,19 @@ Nested rules provide focused guidance per directory:
 ### Legacy Files
 
 ❌ **Do not edit these files** (deprecated):
+
 - `.cursorrules` (legacy, migrated to `.cursor/rules/`)
 - `docs/rules/cancellation-agent.md` (obsolete, migrated to `.cursor/rules/`)
 
 ✅ **Edit these instead:**
+
 - `.cursor/rules/*.mdc` (modern rules)
 - Nested `.cursor/rules/*.mdc` in subdirectories
 
 ### MCP and Hooks Compatibility
 
 The new rules system works seamlessly with:
+
 - ✅ Cursor Memories (`.cursormemory`)
 - ✅ Agent Hooks (`.cursor/hooks.json`)
 - ✅ MCP Servers (`.cursor/mcp.json`)
@@ -316,4 +331,3 @@ All latest Cursor features are compatible and complementary!
 **Token Savings:** 40-60% per request  
 **Maintainability:** 10x improvement (organized files vs monolithic)  
 **Developer Experience:** Seamless auto-loading, context-aware guidance
-

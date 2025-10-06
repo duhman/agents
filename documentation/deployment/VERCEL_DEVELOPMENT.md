@@ -13,8 +13,8 @@ pnpm install
 # Start local development server
 pnpm dev
 
-# Test functions locally
-pnpm --filter @agents/ingestor dev
+# Test functions locally with Vercel CLI
+vercel dev
 ```
 
 ### Deploy to Vercel
@@ -48,13 +48,10 @@ Configure appropriate timeouts in `vercel.json`:
 ```json
 {
   "functions": {
-    "apps/ingestor/api/webhook.ts": {
+    "api/*.ts": {
       "maxDuration": 30
     },
-    "apps/ingestor/api/health.ts": {
-      "maxDuration": 10
-    },
-    "apps/ingestor/api/cron/export-training-data.ts": {
+    "api/cron/*.ts": {
       "maxDuration": 300
     }
   }
@@ -417,6 +414,36 @@ Set environment variables in Vercel Dashboard:
 - Validate environment variables with Zod
 - Check Vercel Dashboard for correct values
 - Ensure variables are set for correct environment
+
+#### Build Failures
+
+**pnpm install errors:**
+
+- Ensure `pnpm-lock.yaml` is up to date: `pnpm install`
+- Check Node.js version compatibility in `package.json` engines
+- Verify pnpm workspace configuration in `pnpm-workspace.yaml`
+
+**Lockfile out of sync:**
+
+```bash
+# Update lockfile after dependency changes
+pnpm install
+
+# Verify lockfile is current
+pnpm install --frozen-lockfile
+```
+
+**API route patterns:**
+
+- Ensure functions are in `api/` directory at project root
+- Use glob patterns in `vercel.json`: `"api/*.ts"`
+- Verify function files exist and have correct exports
+
+**Output directory issues:**
+
+- Vercel expects a `public/` directory for static files
+- Create `public/index.html` for API documentation
+- Set `"outputDirectory": "public"` in `vercel.json`
 
 ### Debugging Steps
 

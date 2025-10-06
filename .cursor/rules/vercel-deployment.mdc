@@ -23,13 +23,10 @@ export const config = {
 ```json
 {
   "functions": {
-    "apps/ingestor/api/webhook.ts": {
+    "api/*.ts": {
       "maxDuration": 30
     },
-    "apps/ingestor/api/health.ts": {
-      "maxDuration": 10
-    },
-    "apps/ingestor/api/cron/export-training-data.ts": {
+    "api/cron/*.ts": {
       "maxDuration": 300
     }
   }

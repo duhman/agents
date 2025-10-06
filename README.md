@@ -44,11 +44,17 @@ All improvements researched using official docs and implemented for maximum simp
 
 ## Project Structure
 
-- `apps/` - Vercel Functions and services
-  - `ingestor` - Webhook handlers
+- `api/` - Vercel Serverless Functions
+  - `webhook.ts` - Inbound email webhook handler
+  - `health.ts` - Health check endpoint
+  - `cron/export-training-data.ts` - Monthly training data export
+- `public/` - Static files
+  - `index.html` - API documentation and landing page
+- `apps/` - Application services
   - `agent` - OpenAI classify+draft worker
   - `slack-bot` - HITM review flow
   - `mailer` - Outbound replies
+  - `ingestor` - Dependency container for serverless functions
 - `packages/` - Shared libraries
   - `core` - Utils, PII masking, Zod schemas
   - `prompts` - Prompt templates and extraction schemas

@@ -119,7 +119,7 @@
         {
           "name": "Vercel Function Validation",
           "condition": "file_path",
-          "patterns": ["apps/.*/api/.*\\.ts"],
+          "patterns": ["api/.*\\.ts"],
           "action": "validate",
           "rules": [
             {

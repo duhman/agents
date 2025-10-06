@@ -46,14 +46,14 @@ These rules are included in every AI request:
 
 These rules are automatically included when working with matching files:
 
-| Rule | Applies To |
-|------|-----------|
-| `openai-patterns.mdc` | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`, `ops/scripts/eval.ts` |
-| `database-patterns.mdc` | `packages/db/**/*.ts` |
-| `slack-hitm.mdc` | `apps/slack-bot/**/*.ts` |
-| `vercel-deployment.mdc` | `apps/ingestor/**/*.ts`, `vercel.json` |
-| `monorepo-workspace.mdc` | `package.json`, `pnpm-workspace.yaml`, `turbo.json` |
-| `testing-evaluation.mdc` | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts` |
+| Rule                     | Applies To                                                              |
+| ------------------------ | ----------------------------------------------------------------------- |
+| `openai-patterns.mdc`    | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`, `ops/scripts/eval.ts` |
+| `database-patterns.mdc`  | `packages/db/**/*.ts`                                                   |
+| `slack-hitm.mdc`         | `apps/slack-bot/**/*.ts`                                                |
+| `vercel-deployment.mdc`  | `api/**/*.ts`, `vercel.json`                                            |
+| `monorepo-workspace.mdc` | `package.json`, `pnpm-workspace.yaml`, `turbo.json`                     |
+| `testing-evaluation.mdc` | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`                    |
 
 ### 3. **Nested Rules**
 
@@ -270,4 +270,3 @@ No. Rules only apply to **Agent (Chat)** and **Inline Edit**. They do not affect
 **Migration Date:** January 2025  
 **Status:** ✅ Complete  
 **Next Step:** Restart Cursor and verify rules load correctly
-
