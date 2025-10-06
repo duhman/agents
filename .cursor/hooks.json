@@ -115,6 +115,26 @@
               "suggestion": "Use LogContext interface for structured logging"
             }
           ]
+        },
+        {
+          "name": "Vercel Function Validation",
+          "condition": "file_path",
+          "patterns": ["apps/.*/api/.*\\.ts"],
+          "action": "validate",
+          "rules": [
+            {
+              "pattern": "(?!.*export const config)",
+              "suggestion": "Add runtime configuration: export const config = { runtime: 'nodejs', regions: ['iad1'] }"
+            },
+            {
+              "pattern": "(?!.*isServerless)",
+              "suggestion": "Use isServerless detection for optimized connection pooling"
+            },
+            {
+              "pattern": "maxDuration.*[1-9]\\d{0,2}",
+              "suggestion": "Set appropriate maxDuration in vercel.json (10s for health, 30s for webhooks, 300s for cron)"
+            }
+          ]
         }
       ]
     }

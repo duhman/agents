@@ -1,12 +1,63 @@
+# Dependencies
 node_modules
-.env
-.env.*
-*.log
-coverage
-.DS_Store
-.tmp
-infra/
-docs/
-*.md
-!README.md
+.pnpm-store
 
+# Build artifacts
+dist
+build
+.next
+out
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation (not needed in production)
+documentation
+README.md
+*.md
+
+# Test files
+test
+tests
+__tests__
+*.test.*
+*.spec.*
+
+# Coverage reports
+coverage
+.nyc_output
+
+# Temporary files
+tmp
+temp
+.tmp
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Local development
+infra
+ops/scripts

@@ -37,5 +37,28 @@
   },
   "markdown.preview.breaks": true,
   "cursor.rules.enabled": true,
-  "cursor.rules.autoApply": true
+  "cursor.rules.autoApply": true,
+  "vercel.enabled": true,
+  "vercel.autoDeploy": false,
+  "vercel.previewDeployments": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.associations": {
+    "*.mdc": "markdown",
+    "vercel.json": "json",
+    ".vercelignore": "ignore"
+  },
+  "markdown.preview.breaks": true,
+  "json.schemas": [
+    {
+      "fileMatch": ["vercel.json"],
+      "url": "https://vercel.com/schemas/vercel.json"
+    }
+  ]
 }

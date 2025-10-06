@@ -17,6 +17,7 @@ documentation/
 ├── deployment/                  # Deployment and setup guides
 │   ├── QUICKSTART.md           # Local setup (<10 minutes)
 │   ├── DEPLOYMENT.md           # Vercel deployment guide
+│   ├── VERCEL_DEVELOPMENT.md   # Vercel-specific development patterns
 │   └── ENVIRONMENT_VARIABLES.md # Environment variables reference
 └── project/                     # Project documentation
     ├── prd.md                  # Product Requirements Document
@@ -52,6 +53,7 @@ documentation/
 
 - **Local development:** [`deployment/QUICKSTART.md`](deployment/QUICKSTART.md)
 - **Production deployment:** [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md)
+- **Vercel development:** [`deployment/VERCEL_DEVELOPMENT.md`](deployment/VERCEL_DEVELOPMENT.md)
 - **Environment variables:** [`deployment/ENVIRONMENT_VARIABLES.md`](deployment/ENVIRONMENT_VARIABLES.md)
 
 ## 🎯 Documentation by Role

@@ -13,6 +13,12 @@ import {
   type LogContext
 } from "@agents/core";
 
+// Configure Vercel function runtime
+export const config = {
+  runtime: "nodejs",
+  regions: ["iad1"]
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Start timing for monitoring
   const startTime = Date.now();

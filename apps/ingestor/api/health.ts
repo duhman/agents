@@ -6,6 +6,12 @@ import { db } from "@agents/db";
 import OpenAI from "openai";
 import { envSchema } from "@agents/core";
 
+// Configure Vercel function runtime
+export const config = {
+  runtime: "nodejs",
+  regions: ["iad1"]
+};
+
 const env = envSchema.parse(process.env);
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 

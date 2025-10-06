@@ -11,8 +11,29 @@
       "schedule": "0 0 1 * *"
     }
   ],
+  "functions": {
+    "apps/ingestor/api/webhook.ts": {
+      "maxDuration": 30
+    },
+    "apps/ingestor/api/health.ts": {
+      "maxDuration": 10
+    },
+    "apps/ingestor/api/cron/export-training-data.ts": {
+      "maxDuration": 300
+    },
+    "apps/slack-bot/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "apps/agent/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "apps/mailer/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "regions": ["iad1"],
+  "framework": null
 }
-

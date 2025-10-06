@@ -1,113 +1,291 @@
 ---
-description: Vercel deployment patterns and serverless constraints
-globs: apps/ingestor/**/*.ts, vercel.json
+description: Vercel deployment patterns and serverless constraints (Updated January 2025)
+globs: apps/ingestor/**/*.ts, vercel.json, apps/**/api/**/*.ts
 alwaysApply: false
 ---
 
-# Vercel Deployment Best Practices
+# Vercel Deployment Best Practices (2025)
 
-## Function Constraints
+## Function Runtime Configuration
 
-⚠️ **Critical:** Keep functions <5s execution time
+✅ **DO:** Configure runtime and regions explicitly
 
-✅ **DO:** Return quickly, enqueue long-running tasks
 ```typescript
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Validate input
-  const { source, customerEmail, rawEmail } = req.body;
-  
-  // Enqueue async job (Inngest/QStash)
-  await enqueueProcessing({ source, customerEmail, rawEmail });
-  
-  // Return immediately
-  return res.status(202).json({ queued: true });
+// Configure Vercel function runtime
+export const config = {
+  runtime: "nodejs",
+  regions: ["iad1"] // Specify region closest to your database
+};
+```
+
+✅ **DO:** Set appropriate timeouts in vercel.json
+
+```json
+{
+  "functions": {
+    "apps/ingestor/api/webhook.ts": {
+      "maxDuration": 30
+    },
+    "apps/ingestor/api/health.ts": {
+      "maxDuration": 10
+    },
+    "apps/ingestor/api/cron/export-training-data.ts": {
+      "maxDuration": 300
+    }
+  }
 }
 ```
 
-❌ **DON'T:** Block on long operations
-```typescript
-export default async function handler(req, res) {
-  await processEmail(req.body);        // ❌ May timeout
-  await generateDraft();                // ❌ Too slow
-  await postToSlack();                  // ❌ Stacks delays
-  return res.json({ success: true });
-}
-```
+## Database Connection Pooling (Latest 2025)
 
-## Database Connections
-
-Use pooled connections for Postgres:
+✅ **DO:** Use optimized connection pooling for Vercel
 
 ```typescript
+import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-// ✅ Use connection pooling
-const connectionString = process.env.DATABASE_URL; // Must include pooling params
-const queryClient = postgres(connectionString);
+const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+const queryClient = postgres(connectionString, {
+  prepare: isServerless ? false : undefined,
+  max: isServerless ? 1 : 10,
+  idle_timeout: isServerless ? 20 : undefined,
+  connect_timeout: 10,
+  transform: {
+    undefined: null // Transform undefined to null for PostgreSQL
+  }
+});
+
+export const db = drizzle(queryClient, { schema });
 ```
 
-Vercel Postgres connection string format:
-```
-postgres://user:pass@host/db?pgbouncer=true&connection_limit=1
-```
-
-## Environment Variables
-
-Always use environment variables for secrets:
+❌ **DON'T:** Create connections outside request handlers
 
 ```typescript
-const env = envSchema.parse(process.env);
-
-// ✅ DO: Use validated env vars
-const apiKey = env.OPENAI_API_KEY;
-
-// ❌ DON'T: Hardcode secrets
-const apiKey = "sk-..."; // ❌ Never!
+// ❌ This will cause connection leaks
+const db = drizzle(postgres(connectionString)); // Outside handler
 ```
 
-## Cron Jobs
+## Function Constraints & Performance
 
-Define in `vercel.json`:
+⚠️ **Critical:** Keep functions <30s execution time (updated limit)
+
+✅ **DO:** Use fire-and-forget for non-critical operations
+
+```typescript
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Process critical path first
+  const result = await processEmail(data);
+
+  // Fire-and-forget non-critical operations
+  postToSlack(result).catch(error => {
+    logError("Slack posting failed", logContext, error);
+    // Don't fail the webhook if Slack fails
+  });
+
+  // Return immediately
+  return res.status(200).json({ success: true });
+}
+```
+
+✅ **DO:** Use structured logging with request IDs
+
+```typescript
+import { generateRequestId, logInfo, logError, type LogContext } from "@agents/core";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+  const startTime = Date.now();
+
+  try {
+    logInfo("Webhook received", logContext, {
+      method: req.method,
+      url: req.url
+    });
+
+    // Process request...
+
+    const duration = Date.now() - startTime;
+    logInfo("Request completed", { ...logContext, duration });
+
+    return res.status(200).json({ success: true });
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    logError("Request failed", { ...logContext, duration }, error);
+
+    return res.status(500).json({ error: error.message });
+  }
+}
+```
+
+## Environment Variables & Security
+
+✅ **DO:** Validate environment variables with Zod
+
+```typescript
+import { z } from "zod";
+
+export const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  OPENAI_API_KEY: z.string().min(1),
+  SLACK_BOT_TOKEN: z.string().min(1).optional(),
+  SLACK_SIGNING_SECRET: z.string().min(1).optional()
+});
+
+const env = envSchema.parse(process.env);
+```
+
+✅ **DO:** Use proper HTTP status codes
+
+```typescript
+// Return appropriate status codes based on error type
+const statusCode = error.message?.includes("quota")
+  ? 402
+  : error.message?.includes("rate limit")
+    ? 429
+    : error.message?.includes("timeout")
+      ? 504
+      : 500;
+
+return res.status(statusCode).json({
+  error: error.message || "Internal server error",
+  request_id: requestId
+});
+```
+
+## Cron Jobs & Scheduled Functions
+
+✅ **DO:** Protect cron endpoints with authentication
+
+```typescript
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Verify cron secret to prevent unauthorized access
+  const authHeader = req.headers.authorization;
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  // Process cron job...
+}
+```
+
+✅ **DO:** Define cron schedules in vercel.json
 
 ```json
 {
   "crons": [
     {
       "path": "/api/cron/export-training-data",
-      "schedule": "0 0 1 * *"  // Monthly on 1st at midnight
+      "schedule": "0 0 1 * *" // Monthly on 1st at midnight
     }
   ]
 }
 ```
 
-Protect cron endpoints:
+## Health Check Endpoints
+
+✅ **DO:** Implement comprehensive health checks
 
 ```typescript
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: "Unauthorized" });
+  const startTime = Date.now();
+
+  try {
+    const [database, openai, slack] = await Promise.all([
+      checkDatabase(),
+      checkOpenAI(),
+      checkSlack()
+    ]);
+
+    const duration = Date.now() - startTime;
+
+    const health = {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      duration_ms: duration,
+      services: { database, openai, slack },
+      version: process.env.VERCEL_GIT_COMMIT_SHA || "local",
+      environment: process.env.NODE_ENV || "development"
+    };
+
+    // Check if any service is unhealthy
+    const unhealthyServices = Object.values(health.services).filter(
+      service => service.status === "unhealthy"
+    );
+
+    if (unhealthyServices.length > 0) {
+      health.status = "degraded";
+      return res.status(503).json(health);
+    }
+
+    return res.status(200).json(health);
+  } catch (error: any) {
+    return res.status(500).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
   }
-  // ... process cron job
 }
 ```
 
-## Error Handling
+## Vercel Configuration (vercel.json)
 
-Always return proper HTTP status codes:
+✅ **DO:** Configure comprehensive function settings
+
+```json
+{
+  "buildCommand": "pnpm install && pnpm build",
+  "functions": {
+    "apps/ingestor/api/webhook.ts": {
+      "maxDuration": 30
+    },
+    "apps/ingestor/api/health.ts": {
+      "maxDuration": 10
+    },
+    "apps/ingestor/api/cron/export-training-data.ts": {
+      "maxDuration": 300
+    }
+  },
+  "regions": ["iad1"],
+  "framework": null,
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
+```
+
+## Error Handling & Observability
+
+✅ **DO:** Implement retry logic with exponential backoff
 
 ```typescript
-try {
-  await processEmail(data);
-  return res.status(200).json({ success: true });
-} catch (error) {
-  console.error("Processing error:", error);
-  return res.status(500).json({ error: error.message });
-}
+import { withRetry } from "@agents/core";
+
+const result = await withRetry(
+  async () => {
+    return await openai.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        /* ... */
+      ],
+      response_format: zodResponseFormat(extractionSchema, "extraction"),
+      temperature: 0,
+      timeout: 30000
+    });
+  },
+  3, // maxRetries
+  1000 // baseDelay
+);
 ```
 
 ## References
 
-- @apps/ingestor/api/webhook.ts - Webhook handler
+- @apps/ingestor/api/webhook.ts - Webhook handler with latest patterns
+- @apps/ingestor/api/health.ts - Health check endpoint
 - @apps/ingestor/api/cron/export-training-data.ts - Cron example
 - @vercel.json - Deployment configuration
+- @packages/db/src/client.ts - Database connection pooling
+- [Vercel Functions Documentation](https://vercel.com/docs/functions)
+- [Vercel Connection Pooling Guide](https://vercel.com/guides/connection-pooling-with-functions)
