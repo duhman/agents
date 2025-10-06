@@ -1,6 +1,11 @@
 import "dotenv/config";
-import slackBolt from "@slack/bolt";
-const { App } = slackBolt as any;
+import {
+  App,
+  type SlackActionMiddlewareArgs,
+  type BlockButtonAction,
+  type SlackViewMiddlewareArgs,
+  type ViewSubmitAction
+} from "@slack/bolt";
 import { envSchema } from "@agents/core";
 import { createHumanReview, getTicketById, getDraftById } from "@agents/db";
 
@@ -115,44 +120,47 @@ export async function postReview(params: PostReviewParams) {
 }
 
 // Approve action
-app.action("approve", async ({ ack, body, client }) => {
-  await ack();
+app.action(
+  "approve",
+  async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
+    await ack();
 
-  const value = JSON.parse((body as any).actions[0].value);
-  const { ticketId, draftId, draftText } = value;
-  const userId = body.user.id;
+    const value = JSON.parse((body as any).actions[0].value);
+    const { ticketId, draftId, draftText } = value;
+    const userId = body.user.id;
 
-  // Store human review
-  await createHumanReview({
-    ticketId,
-    draftId,
-    decision: "approve",
-    finalText: draftText,
-    reviewerSlackId: userId
-  });
+    // Store human review
+    await createHumanReview({
+      ticketId,
+      draftId,
+      decision: "approve",
+      finalText: draftText,
+      reviewerSlackId: userId
+    });
 
-  // Update message
-  await client.chat.update({
-    channel: (body as any).channel.id,
-    ts: (body as any).message.ts,
-    text: "Draft approved",
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+    // Update message
+    await client.chat.update({
+      channel: (body as any).channel.id,
+      ts: (body as any).message.ts,
+      text: "Draft approved",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+          }
         }
-      }
-    ]
-  });
+      ]
+    });
 
-  // TODO: trigger mailer to send
-  console.log(`Approved: ticket=${ticketId}, draft=${draftId}`);
-});
+    // TODO: trigger mailer to send
+    console.log(`Approved: ticket=${ticketId}, draft=${draftId}`);
+  }
+);
 
 // Edit action (opens modal)
-app.action("edit", async ({ ack, body, client }) => {
+app.action("edit", async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
   await ack();
 
   const value = JSON.parse((body as any).actions[0].value);
@@ -202,81 +210,87 @@ app.action("edit", async ({ ack, body, client }) => {
 });
 
 // Modal submission
-app.view("edit_modal", async ({ ack, body, view, client }) => {
-  await ack();
+app.view(
+  "edit_modal",
+  async ({ ack, body, view, client }: SlackViewMiddlewareArgs<ViewSubmitAction>) => {
+    await ack();
 
-  const metadata = JSON.parse(view.private_metadata);
-  const { ticketId, draftId, channelId, messageTs } = metadata;
-  const userId = body.user.id;
+    const metadata = JSON.parse(view.private_metadata);
+    const { ticketId, draftId, channelId, messageTs } = metadata;
+    const userId = body.user.id;
 
-  const finalText = view.state.values.final_text_block.final_text.value || "";
+    const finalText = view.state.values.final_text_block.final_text.value || "";
 
-  // Store human review
-  await createHumanReview({
-    ticketId,
-    draftId,
-    decision: "edit",
-    finalText,
-    reviewerSlackId: userId
-  });
+    // Store human review
+    await createHumanReview({
+      ticketId,
+      draftId,
+      decision: "edit",
+      finalText,
+      reviewerSlackId: userId
+    });
 
-  // Update original message
-  await client.chat.update({
-    channel: channelId,
-    ts: messageTs,
-    text: "Draft edited and approved",
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
+    // Update original message
+    await client.chat.update({
+      channel: channelId,
+      ts: messageTs,
+      text: "Draft edited and approved",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
+          }
         }
-      }
-    ]
-  });
+      ]
+    });
 
-  // TODO: trigger mailer to send edited version
-  console.log(`Edited: ticket=${ticketId}, draft=${draftId}`);
-});
+    // TODO: trigger mailer to send edited version
+    console.log(`Edited: ticket=${ticketId}, draft=${draftId}`);
+  }
+);
 
 // Reject action
-app.action("reject", async ({ ack, body, client }) => {
-  await ack();
+app.action(
+  "reject",
+  async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
+    await ack();
 
-  const value = JSON.parse((body as any).actions[0].value);
-  const { ticketId, draftId } = value;
-  const userId = body.user.id;
+    const value = JSON.parse((body as any).actions[0].value);
+    const { ticketId, draftId } = value;
+    const userId = body.user.id;
 
-  // Store human review
-  await createHumanReview({
-    ticketId,
-    draftId,
-    decision: "reject",
-    finalText: "",
-    reviewerSlackId: userId
-  });
+    // Store human review
+    await createHumanReview({
+      ticketId,
+      draftId,
+      decision: "reject",
+      finalText: "",
+      reviewerSlackId: userId
+    });
 
-  // Update message
-  await client.chat.update({
-    channel: (body as any).channel.id,
-    ts: (body as any).message.ts,
-    text: "Draft rejected",
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+    // Update message
+    await client.chat.update({
+      channel: (body as any).channel.id,
+      ts: (body as any).message.ts,
+      text: "Draft rejected",
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+          }
         }
-      }
-    ]
-  });
+      ]
+    });
 
-  console.log(`Rejected: ticket=${ticketId}, draft=${draftId}`);
-});
+    console.log(`Rejected: ticket=${ticketId}, draft=${draftId}`);
+  }
+);
 
 // Start server
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 await app.start(port);
 console.log(`⚡️ Slack bot running on port ${port}`);
