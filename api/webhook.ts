@@ -1,49 +1,50 @@
-/**
- * Vercel Function: webhook handler for inbound emails (HubSpot or other sources)
- * Updated to use Agents SDK exclusively
- */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+// JS version of webhook to avoid TS types and monorepo type resolution in Vercel
 import { processEmail } from "../apps/agent/dist/index.js";
 import { postReview } from "../apps/slack-bot/dist/index.js";
-import {
-  validateWebhookRequest,
-  generateRequestId,
-  logInfo,
-  logError,
-  logWarn,
-  type LogContext
-} from "@agents/core";
 
-// Configure Vercel function runtime
-export const config = {
-  runtime: "nodejs",
-  regions: ["iad1"]
-};
+export const config = { runtime: "nodejs", regions: ["iad1"] };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   // Start timing for monitoring
   const startTime = Date.now();
-  const requestId = generateRequestId();
-  const logContext: LogContext = { requestId };
+  const requestId = crypto.randomUUID();
 
-  logInfo("Webhook received", logContext, {
+  const log = (level, message, data = {}) => {
+    console[level === "error" ? "error" : level === "warn" ? "warn" : "log"](
+      JSON.stringify({ level, message, timestamp: new Date().toISOString(), requestId, ...data })
+    );
+  };
+
+  log("info", "Webhook received", {
     method: req.method,
     url: req.url,
-    userAgent: req.headers["user-agent"]
+    ua: req.headers["user-agent"]
   });
 
   if (req.method !== "POST") {
-    logWarn("Invalid HTTP method", logContext, { method: req.method });
+    log("warn", "Invalid HTTP method", { method: req.method });
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    // Validate request body using middleware
-    const { source, customerEmail, rawEmail } = validateWebhookRequest(req.body);
-    logInfo("Request validation successful", logContext, { source });
+    // Minimal validation (avoid zod/types at edge)
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+    const source = typeof body.source === "string" && body.source ? body.source : "hubspot";
+    const customerEmail =
+      typeof body.customerEmail === "string" && body.customerEmail
+        ? body.customerEmail
+        : "masked@example.com";
+    const rawEmail = typeof body.rawEmail === "string" && body.rawEmail ? body.rawEmail : "";
+
+    if (!rawEmail) {
+      return res
+        .status(400)
+        .json({ error: "validation: rawEmail is required", request_id: requestId });
+    }
+    log("info", "Request validation successful", { source });
 
     // Process email through Agents SDK
-    logInfo("Processing email through Agents SDK", logContext);
+    log("info", "Processing email through Agents SDK");
     const result = await processEmail({
       source,
       customerEmail,
@@ -64,29 +65,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           extraction: result.extraction || {},
           channel: slackChannel
         }).catch(error => {
-          logError("Slack posting failed", logContext, error);
+          log("error", "Slack posting failed", { error: error?.message || String(error) });
           // Don't fail the webhook if Slack fails
         });
       } else {
-        logWarn("SLACK_REVIEW_CHANNEL not configured", logContext);
+        log("warn", "SLACK_REVIEW_CHANNEL not configured");
       }
     }
 
     const duration = Date.now() - startTime;
-    logInfo(
-      "Webhook processing completed successfully",
-      {
-        ...logContext,
-        duration
-      },
-      {
-        success: result.success,
-        ticketId: result.ticket?.id,
-        draftId: result.draft?.id,
-        confidence: result.confidence,
-        route: result.route
-      }
-    );
+    log("info", "Webhook processing completed successfully", {
+      duration,
+      success: result.success,
+      ticketId: result.ticket?.id,
+      draftId: result.draft?.id,
+      confidence: result.confidence,
+      route: result.route
+    });
 
     return res.status(200).json({
       success: result.success,
@@ -97,23 +92,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       request_id: requestId,
       processing_time_ms: duration
     });
-  } catch (error: any) {
+  } catch (error) {
     const duration = Date.now() - startTime;
-    logError("Webhook processing failed", { ...logContext, duration }, error);
+    log("error", "Webhook processing failed", { duration, error: error?.message || String(error) });
 
     // Return appropriate status codes based on error type
-    const statusCode = error.message?.includes("quota")
+    const msg = error?.message || "";
+    const statusCode = msg.includes("quota")
       ? 402
-      : error.message?.includes("rate limit")
+      : msg.includes("rate limit")
         ? 429
-        : error.message?.includes("timeout")
+        : msg.includes("timeout")
           ? 504
-          : error.message?.includes("validation")
+          : msg.includes("validation")
             ? 400
             : 500;
 
     return res.status(statusCode).json({
-      error: error.message || "Internal server error",
+      error: msg || "Internal server error",
       request_id: requestId,
       processing_time_ms: duration
     });

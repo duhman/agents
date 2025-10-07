@@ -1,16 +1,9 @@
-/**
- * Vercel Cron: monthly export of training data (runs on 1st of each month)
- */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+// Minimal JS cron handler to avoid TS/types
 import { execSync } from "child_process";
 
-// Configure Vercel function runtime
-export const config = {
-  runtime: "nodejs",
-  regions: ["iad1"]
-};
+export const config = { runtime: "nodejs", regions: ["iad1"] };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   // Verify cron secret to prevent unauthorized access
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -29,8 +22,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true,
       message: "Training data exported successfully"
     });
-  } catch (error: any) {
-    console.error("Cron error:", error);
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    console.error("Cron error:", error?.message || String(error));
+    return res.status(500).json({ error: error?.message || "unknown_error" });
   }
 }
