@@ -60,43 +60,123 @@ Email Content: ${maskedEmail}
 
 Please extract information, create appropriate records, and generate a response if this is a cancellation request.`;
 
-    // 3. Run the main orchestrator agent
-    const result = await run(emailProcessingAgent, agentInput);
+    // 3. Run the main orchestrator agent with 30s timeout for serverless constraints
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 30000);
 
-    if (!result.finalOutput) {
-      throw new Error("Agent run completed but no final output received");
-    }
+    try {
+      const result = await run(emailProcessingAgent, agentInput, {
+        signal: abortController.signal
+      });
+      clearTimeout(timeoutId);
 
-    const duration = Date.now() - startTime;
-    logInfo(
-      "Email processing completed successfully",
-      {
-        ...logContext,
-        duration
-      },
-      {
-        success: result.finalOutput.success,
-        ticketId: result.finalOutput.ticket_id,
-        draftId: result.finalOutput.draft_id,
-        confidence: result.finalOutput.confidence,
-        route: result.finalOutput.route
+      if (!result.finalOutput) {
+        throw new Error("Agent run completed but no final output received");
       }
-    );
 
-    return {
-      success: result.finalOutput.success,
-      ticket: result.finalOutput.ticket_id ? { id: result.finalOutput.ticket_id } : null,
-      draft: result.finalOutput.draft_id
-        ? {
-            id: result.finalOutput.draft_id,
-            draftText: result.finalOutput.draft_text || ""
+      // 4. DETERMINISTIC FALLBACK: If agent identified cancellation but didn't create ticket/draft,
+      // create them now using our deterministic templates and DB operations
+      const out = result.finalOutput;
+      if (out?.extraction?.is_cancellation && (!out.ticket_id || !out.draft_id)) {
+        logWarn(
+          "Agent identified cancellation but didn't create ticket/draft - applying deterministic fallback",
+          logContext,
+          {
+            hasTicket: !!out.ticket_id,
+            hasDraft: !!out.draft_id,
+            extraction: out.extraction
           }
-        : null,
-      confidence: result.finalOutput.confidence,
-      route: result.finalOutput.route,
-      extraction: result.finalOutput.extraction,
-      error: result.finalOutput.error ?? undefined
-    };
+        );
+
+        const extraction = out.extraction;
+        const { createTicket, createDraft } = await import("@agents/db");
+        const { generateDraft } = await import("@agents/prompts");
+
+        // Create ticket if missing
+        let ticketId = out.ticket_id;
+        if (!ticketId) {
+          const ticket = await createTicket({
+            source,
+            customerEmail: maskedCustomerEmail,
+            rawEmailMasked: maskedEmail,
+            reason: extraction.reason ?? undefined,
+            moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
+          });
+          ticketId = ticket.id;
+          logInfo("Created ticket via fallback", logContext, { ticketId });
+        }
+
+        // Generate and create draft if missing
+        let draftId = out.draft_id;
+        let draftText = out.draft_text;
+        if (!draftId || !draftText) {
+          // Generate draft deterministically using templates
+          draftText = generateDraft({
+            language: extraction.language || "no",
+            reason: extraction.reason || "unknown",
+            moveDate: extraction.move_date ?? null
+          });
+
+          // Calculate confidence (consistent with rules)
+          let confidence = 0.5; // Base score
+          if (extraction.is_cancellation) confidence += 0.3;
+          if (extraction.reason && extraction.reason !== "unknown") confidence += 0.1;
+          if (extraction.move_date) confidence += 0.1;
+          if ((extraction.policy_risks ?? []).length === 0) confidence += 0.1;
+          confidence = Math.min(confidence, 1.0);
+
+          const draft = await createDraft({
+            ticketId,
+            language: extraction.language || "no",
+            draftText,
+            confidence: String(confidence),
+            model: "template-fallback"
+          });
+          draftId = draft.id;
+          out.confidence = confidence; // Update confidence
+          logInfo("Created draft via fallback", logContext, { draftId, confidence });
+        }
+
+        // Update output so Slack HITM will trigger
+        out.ticket_id = ticketId;
+        out.draft_id = draftId;
+        out.draft_text = draftText;
+      }
+
+      const duration = Date.now() - startTime;
+      logInfo(
+        "Email processing completed successfully",
+        {
+          ...logContext,
+          duration
+        },
+        {
+          success: out.success,
+          ticketId: out.ticket_id,
+          draftId: out.draft_id,
+          confidence: out.confidence,
+          route: out.route
+        }
+      );
+
+      return {
+        success: out.success,
+        ticket: out.ticket_id ? { id: out.ticket_id } : null,
+        draft: out.draft_id
+          ? {
+              id: out.draft_id,
+              draftText: out.draft_text || ""
+            }
+          : null,
+        confidence: out.confidence,
+        route: out.route,
+        extraction: out.extraction,
+        error: out.error ?? undefined
+      };
+    } catch (abortError: any) {
+      clearTimeout(timeoutId);
+      throw abortError;
+    }
   } catch (error: any) {
     const duration = Date.now() - startTime;
     logError("Email processing failed", { ...logContext, duration }, error);

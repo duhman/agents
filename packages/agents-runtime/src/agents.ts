@@ -98,6 +98,9 @@ CONTEXT AWARENESS:
 - Maintain high accuracy for policy-critical decisions`,
   outputType: extractionSchema,
   model: "gpt-4o-2024-08-06",
+  modelSettings: {
+    temperature: 0
+  },
   tools: [maskPiiTool]
 });
 
@@ -138,6 +141,9 @@ POLICY COMPLIANCE:
     policy_compliant: z.boolean().describe("Whether the draft includes required policy statements")
   }),
   model: "gpt-4o-2024-08-06",
+  modelSettings: {
+    temperature: 0
+  },
   tools: [generateDraftTool, calculateConfidenceTool]
 });
 
@@ -180,6 +186,9 @@ CRITICAL REQUIREMENTS:
     error: z.string().optional().nullable().describe("Error message if processing failed")
   }),
   model: "gpt-4o-2024-08-06",
+  modelSettings: {
+    temperature: 0
+  },
   tools: [
     maskPiiTool,
     vectorStoreSearchTool,
@@ -219,6 +228,9 @@ ROUTING DECISIONS:
     keywords_found: z.array(z.string()).describe("Keywords that influenced the decision")
   }),
   model: "gpt-4o-2024-08-06",
+  modelSettings: {
+    temperature: 0
+  },
   handoffs: [cancellationAgent]
 });
 
@@ -253,5 +265,8 @@ CRITICAL SUCCESS FACTORS:
     processing_time_ms: z.number().optional().nullable().describe("Time taken to process")
   }),
   model: "gpt-4o-2024-08-06",
+  modelSettings: {
+    temperature: 0
+  },
   handoffs: [triageAgent, cancellationAgent]
 });
