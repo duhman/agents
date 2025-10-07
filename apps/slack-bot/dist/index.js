@@ -138,7 +138,12 @@ app.action("edit", async ({ ack, body, client }) => {
         view: {
             type: "modal",
             callback_id: "edit_modal",
-            private_metadata: JSON.stringify({ ticketId, draftId, channelId: body.channel.id, messageTs: body.message.ts }),
+            private_metadata: JSON.stringify({
+                ticketId,
+                draftId,
+                channelId: body.channel.id,
+                messageTs: body.message.ts
+            }),
             title: {
                 type: "plain_text",
                 text: "Edit Draft"
@@ -235,6 +240,6 @@ app.action("reject", async ({ ack, body, client }) => {
     console.log(`Rejected: ticket=${ticketId}, draft=${draftId}`);
 });
 // Start server
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 await app.start(port);
 console.log(`⚡️ Slack bot running on port ${port}`);

@@ -1,7 +1,6 @@
 {
   "buildCommand": "pnpm install && pnpm build",
   "outputDirectory": "public",
-  "buildCommand": "pnpm install && pnpm build",
   "crons": [
     {
       "path": "/api/cron/export-training-data",
@@ -9,6 +8,10 @@
     }
   ],
   "functions": {
+    "api/webhook.ts": {
+      "maxDuration": 30,
+      "includeFiles": ["apps/agent/dist/**", "apps/slack-bot/dist/**"]
+    },
     "api/*.ts": {
       "maxDuration": 30
     },

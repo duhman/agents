@@ -3,8 +3,8 @@
  * Updated to use Agents SDK exclusively
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { processEmail } from "@agents/agent";
-import { postReview } from "@agents/slack-bot";
+import { processEmail } from "../apps/agent/dist/index.js";
+import { postReview } from "../apps/slack-bot/dist/index.js";
 import {
   validateWebhookRequest,
   generateRequestId,

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { maskPII, logInfo, logError } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
 import { generateDraft } from "@agents/prompts";
+import OpenAI from "openai";
 export const maskPiiTool = tool({
     name: "mask_pii",
     description: "Mask PII from input email text before processing",
@@ -301,6 +302,67 @@ export const validatePolicyComplianceTool = tool({
         catch (error) {
             logError("Policy compliance validation failed", { requestId: "tool-execution" }, error);
             throw new Error(`Policy compliance validation failed: ${error.message}`);
+        }
+    }
+});
+// Tool for searching OpenAI Vector Store for similar HubSpot tickets
+export const vectorStoreSearchTool = tool({
+    name: "search_vector_store",
+    description: "Search the configured OpenAI Vector Store of HubSpot tickets for similar cases to provide context.",
+    parameters: z.object({
+        query: z.string().describe("Search query describing the customer's issue"),
+        maxResults: z
+            .number()
+            .min(1)
+            .max(10)
+            .default(5)
+            .describe("Maximum number of contextual snippets to return")
+    }),
+    execute: async ({ query, maxResults }) => {
+        try {
+            const vectorStoreId = process.env.OPENAI_VECTOR_STORE_ID;
+            if (!vectorStoreId) {
+                logError("Vector store ID not configured", { requestId: "tool-execution" }, new Error("Missing OPENAI_VECTOR_STORE_ID"));
+                return {
+                    success: false,
+                    results: [],
+                    message: "OPENAI_VECTOR_STORE_ID is not set"
+                };
+            }
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            // Use Responses API with file_search tool attached to the vector store.
+            // Casting to any to avoid SDK type churn while keeping runtime behavior.
+            const response = await openai.responses.create({
+                model: "gpt-4o-2024-08-06",
+                input: `Return up to ${maxResults} short bullet snippets from the most relevant HubSpot tickets for this query. ` +
+                    `Each snippet should be concise and directly useful for drafting a reply. Query: ${query}`,
+                tools: [{ type: "file_search" }],
+                attachments: [
+                    {
+                        vector_store_id: vectorStoreId,
+                        tools: [{ type: "file_search" }]
+                    }
+                ]
+            });
+            // Extract text output; if structured citations are available, prefer them.
+            let outputText = response?.output_text || "";
+            if (!outputText && response?.choices?.[0]?.message?.content) {
+                outputText = String(response.choices[0].message.content);
+            }
+            const results = outputText
+                .split(/\n+/)
+                .filter((line) => line.trim().length > 0)
+                .slice(0, maxResults);
+            logInfo("Vector store search completed", { requestId: "tool-execution" }, { query, resultsCount: results.length, vectorStoreId });
+            return {
+                success: true,
+                results,
+                vector_store_id: vectorStoreId
+            };
+        }
+        catch (error) {
+            logError("Vector store search failed", { requestId: "tool-execution" }, error);
+            throw new Error(`Vector store search failed: ${error.message}`);
         }
     }
 });
