@@ -15,7 +15,7 @@ import {
   calculateConfidenceTool,
   generateDraftTool,
   postToSlackTool
-} from "./tools";
+} from "./tools.js";
 
 export const agentInstructions: string = `You are Elaway's AI Customer Support Assistant.
 Your role is to handle inbound customer emails related to subscription management, especially those asking to cancel due to moving or relocation.

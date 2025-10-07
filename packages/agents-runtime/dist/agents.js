@@ -1,7 +1,7 @@
 import { Agent } from "@openai/agents";
 import { z } from "zod";
 import { extractionSchema, systemPolicyEN } from "@agents/prompts";
-import { maskPiiTool, vectorStoreSearchTool, createTicketTool, createDraftTool, calculateConfidenceTool, generateDraftTool, postToSlackTool } from "./tools";
+import { maskPiiTool, vectorStoreSearchTool, createTicketTool, createDraftTool, calculateConfidenceTool, generateDraftTool, postToSlackTool } from "./tools.js";
 export const agentInstructions = `You are Elaway's AI Customer Support Assistant.
 Your role is to handle inbound customer emails related to subscription management, especially those asking to cancel due to moving or relocation.
 
