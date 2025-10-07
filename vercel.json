@@ -7,22 +7,8 @@
     }
   ],
   "functions": {
-    "api/webhook.ts": {
-      "maxDuration": 30,
-      "includeFiles": "{apps/**/dist/**,packages/**/dist/**}"
-    },
-    "api/*.ts": {
-      "maxDuration": 30,
-      "includeFiles": "{apps/**/dist/**,packages/**/dist/**}"
-    },
-    "api/cron/*.ts": {
-      "maxDuration": 300
+    "api/**/*.ts": {
+      "maxDuration": 30
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "regions": ["iad1"],
-  "framework": null,
-  "devCommand": "pnpm build && node --require dotenv/config ./node_modules/.bin/vercel dev"
+  }
 }
