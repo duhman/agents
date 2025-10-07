@@ -16,12 +16,12 @@ cp .env.example .env  # Add your OPENAI_API_KEY and other vars
 cd apps/agent && pnpm dev  # Test classification
 ```
 
-## Agents SDK (Optional)
+## Agents SDK (Primary Implementation)
 
-Enable the OpenAI Agents SDK path (feature-flagged):
+The OpenAI Agents SDK (`@openai/agents`) is now the primary implementation:
 
 ```bash
-# Default is disabled
+# Agents SDK is enabled by default
 echo "USE_AGENTS_SDK=1" >> .env
 ```
 
@@ -31,7 +31,7 @@ See `documentation/cursor/AGENTS_SDK_MIGRATION.md` and `documentation/cursor/AGE
 
 This project demonstrates best-in-class implementation of OpenAI v5, Drizzle ORM, Slack Bolt, and Vercel serverless patterns. See [`AWARD_WINNING_IMPROVEMENTS.md`](AWARD_WINNING_IMPROVEMENTS.md) for details on:
 
-- ⚡ **OpenAI v5 Migration**: Updated from `beta.chat.completions.parse()` to `chat.completions.parse()`
+- ⚡ **OpenAI Agents SDK**: Migrated to `@openai/agents` with Agents, Handoffs, Tools, and tracing
 - 🛡️ **Production-grade** OpenAI API error handling with retry logic
 - 📊 **Structured logging** with request IDs and observability
 - 🔄 **Exponential backoff** retry strategy for API failures
@@ -39,6 +39,7 @@ This project demonstrates best-in-class implementation of OpenAI v5, Drizzle ORM
 - 🚀 **3x faster** webhook performance (<2s response time)
 - 🎯 **Health check endpoints** for monitoring and debugging
 - 📋 **Enhanced Cursor rules** with latest patterns and validation
+- 🤖 **Agent Architecture**: `emailProcessingAgent` → `triageAgent` → `cancellationAgent` with specialized tools
 
 All improvements researched using official docs and implemented for maximum simplicity and efficiency.
 

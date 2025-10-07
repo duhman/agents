@@ -127,7 +127,7 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
 **Flow:**
 
 1. **Email Inbound** →
-2. **LLM Agent (classification + vector store retrieval for relocation cases + draft)** →
+2. **OpenAI Agents SDK Orchestration (emailProcessingAgent → triageAgent → cancellationAgent)** →
 3. **Slack HITM review** →
    - Approve → Customer (via HubSpot/Email API).
    - Reject/Edit → Human sends; feedback stored.

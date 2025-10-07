@@ -1,40 +1,51 @@
 # OpenAI Agents SDK Migration Plan
 
 ## Overview
-This document outlines the phased migration to the official OpenAI Agents SDK for TypeScript (`@openai/agents`). We will adopt the SDK incrementally behind a feature flag to minimize risk and ensure continuity.
 
-## Phases
+This document outlines the completed migration to the official OpenAI Agents SDK for TypeScript (`@openai/agents`). The migration has been successfully completed and the Agents SDK is now the primary implementation.
 
-### Phase 1: Pilot (Weeks 1–2)
-- Add `packages/agents-runtime` with agents, tools, and guardrails.
-- Implement `USE_AGENTS_SDK` feature flag.
-- Wrap current `processEmail` to call `triageAgent` when enabled.
-- Observe traces, latency, and accuracy.
+## Migration Status: ✅ COMPLETED
 
-### Phase 2: Handoffs (Weeks 3–4)
-- Triage → specialized agents (cancellation handler).
-- Expand tools as needed.
-- Keep Slack HITM async/non-blocking.
+### Phase 1: Pilot ✅
 
-### Phase 3: Guardrails (Week 5)
-- Enforce PII and policy compliance via input/output guardrails.
-- Add unit tests for positive/negative cases.
+- ✅ Added `packages/agents-runtime` with agents, tools, and guardrails
+- ✅ Implemented `USE_AGENTS_SDK` feature flag
+- ✅ Wrapped current `processEmail` to call `emailProcessingAgent` when enabled
+- ✅ Observed traces, latency, and accuracy
 
-### Phase 4: Observability (Week 6)
-- Persist compact trace summaries in logs.
-- Compare latency/accuracy vs. legacy path.
-- Decide rollout.
+### Phase 2: Handoffs ✅
 
-## Rollout
-- Stage 1: `USE_AGENTS_SDK=0` (default) – manual tests only.
-- Stage 2: Staging enablement – verify metrics.
-- Stage 3: Gradual prod enablement – easy rollback via env var.
+- ✅ Implemented `emailProcessingAgent` → `triageAgent` → `cancellationAgent` handoffs
+- ✅ Expanded tools: `maskPiiTool`, `vectorStoreSearchTool`, `createTicketTool`, `createDraftTool`, `calculateConfidenceTool`, `generateDraftTool`, `postToSlackTool`
+- ✅ Kept Slack HITM async/non-blocking
 
-## Backout
-- Toggle `USE_AGENTS_SDK=0`.
-- Legacy path remains intact.
+### Phase 3: Guardrails ✅
+
+- ✅ Implemented PII and policy compliance via input/output guardrails
+- ✅ Added unit tests for positive/negative cases
+
+### Phase 4: Observability ✅
+
+- ✅ Persisted compact trace summaries in logs
+- ✅ Compared latency/accuracy vs. legacy path
+- ✅ Completed rollout
+
+## Current Status
+
+- **Primary Implementation**: Agents SDK (`@openai/agents`)
+- **Feature Flag**: `USE_AGENTS_SDK=1` (default enabled)
+- **Agent Architecture**: `emailProcessingAgent` → `triageAgent` → `cancellationAgent`
+- **Tools**: 7 specialized tools for the complete workflow
+- **Fallback**: Deterministic fallback if agent doesn't create ticket/draft
+
+## Rollout Status
+
+- ✅ **Production**: Agents SDK is the primary implementation
+- ✅ **Legacy Path**: Maintained for emergency rollback only
+- ✅ **Monitoring**: Full observability and tracing implemented
 
 ## References
+
 - `packages/agents-runtime/`
 - `.cursor/rules/agents-sdk.mdc`
 - https://openai.github.io/openai-agents-js/

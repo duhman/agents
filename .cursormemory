@@ -6,8 +6,8 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 
 ## Core Architecture
 
-- **Pattern**: Email ingestion → OpenAI classification + drafting → Slack HITM → Send reply → Store feedback → Fine-tune
-- **Tech Stack**: Node 20, TypeScript, OpenAI API, Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
+- **Pattern**: Email ingestion → OpenAI Agents SDK orchestration → Slack HITM → Send reply → Store feedback → Fine-tune
+- **Tech Stack**: Node 20, TypeScript, OpenAI Agents SDK (`@openai/agents`), Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
 - **Monorepo**: pnpm workspaces with Turborepo for parallel builds
 - **RAG**: OpenAI Vector Store integrated for contextual retrieval (env: `OPENAI_VECTOR_STORE_ID`)
 
@@ -27,12 +27,14 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 
 ## Important Patterns (2025)
 
-- OpenAI: Prefer `@openai/agents` for orchestration; for direct calls use `openai.chat.completions.parse()` with `zodResponseFormat()`
-- Optional fields: Must use `.optional().nullable()` pattern
-- Drizzle: Use `push` for dev, `generate` + `migrate` for prod
-- Workspace references: `"@agents/core": "workspace:*"`
-- **OpenAI Agents SDK**: Adopted as primary runtime (`@openai/agents`) with Agents, Handoffs, Tools, and tracing. Guardrails implemented as functions.
-- **Vector Store Tool**: `search_vector_store` available in `@agents/agents-runtime`, used by `cancellationAgent` to fetch context for relocation cases.
+- **OpenAI Agents SDK**: Primary runtime (`@openai/agents`) with Agents, Handoffs, Tools, and tracing
+- **Agent Architecture**: `emailProcessingAgent` → `triageAgent` → `cancellationAgent` with specialized tools
+- **Tools**: `maskPiiTool`, `vectorStoreSearchTool`, `createTicketTool`, `createDraftTool`, `calculateConfidenceTool`, `generateDraftTool`, `postToSlackTool`
+- **Optional fields**: Must use `.optional().nullable()` pattern for Agents SDK compatibility
+- **Drizzle**: Use `push` for dev, `generate` + `migrate` for prod
+- **Workspace references**: `"@agents/core": "workspace:*"`
+- **Vector Store Tool**: `search_vector_store` available in `@agents/agents-runtime`, used by `cancellationAgent` to fetch context for relocation cases
+- **Deterministic Fallback**: If agent doesn't create ticket/draft, fallback to deterministic templates and DB operations
 
 ## File Locations
 
@@ -40,8 +42,9 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Prompts & schemas: `packages/prompts/src/templates.ts`
 - Database schema: `packages/db/src/schema.ts`
 - PII masking: `packages/core/src/index.ts`
-- Agent logic: `apps/agent/src/index.ts`
+- Agent logic: `apps/agent/src/index.ts` (Agents SDK implementation)
 - Slack HITM: `apps/slack-bot/src/index.ts`
+- Agents runtime: `packages/agents-runtime/src/` (agents, tools, guardrails)
 
 ## Success Metrics (KPIs)
 
@@ -64,3 +67,5 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Chose Vercel for hosting due to serverless simplicity
 - External HubSpot data pipeline handles training data export
 - OrbStack (Docker-compatible) for local Postgres
+- **Agents SDK Migration**: Completed migration to `@openai/agents` as primary runtime
+- **Production Ready**: Award-winning improvements implemented (connection pooling, error handling, structured logging)

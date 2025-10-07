@@ -91,6 +91,7 @@ USE_AGENTS_SDK=1
 - **Required**: Yes, Agents SDK is now the primary implementation
 - **Values**: `1` to enable (recommended), `0` to disable (legacy mode)
 - **Default**: `1` (Agents SDK enabled)
+- **Status**: ✅ Migration completed, Agents SDK is primary implementation
 
 ### Agent Performance Tuning
 

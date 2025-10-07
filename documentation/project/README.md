@@ -85,7 +85,7 @@ This directory contains core project documentation including requirements, techn
 
 ### Tech Stack
 
-- **AI/LLM**: OpenAI (gpt-4o-2024-08-06, structured outputs, fine-tuning)
+- **AI/LLM**: OpenAI Agents SDK (`@openai/agents`) with gpt-4o-2024-08-06, structured outputs, fine-tuning
 - **RAG**: OpenAI Vector Store for contextual retrieval from HubSpot tickets (`OPENAI_VECTOR_STORE_ID`)
 - **Runtime**: Node.js 20, TypeScript
 - **Database**: PostgreSQL (Drizzle ORM)
@@ -96,7 +96,7 @@ This directory contains core project documentation including requirements, techn
 ### Data Flow
 
 ```
-Email → PII Mask → OpenAI Classify → (if relocation) Vector Store Search → Draft → Slack HITM →
+Email → PII Mask → Agents SDK Orchestration → (if relocation) Vector Store Search → Draft → Slack HITM →
 Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 ```
 
@@ -113,17 +113,18 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 
 1. Inbound email received (webhook or polling)
 2. PII masking (emails, phones, addresses)
-3. OpenAI structured extraction (JSON schema)
-4. Draft generation (deterministic templates)
-5. Confidence scoring
-6. Store ticket and draft
+3. Agents SDK orchestration (emailProcessingAgent → triageAgent → cancellationAgent)
+4. Structured extraction with tools (maskPiiTool, vectorStoreSearchTool, createTicketTool)
+5. Draft generation (deterministic templates via generateDraftTool)
+6. Confidence scoring (calculateConfidenceTool)
+7. Store ticket and draft (createDraftTool)
 
 ### HITM Review
 
-1. Post draft to Slack with context
+1. Post draft to Slack with context (postToSlackTool)
 2. Show: original (masked), extraction, draft, confidence
 3. Agent reviews: Approve / Edit / Reject
-4. Store human decision
+4. Store human decision (createHumanReview)
 5. Send final reply to customer
 6. Log for fine-tuning
 
