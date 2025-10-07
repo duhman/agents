@@ -10,7 +10,7 @@
   "functions": {
     "api/webhook.ts": {
       "maxDuration": 30,
-      "includeFiles": ["apps/agent/dist/**", "apps/slack-bot/dist/**"]
+      "includeFiles": "apps/**/dist/**"
     },
     "api/*.ts": {
       "maxDuration": 30
