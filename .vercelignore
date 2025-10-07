@@ -3,7 +3,7 @@ node_modules
 .pnpm-store
 
 # Build artifacts
-dist
+# NOTE: dist/ is needed for serverless functions to import workspace packages
 build
 .next
 out

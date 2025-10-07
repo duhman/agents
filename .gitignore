@@ -7,10 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Build
-/dist/
-/build/
-/.turbo/
-/.next/
+dist/
+build/
+.turbo/
+.next/
+*.js.map
+*.d.ts.map
+# Exclude compiled JS from source directories (TypeScript projects only)
+packages/*/src/**/*.js
+apps/*/src/**/*.js
 
 # Env
 .env

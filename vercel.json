@@ -1,6 +1,5 @@
 {
   "buildCommand": "pnpm install && pnpm build",
-  "outputDirectory": "public",
   "crons": [
     {
       "path": "/api/cron/export-training-data",
