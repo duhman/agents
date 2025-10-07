@@ -1,6 +1,23 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema.js";
+const logStructured = (level, message, data) => {
+    const payload = {
+        level,
+        message,
+        timestamp: new Date().toISOString(),
+        ...data
+    };
+    if (level === "error") {
+        console.error(JSON.stringify(payload));
+    }
+    else if (level === "warn") {
+        console.warn(JSON.stringify(payload));
+    }
+    else {
+        console.log(JSON.stringify(payload));
+    }
+};
 const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
 const connectionString = process.env.DATABASE_URL ??
     process.env.POSTGRES_URL ??
@@ -9,6 +26,14 @@ const connectionString = process.env.DATABASE_URL ??
     (!isServerless ? "postgres://postgres:postgres@localhost:5432/agents" : undefined);
 if (!connectionString) {
     throw new Error("Missing database connection string. Set DATABASE_URL (or POSTGRES_URL*) in the environment.");
+}
+try {
+    const { host } = new URL(connectionString);
+    logStructured("info", "Database connection string resolved", { requestId: "db-init", host, isServerless });
+}
+catch (error) {
+    logStructured("warn", "Invalid database connection string", { requestId: "db-init", isServerless });
+    throw error;
 }
 // For migrations
 export const migrationClient = postgres(connectionString, { max: 1 });
