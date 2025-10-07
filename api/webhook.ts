@@ -1,34 +1,90 @@
 // JS version of webhook to avoid TS types and monorepo type resolution in Vercel
+import { randomUUID } from "crypto";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+// @ts-expect-error - compiled output does not ship type definitions
 import { processEmail } from "../apps/agent/dist/index.js";
+// @ts-expect-error - compiled output does not ship type definitions
 import { postReview } from "../apps/slack-bot/dist/index.js";
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
-export default async function handler(req, res) {
+type LogLevel = "info" | "warn" | "error" | "debug";
+
+interface WebhookPayload {
+  source?: string;
+  customerEmail?: string;
+  rawEmail?: string;
+}
+
+interface ProcessEmailResult {
+  success: boolean;
+  ticket?: { id: string } | null;
+  draft?: { id: string; draftText: string } | null;
+  confidence: number;
+  route?: string | null;
+  extraction?: unknown;
+  error?: string;
+}
+
+interface PostReviewParams {
+  ticketId: string;
+  draftId: string;
+  originalEmail: string;
+  draftText: string;
+  confidence: number;
+  extraction: Record<string, unknown>;
+  channel: string;
+}
+
+const parseErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+const log = (
+  level: LogLevel,
+  message: string,
+  data: Record<string, unknown> = {}
+): void => {
+  const payload = JSON.stringify({
+    level,
+    message,
+    timestamp: new Date().toISOString(),
+    ...data
+  });
+
+  if (level === "error") {
+    console.error(payload);
+  } else if (level === "warn") {
+    console.warn(payload);
+  } else {
+    console.log(payload);
+  }
+};
+
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   // Start timing for monitoring
   const startTime = Date.now();
-  const requestId = crypto.randomUUID();
-
-  const log = (level, message, data = {}) => {
-    console[level === "error" ? "error" : level === "warn" ? "warn" : "log"](
-      JSON.stringify({ level, message, timestamp: new Date().toISOString(), requestId, ...data })
-    );
-  };
+  const requestId = randomUUID();
 
   log("info", "Webhook received", {
     method: req.method,
     url: req.url,
-    ua: req.headers["user-agent"]
+    ua: req.headers["user-agent"],
+    requestId
   });
 
   if (req.method !== "POST") {
-    log("warn", "Invalid HTTP method", { method: req.method });
-    return res.status(405).json({ error: "Method not allowed" });
+    log("warn", "Invalid HTTP method", { method: req.method, requestId });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
   try {
     // Minimal validation (avoid zod/types at edge)
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+    const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body ?? {};
+    const body = (rawBody ?? {}) as WebhookPayload;
     const source = typeof body.source === "string" && body.source ? body.source : "hubspot";
     const customerEmail =
       typeof body.customerEmail === "string" && body.customerEmail
@@ -37,15 +93,14 @@ export default async function handler(req, res) {
     const rawEmail = typeof body.rawEmail === "string" && body.rawEmail ? body.rawEmail : "";
 
     if (!rawEmail) {
-      return res
-        .status(400)
-        .json({ error: "validation: rawEmail is required", request_id: requestId });
+      res.status(400).json({ error: "validation: rawEmail is required", request_id: requestId });
+      return;
     }
-    log("info", "Request validation successful", { source });
+    log("info", "Request validation successful", { source, requestId });
 
     // Process email through Agents SDK
-    log("info", "Processing email through Agents SDK");
-    const result = await processEmail({
+    log("info", "Processing email through Agents SDK", { requestId });
+    const result: ProcessEmailResult = await processEmail({
       source,
       customerEmail,
       rawEmail
@@ -56,20 +111,30 @@ export default async function handler(req, res) {
       const slackChannel = process.env.SLACK_REVIEW_CHANNEL;
       if (slackChannel) {
         // Fire and forget - don't await Slack posting to stay under 5s
-        postReview({
+        const extraction =
+          typeof result.extraction === "object" && result.extraction !== null
+            ? (result.extraction as Record<string, unknown>)
+            : {};
+
+        const slackPayload: PostReviewParams = {
           ticketId: result.ticket.id,
           draftId: result.draft.id,
           originalEmail: rawEmail, // Use original for Slack display
           draftText: result.draft.draftText,
           confidence: result.confidence,
-          extraction: result.extraction || {},
+          extraction,
           channel: slackChannel
-        }).catch(error => {
-          log("error", "Slack posting failed", { error: error?.message || String(error) });
+        };
+
+        postReview(slackPayload).catch((error: unknown) => {
+          log("error", "Slack posting failed", {
+            error: parseErrorMessage(error),
+            requestId
+          });
           // Don't fail the webhook if Slack fails
         });
       } else {
-        log("warn", "SLACK_REVIEW_CHANNEL not configured");
+        log("warn", "SLACK_REVIEW_CHANNEL not configured", { requestId });
       }
     }
 
@@ -80,10 +145,11 @@ export default async function handler(req, res) {
       ticketId: result.ticket?.id,
       draftId: result.draft?.id,
       confidence: result.confidence,
-      route: result.route
+      route: result.route,
+      requestId
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: result.success,
       ticket_id: result.ticket?.id,
       draft_id: result.draft?.id,
@@ -94,22 +160,23 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     const duration = Date.now() - startTime;
-    log("error", "Webhook processing failed", { duration, error: error?.message || String(error) });
+    const message = parseErrorMessage(error);
+    log("error", "Webhook processing failed", { duration, error: message, requestId });
 
     // Return appropriate status codes based on error type
-    const msg = error?.message || "";
-    const statusCode = msg.includes("quota")
+    const normalized = message.toLowerCase();
+    const statusCode = normalized.includes("quota")
       ? 402
-      : msg.includes("rate limit")
+      : normalized.includes("rate limit")
         ? 429
-        : msg.includes("timeout")
+        : normalized.includes("timeout")
           ? 504
-          : msg.includes("validation")
+          : normalized.includes("validation")
             ? 400
             : 500;
 
-    return res.status(statusCode).json({
-      error: msg || "Internal server error",
+    res.status(statusCode).json({
+      error: message || "Internal server error",
       request_id: requestId,
       processing_time_ms: duration
     });

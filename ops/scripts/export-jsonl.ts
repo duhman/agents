@@ -3,9 +3,7 @@
  * Export training JSONL from human_reviews table
  */
 import "dotenv/config";
-import { db } from "@agents/db";
-import { humanReviews, tickets } from "@agents/db";
-import { eq } from "drizzle-orm";
+import { db, humanReviews, tickets, eq } from "@agents/db";
 import { writeFileSync } from "fs";
 import { join } from "path";
 
@@ -28,6 +26,8 @@ async function exportTrainingData() {
   const jsonlLines: string[] = [];
 
   for (const review of reviews) {
+    if (!review.ticketId) continue;
+
     const ticket = await db.query.tickets.findFirst({
       where: eq(tickets.id, review.ticketId)
     });
@@ -59,4 +59,3 @@ exportTrainingData().catch(err => {
   console.error("✗ Export failed:", err);
   process.exit(1);
 });
-

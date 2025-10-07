@@ -2,16 +2,25 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { maskPII, logInfo, logError, type LogContext } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
-import { generateDraft, type ExtractionResult } from "@agents/prompts";
+import { generateDraft } from "@agents/prompts";
 import OpenAI from "openai";
+
+type ConfidenceFactors = {
+  is_cancellation: boolean;
+  reason_known: boolean;
+  has_move_date: boolean;
+  no_policy_risks: boolean;
+};
+
+const maskPiiParameters = z.object({
+  email: z.string().describe("Email text to mask")
+});
 
 export const maskPiiTool = tool({
   name: "mask_pii",
   description: "Mask PII from input email text before processing",
-  parameters: z.object({
-    email: z.string().describe("Email text to mask")
-  }),
-  execute: async ({ email }) => {
+  parameters: maskPiiParameters,
+  execute: async ({ email }: z.infer<typeof maskPiiParameters>) => {
     try {
       const masked = maskPII(email);
       return {
@@ -27,17 +36,19 @@ export const maskPiiTool = tool({
   }
 });
 
+const createTicketParameters = z.object({
+  source: z.string().describe("Source of the email (e.g., 'hubspot', 'email')"),
+  customerEmail: z.string().email().describe("Customer's email address"),
+  rawEmailMasked: z.string().describe("Masked version of the original email"),
+  reason: z.string().optional().nullable().describe("Cancellation reason if applicable"),
+  moveDate: z.string().optional().nullable().describe("Move date in ISO format if mentioned")
+});
+
 export const createTicketTool = tool({
   name: "create_ticket",
   description: "Create a new support ticket in the database",
-  parameters: z.object({
-    source: z.string().describe("Source of the email (e.g., 'hubspot', 'email')"),
-    customerEmail: z.string().email().describe("Customer's email address"),
-    rawEmailMasked: z.string().describe("Masked version of the original email"),
-    reason: z.string().optional().nullable().describe("Cancellation reason if applicable"),
-    moveDate: z.string().optional().nullable().describe("Move date in ISO format if mentioned")
-  }),
-  execute: async params => {
+  parameters: createTicketParameters,
+  execute: async (params: z.infer<typeof createTicketParameters>) => {
     try {
       const ticket = await createTicket({
         source: params.source,
@@ -69,17 +80,19 @@ export const createTicketTool = tool({
   }
 });
 
+const createDraftParameters = z.object({
+  ticketId: z.string().describe("ID of the associated ticket"),
+  language: z.enum(["no", "en"]).describe("Language of the draft"),
+  draftText: z.string().describe("The draft response text"),
+  confidence: z.number().min(0).max(1).describe("Confidence score for the draft"),
+  model: z.string().describe("Model used to generate the draft")
+});
+
 export const createDraftTool = tool({
   name: "create_draft",
   description: "Create a draft response in the database",
-  parameters: z.object({
-    ticketId: z.string().describe("ID of the associated ticket"),
-    language: z.enum(["no", "en"]).describe("Language of the draft"),
-    draftText: z.string().describe("The draft response text"),
-    confidence: z.number().min(0).max(1).describe("Confidence score for the draft"),
-    model: z.string().describe("Model used to generate the draft")
-  }),
-  execute: async params => {
+  parameters: createDraftParameters,
+  execute: async (params: z.infer<typeof createDraftParameters>) => {
     try {
       const draft = await createDraft({
         ticketId: params.ticketId,
@@ -112,24 +125,32 @@ export const createDraftTool = tool({
   }
 });
 
+const calculateConfidenceParameters = z.object({
+  extraction: z
+    .object({
+      is_cancellation: z.boolean(),
+      reason: z.enum(["moving", "other", "unknown"]),
+      move_date: z.string().optional().nullable(),
+      language: z.enum(["no", "en"]),
+      policy_risks: z.array(z.string())
+    })
+    .describe("Extraction results to score")
+});
+
 export const calculateConfidenceTool = tool({
   name: "calculate_confidence",
   description: "Calculate confidence score for extraction results",
-  parameters: z.object({
-    extraction: z
-      .object({
-        is_cancellation: z.boolean(),
-        reason: z.enum(["moving", "other", "unknown"]),
-        move_date: z.string().optional().nullable(),
-        language: z.enum(["no", "en"]),
-        policy_risks: z.array(z.string())
-      })
-      .describe("Extraction results to score")
-  }),
-  execute: async ({ extraction }) => {
+  parameters: calculateConfidenceParameters,
+  execute: async ({
+    extraction
+  }: z.infer<typeof calculateConfidenceParameters>): Promise<{
+    confidence: number;
+    factors: ConfidenceFactors;
+    success: true;
+  }> => {
     try {
       let confidence = 0.5; // Base score
-      const factors = {
+      const factors: ConfidenceFactors = {
         is_cancellation: extraction.is_cancellation,
         reason_known: extraction.reason !== "unknown",
         has_move_date: !!extraction.move_date,
@@ -164,16 +185,18 @@ export const calculateConfidenceTool = tool({
   }
 });
 
+const generateDraftParameters = z.object({
+  language: z.enum(["no", "en"]).describe("Language for the draft"),
+  reason: z.string().describe("Cancellation reason"),
+  moveDate: z.string().optional().nullable().describe("Move date if mentioned"),
+  customerName: z.string().optional().nullable().describe("Customer name if available")
+});
+
 export const generateDraftTool = tool({
   name: "generate_draft",
   description: "Generate a draft response using template system",
-  parameters: z.object({
-    language: z.enum(["no", "en"]).describe("Language for the draft"),
-    reason: z.string().describe("Cancellation reason"),
-    moveDate: z.string().optional().nullable().describe("Move date if mentioned"),
-    customerName: z.string().optional().nullable().describe("Customer name if available")
-  }),
-  execute: async params => {
+  parameters: generateDraftParameters,
+  execute: async (params: z.infer<typeof generateDraftParameters>) => {
     try {
       const draftText = generateDraft({
         language: params.language,
@@ -218,18 +241,22 @@ export const generateDraftTool = tool({
 });
 
 // Tool for Slack integration
+const postToSlackParameters = z.object({
+  ticketId: z.string().describe("Ticket ID"),
+  draftId: z.string().describe("Draft ID"),
+  originalEmail: z.string().describe("Original customer email"),
+  draftText: z.string().describe("Generated draft text"),
+  confidence: z.number().min(0).max(1).describe("Confidence score"),
+  extraction: z
+    .record(z.string(), z.unknown())
+    .describe("Extraction results")
+});
+
 export const postToSlackTool = tool({
   name: "post_to_slack",
   description: "Post draft for human review in Slack",
-  parameters: z.object({
-    ticketId: z.string().describe("Ticket ID"),
-    draftId: z.string().describe("Draft ID"),
-    originalEmail: z.string().describe("Original customer email"),
-    draftText: z.string().describe("Generated draft text"),
-    confidence: z.number().min(0).max(1).describe("Confidence score"),
-    extraction: z.any().describe("Extraction results")
-  }),
-  execute: async params => {
+  parameters: postToSlackParameters,
+  execute: async (params: z.infer<typeof postToSlackParameters>) => {
     try {
       // This would integrate with your Slack bot
       // For now, return success status
@@ -258,22 +285,36 @@ export const postToSlackTool = tool({
 });
 
 // Tool for extracting structured data from emails
+const extractEmailDataParameters = z.object({
+  email: z.string().describe("Email text to analyze"),
+  context: z
+    .object({
+      source: z.string().optional().nullable(),
+      customerEmail: z.string().optional().nullable(),
+      timestamp: z.string().optional().nullable()
+    })
+    .optional()
+    .nullable()
+    .describe("Additional context for extraction")
+});
+
 export const extractEmailDataTool = tool({
   name: "extract_email_data",
   description: "Extract structured data from customer emails",
-  parameters: z.object({
-    email: z.string().describe("Email text to analyze"),
-    context: z
-      .object({
-        source: z.string().optional().nullable(),
-        customerEmail: z.string().optional().nullable(),
-        timestamp: z.string().optional().nullable()
-      })
-      .optional()
-      .nullable()
-      .describe("Additional context for extraction")
-  }),
-  execute: async ({ email, context }) => {
+  parameters: extractEmailDataParameters,
+  execute: async ({
+    email,
+    context
+  }: z.infer<typeof extractEmailDataParameters>): Promise<{
+    success: true;
+    message: string;
+    extracted_data: {
+      is_cancellation: boolean;
+      reason: string;
+      language: string;
+      policy_risks: string[];
+    };
+  }> => {
     try {
       // This tool would use the extraction agent internally
       // For now, return a placeholder structure
@@ -305,14 +346,28 @@ export const extractEmailDataTool = tool({
 });
 
 // Tool for validating policy compliance
+const validatePolicyComplianceParameters = z.object({
+  draftText: z.string().describe("Draft text to validate"),
+  language: z.enum(["no", "en"]).describe("Language of the draft")
+});
+
 export const validatePolicyComplianceTool = tool({
   name: "validate_policy_compliance",
   description: "Validate that a draft response complies with company policies",
-  parameters: z.object({
-    draftText: z.string().describe("Draft text to validate"),
-    language: z.enum(["no", "en"]).describe("Language of the draft")
-  }),
-  execute: async ({ draftText, language }) => {
+  parameters: validatePolicyComplianceParameters,
+  execute: async ({
+    draftText,
+    language
+  }: z.infer<typeof validatePolicyComplianceParameters>): Promise<{
+    compliant: boolean;
+    checks: {
+      has_end_of_month_policy: boolean;
+      has_self_service_instructions: boolean;
+      has_polite_tone: boolean;
+      appropriate_length: boolean;
+    };
+    success: true;
+  }> => {
     try {
       const checks = {
         has_end_of_month_policy:
@@ -351,20 +406,30 @@ export const validatePolicyComplianceTool = tool({
 });
 
 // Tool for searching OpenAI Vector Store for similar HubSpot tickets
+const vectorStoreSearchParameters = z.object({
+  query: z.string().describe("Search query describing the customer's issue"),
+  maxResults: z
+    .number()
+    .min(1)
+    .max(10)
+    .default(5)
+    .describe("Maximum number of contextual snippets to return")
+});
+
 export const vectorStoreSearchTool = tool({
   name: "search_vector_store",
   description:
     "Search the configured OpenAI Vector Store of HubSpot tickets for similar cases to provide context.",
-  parameters: z.object({
-    query: z.string().describe("Search query describing the customer's issue"),
-    maxResults: z
-      .number()
-      .min(1)
-      .max(10)
-      .default(5)
-      .describe("Maximum number of contextual snippets to return")
-  }),
-  execute: async ({ query, maxResults }) => {
+  parameters: vectorStoreSearchParameters,
+  execute: async ({
+    query,
+    maxResults
+  }: z.infer<typeof vectorStoreSearchParameters>): Promise<{
+    success: boolean;
+    results: string[];
+    vector_store_id?: string;
+    message?: string;
+  }> => {
     try {
       const vectorStoreId = process.env.OPENAI_VECTOR_STORE_ID;
 

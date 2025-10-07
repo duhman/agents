@@ -1,11 +1,18 @@
-// Minimal JS health endpoint to avoid monorepo imports in serverless function
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
-export default async function handler(_req, res) {
+const parseErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+export default async function handler(
+  _req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   const start = Date.now();
   try {
     const duration = Date.now() - start;
-    return res.status(200).json({
+    res.status(200).json({
       status: "healthy",
       timestamp: new Date().toISOString(),
       duration_ms: duration,
@@ -14,11 +21,12 @@ export default async function handler(_req, res) {
     });
   } catch (error) {
     const duration = Date.now() - start;
-    return res.status(500).json({
+    const message = parseErrorMessage(error);
+    res.status(500).json({
       status: "unhealthy",
       timestamp: new Date().toISOString(),
       duration_ms: duration,
-      error: error?.message || String(error)
+      error: message
     });
   }
 }

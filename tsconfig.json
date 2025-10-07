@@ -8,9 +8,12 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@agents/prompts": ["packages/prompts/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "dist", "build"]
 }
-
 
