@@ -4,7 +4,8 @@ import {
   type SlackActionMiddlewareArgs,
   type BlockButtonAction,
   type SlackViewMiddlewareArgs,
-  type ViewSubmitAction
+  type ViewSubmitAction,
+  type AllMiddlewareArgs
 } from "@slack/bolt";
 import { envSchema } from "@agents/core";
 import { createHumanReview, getTicketById, getDraftById } from "@agents/db";
@@ -122,7 +123,11 @@ export async function postReview(params: PostReviewParams) {
 // Approve action
 app.action(
   "approve",
-  async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
+  async ({
+    ack,
+    body,
+    client
+  }: SlackActionMiddlewareArgs<BlockButtonAction> & AllMiddlewareArgs) => {
     await ack();
 
     const value = JSON.parse((body as any).actions[0].value);
@@ -160,59 +165,71 @@ app.action(
 );
 
 // Edit action (opens modal)
-app.action("edit", async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
-  await ack();
+app.action(
+  "edit",
+  async ({
+    ack,
+    body,
+    client
+  }: SlackActionMiddlewareArgs<BlockButtonAction> & AllMiddlewareArgs) => {
+    await ack();
 
-  const value = JSON.parse((body as any).actions[0].value);
-  const { ticketId, draftId, draftText } = value;
+    const value = JSON.parse((body as any).actions[0].value);
+    const { ticketId, draftId, draftText } = value;
 
-  await client.views.open({
-    trigger_id: (body as any).trigger_id,
-    view: {
-      type: "modal",
-      callback_id: "edit_modal",
-      private_metadata: JSON.stringify({
-        ticketId,
-        draftId,
-        channelId: (body as any).channel.id,
-        messageTs: (body as any).message.ts
-      }),
-      title: {
-        type: "plain_text",
-        text: "Edit Draft"
-      },
-      submit: {
-        type: "plain_text",
-        text: "Send"
-      },
-      close: {
-        type: "plain_text",
-        text: "Cancel"
-      },
-      blocks: [
-        {
-          type: "input",
-          block_id: "final_text_block",
-          label: {
-            type: "plain_text",
-            text: "Final Reply"
-          },
-          element: {
-            type: "plain_text_input",
-            action_id: "final_text",
-            multiline: true,
-            initial_value: draftText
+    await client.views.open({
+      trigger_id: (body as any).trigger_id,
+      view: {
+        type: "modal",
+        callback_id: "edit_modal",
+        private_metadata: JSON.stringify({
+          ticketId,
+          draftId,
+          channelId: (body as any).channel.id,
+          messageTs: (body as any).message.ts
+        }),
+        title: {
+          type: "plain_text",
+          text: "Edit Draft"
+        },
+        submit: {
+          type: "plain_text",
+          text: "Send"
+        },
+        close: {
+          type: "plain_text",
+          text: "Cancel"
+        },
+        blocks: [
+          {
+            type: "input",
+            block_id: "final_text_block",
+            label: {
+              type: "plain_text",
+              text: "Final Reply"
+            },
+            element: {
+              type: "plain_text_input",
+              action_id: "final_text",
+              multiline: true,
+              initial_value: draftText
+            }
           }
-        }
-      ]
-    }
-  });
-});
+        ]
+      }
+    });
+  }
+);
 
 // Modal submission
 app.view(
   "edit_modal",
-  async ({ ack, body, view, client }: SlackViewMiddlewareArgs<ViewSubmitAction>) => {
+  async ({
+    ack,
+    body,
+    view,
+    client
+  }: SlackViewMiddlewareArgs<ViewSubmitAction> & AllMiddlewareArgs) => {
     await ack();
 
     const metadata = JSON.parse(view.private_metadata);
@@ -254,7 +271,11 @@ app.view(
 // Reject action
 app.action(
   "reject",
-  async ({ ack, body, client }: SlackActionMiddlewareArgs<BlockButtonAction>) => {
+  async ({
+    ack,
+    body,
+    client
+  }: SlackActionMiddlewareArgs<BlockButtonAction> & AllMiddlewareArgs) => {
     await ack();
 
     const value = JSON.parse((body as any).actions[0].value);
