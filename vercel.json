@@ -10,10 +10,11 @@
   "functions": {
     "api/webhook.ts": {
       "maxDuration": 30,
-      "includeFiles": "apps/**/dist/**"
+      "includeFiles": ["apps/**/dist/**", "packages/**/dist/**", "packages/**/package.json"]
     },
     "api/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": ["apps/**/dist/**", "packages/**/dist/**", "packages/**/package.json"]
     },
     "api/cron/*.ts": {
       "maxDuration": 300
