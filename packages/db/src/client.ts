@@ -2,14 +2,25 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema.js";
 
+const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
 const connectionString =
-  process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/agents";
+  process.env.DATABASE_URL ??
+  process.env.POSTGRES_URL ??
+  process.env.POSTGRES_PRISMA_URL ??
+  process.env.POSTGRES_URL_NON_POOLING ??
+  (!isServerless ? "postgres://postgres:postgres@localhost:5432/agents" : undefined);
+
+if (!connectionString) {
+  throw new Error(
+    "Missing database connection string. Set DATABASE_URL (or POSTGRES_URL*) in the environment."
+  );
+}
 
 // For migrations
 export const migrationClient = postgres(connectionString, { max: 1 });
 
 // For query client - optimized for serverless with connection pooling
-const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 // Create connection pool optimized for Vercel serverless functions
 const queryClient = postgres(connectionString, {

@@ -6,6 +6,10 @@ export default defineConfig({
   driver: "pg",
   dbCredentials: {
     connectionString:
-      process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/agents"
+      process.env.DATABASE_URL ??
+      process.env.POSTGRES_URL ??
+      process.env.POSTGRES_PRISMA_URL ??
+      process.env.POSTGRES_URL_NON_POOLING ??
+      "postgres://postgres:postgres@localhost:5432/agents"
   }
 });
