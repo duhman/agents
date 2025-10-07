@@ -11,9 +11,11 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@agents/prompts": ["packages/prompts/src/index.ts"]
+      "@agents/core": ["packages/core/src/index.ts"],
+      "@agents/db": ["packages/db/src/index.ts"],
+      "@agents/prompts": ["packages/prompts/src/index.ts"],
+      "@agents/agents-runtime": ["packages/agents-runtime/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist", "build"]
 }
-
