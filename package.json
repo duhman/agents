@@ -33,6 +33,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vercel/node": "^3.0.0",
     "chokidar": "^3.5.3",
     "eslint": "^8.50.0",
     "husky": "^8.0.3",
@@ -40,9 +41,8 @@
     "lodash": "^4.17.21",
     "prettier": "^3.0.0",
     "tsx": "^4.7.0",
-    "turbo": "^1.10.0",
-    "typescript": "^5.3.0",
-    "@vercel/node": "^3.0.0"
+    "turbo": "^2.5.8",
+    "typescript": "^5.3.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -54,10 +54,11 @@
     ]
   },
   "dependencies": {
+    "@agents/core": "workspace:*",
+    "@agents/db": "workspace:*",
     "@openai/agents": "^0.1.9",
     "@openai/agents-core": "^0.1.8",
-    "openai": "^5.23.2",
-    "@agents/core": "workspace:*",
-    "@agents/db": "workspace:*"
-  }
+    "openai": "^5.23.2"
+  },
+  "packageManager": "pnpm@10.18.0"
 }
