@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@agents/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@agents/db':
+        specifier: workspace:*
+        version: link:packages/db
       '@openai/agents':
         specifier: ^0.1.9
         version: 0.1.9(ws@8.18.3)(zod@3.25.76)
+      openai:
+        specifier: ^5.23.2
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -21,6 +30,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^6.0.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.3)
+      '@vercel/node':
+        specifier: ^3.0.0
+        version: 3.2.29
       chokidar:
         specifier: ^3.5.3
         version: 3.6.0

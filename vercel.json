@@ -8,14 +8,14 @@
     }
   ],
   "functions": {
-    "api/webhook.js": {
+    "api/webhook.ts": {
       "maxDuration": 30,
       "includeFiles": "apps/**/dist/**"
     },
-    "api/*.js": {
+    "api/*.ts": {
       "maxDuration": 30
     },
-    "api/cron/*.js": {
+    "api/cron/*.ts": {
       "maxDuration": 300
     }
   },
