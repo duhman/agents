@@ -1,23 +1,28 @@
 import "dotenv/config";
-import {
-  App,
-  type SlackActionMiddlewareArgs,
-  type BlockButtonAction,
-  type SlackViewMiddlewareArgs,
-  type ViewSubmitAction,
-  type AllMiddlewareArgs
+// Import CommonJS package using default import for ES module compatibility
+import slackBolt from "@slack/bolt";
+import type {
+  App as AppType,
+  SlackActionMiddlewareArgs,
+  BlockButtonAction,
+  SlackViewMiddlewareArgs,
+  ViewSubmitAction,
+  AllMiddlewareArgs
 } from "@slack/bolt";
 import { envSchema } from "@agents/core";
 import { createHumanReview, getTicketById, getDraftById } from "@agents/db";
 
-let app: App | undefined;
+// Extract App from the CommonJS default export
+const { App } = slackBolt;
+
+let app: AppType | undefined;
 
 function getEnv() {
   // Parse lazily to avoid throwing during module import in serverless functions
   return envSchema.parse(process.env);
 }
 
-function getApp(): App {
+function getApp(): AppType {
   if (app) return app;
   const env = getEnv();
   if (!env.SLACK_BOT_TOKEN || !env.SLACK_SIGNING_SECRET) {
@@ -128,7 +133,7 @@ export async function postReview(params: PostReviewParams) {
 }
 
 // Approve action
-function registerHandlers(slack: App) {
+function registerHandlers(slack: AppType) {
   slack.action(
     "approve",
     async ({

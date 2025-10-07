@@ -1,7 +1,10 @@
 import "dotenv/config";
-import { App } from "@slack/bolt";
+// Import CommonJS package using default import for ES module compatibility
+import slackBolt from "@slack/bolt";
 import { envSchema } from "@agents/core";
 import { createHumanReview } from "@agents/db";
+// Extract App from the CommonJS default export
+const { App } = slackBolt;
 let app;
 function getEnv() {
     // Parse lazily to avoid throwing during module import in serverless functions
