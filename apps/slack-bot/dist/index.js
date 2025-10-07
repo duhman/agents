@@ -25,6 +25,7 @@ export async function postReview(params) {
     const slack = getApp();
     const result = await slack.client.chat.postMessage({
         channel,
+        text: `Draft Review Required – ${(confidence * 100).toFixed(0)}% confidence, language: ${extraction.language || "unknown"}`,
         blocks: [
             {
                 type: "header",
