@@ -21,7 +21,14 @@ import {
   type LogContext
 } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
-import { generateDraft, type ExtractionResult } from "@agents/prompts";
+import { 
+  generateDraft, 
+  generateDraftEnhanced,
+  calculateConfidenceEnhanced,
+  detectEdgeCase,
+  type ExtractionResult,
+  type ExtractionResultEnhanced
+} from "@agents/prompts";
 
 export interface ProcessEmailParams {
   source: string;
@@ -33,33 +40,63 @@ export interface ProcessEmailResult {
   success: boolean;
   ticket?: { id: string } | null;
   draft?: { id: string; draftText: string } | null;
-  extraction?: ExtractionResult;
+  extraction?: ExtractionResultEnhanced;
+  confidence?: number;
   error?: string;
 }
 
 /**
- * Deterministic email extraction using pattern matching
- * No AI required - fast, reliable, and predictable
+ * Helper function to calculate months from now
  */
-function extractEmailData(email: string): ExtractionResult {
+function getMonthsFromNow(dateStr: string): number {
+  try {
+    const moveDate = new Date(dateStr);
+    const now = new Date();
+    const months = (moveDate.getFullYear() - now.getFullYear()) * 12 + 
+                   (moveDate.getMonth() - now.getMonth());
+    return months;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Deterministic email extraction using pattern matching
+ * Enhanced with edge cases, Swedish support, and confidence factors
+ */
+export function extractEmailData(email: string): ExtractionResultEnhanced {
   const emailLower = email.toLowerCase();
   
   const cancellationKeywords = [
     'cancel', 'oppsigelse', 'terminate', 'stop', 'avslutte',
-    'si opp', 'say opp', 'slette', 'delete'
+    'si opp', 'say opp', 'slette', 'delete', 'avsluta', 'avslut'
   ];
   const isCancellation = cancellationKeywords.some(keyword => emailLower.includes(keyword));
   
   const movingKeywords = [
-    'flytt', 'moving', 'relocat', 'move', 'new address', 'ny adresse'
+    'flytt', 'moving', 'relocat', 'move', 'new address', 'ny adresse', 'nya adress'
   ];
   const isMoving = movingKeywords.some(keyword => emailLower.includes(keyword));
   
+  // Enhanced language detection with Swedish support
   const norwegianIndicators = ['jeg', 'vi', 'du', 'har', 'til', 'med', 'og', 'en', 'er', 'på'];
   const norwegianCount = norwegianIndicators.filter(word => 
     emailLower.split(/\s+/).includes(word)
   ).length;
-  const language: "no" | "en" = norwegianCount >= 2 ? "no" : "en";
+  
+  const swedishIndicators = ['jag', 'ska', 'vill', 'mitt', 'från', 'och', 'att', 'är', 'för'];
+  const swedishCount = swedishIndicators.filter(word => 
+    emailLower.split(/\s+/).includes(word)
+  ).length;
+  
+  let language: "no" | "en" | "sv";
+  if (norwegianCount >= 2) {
+    language = "no";
+  } else if (swedishCount >= 2) {
+    language = "sv";
+  } else {
+    language = "en";
+  }
   
   let moveDate: string | null = null;
   const datePatterns = [
@@ -79,6 +116,7 @@ function extractEmailData(email: string): ExtractionResult {
         const [_, day, month, year] = match;
         moveDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       } else {
+        // For text dates, we'll keep them as-is for now
         moveDate = match[0];
       }
       break;
@@ -97,12 +135,48 @@ function extractEmailData(email: string): ExtractionResult {
     policyRisks.push("Moving mentioned but no date found");
   }
   
+  // Detect edge cases
+  const edgeCaseResult = detectEdgeCase(email, {
+    move_date: moveDate,
+    is_cancellation: isCancellation,
+    reason
+  });
+  const edgeCase = edgeCaseResult as "none" | "no_app_access" | "corporate_account" | "future_move_date" | "already_canceled" | "sameie_concern";
+  
+  // Determine urgency
+  const urgency: "immediate" | "future" | "unclear" = moveDate ? 
+    (getMonthsFromNow(moveDate) > 1 ? "future" : "immediate") : 
+    (isCancellation ? "immediate" : "unclear");
+  
+  // Extract customer concerns
+  const customerConcerns: string[] = [];
+  if (emailLower.match(/sameie|housing association|hele|everyone|whole building|bedrift|corporate|company/)) {
+    customerConcerns.push("shared_account_concern");
+  }
+  if (emailLower.match(/bill|faktura|charge|belast|invoice|payment|betaling/)) {
+    customerConcerns.push("billing_concern");
+  }
+  if (emailLower.match(/problem|issue|error|feil|ikke fungerer|not working|broken/)) {
+    customerConcerns.push("technical_issue");
+  }
+  
+  // Calculate confidence factors
+  const confidence_factors = {
+    clear_intent: isCancellation && reason !== "unknown",
+    complete_information: isCancellation && (!!moveDate || reason === "moving"),
+    standard_case: edgeCase === "none" && customerConcerns.length === 0
+  };
+  
   return {
     is_cancellation: isCancellation,
     reason,
     move_date: moveDate,
     language,
-    policy_risks: policyRisks
+    edge_case: edgeCase,
+    urgency,
+    customer_concerns: customerConcerns,
+    policy_risks: policyRisks,
+    confidence_factors
   };
 }
 
@@ -158,23 +232,31 @@ export async function processEmailSimplified(
     
     logInfo("Ticket created", logContext, { ticketId: ticket.id });
 
-    const draftText = generateDraft({
+    const draftText = generateDraftEnhanced({
       language: extraction.language,
       reason: extraction.reason,
-      moveDate: extraction.move_date
+      moveDate: extraction.move_date,
+      edgeCase: extraction.edge_case,
+      customerConcerns: extraction.customer_concerns
     });
     
-    logInfo("Draft generated from template", logContext, {
+    const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
+    
+    logInfo("Draft generated from enhanced template", logContext, {
       language: extraction.language,
+      edgeCase: extraction.edge_case,
+      wordCount,
       length: draftText.length
     });
+
+    const confidenceScore = calculateConfidenceEnhanced(extraction);
 
     const draft = await createDraft({
       ticketId: ticket.id,
       language: extraction.language,
       draftText,
-      confidence: "1.0", // Templates always have 100% policy compliance
-      model: "template-v1"
+      confidence: String(confidenceScore),
+      model: "template-enhanced-v1"
     });
     
     logInfo("Draft saved", logContext, { draftId: draft.id });
@@ -182,7 +264,8 @@ export async function processEmailSimplified(
     const duration = Date.now() - startTime;
     logInfo("Email processing completed successfully", {
       ...logContext,
-      duration
+      duration,
+      confidence: confidenceScore
     });
 
     return {
@@ -193,6 +276,7 @@ export async function processEmailSimplified(
         draftText
       },
       extraction,
+      confidence: confidenceScore,
       error: undefined
     };
   } catch (error: any) {
@@ -231,12 +315,25 @@ export async function healthCheckSimplified(): Promise<{
     if (!testExtraction.is_cancellation) {
       throw new Error("Test extraction failed - cancellation not detected");
     }
+    
+    // Test enhanced draft generation
+    const testDraft = generateDraftEnhanced({
+      language: testExtraction.language,
+      reason: testExtraction.reason,
+      moveDate: testExtraction.move_date,
+      edgeCase: testExtraction.edge_case,
+      customerConcerns: testExtraction.customer_concerns
+    });
+    
+    if (!testDraft || testDraft.length < 50) {
+      throw new Error("Test draft generation failed");
+    }
 
     logInfo("Health check completed successfully", logContext);
 
     return {
       status: "healthy",
-      version: "simplified-v1",
+      version: "template-enhanced-v1",
       timestamp: new Date().toISOString()
     };
   } catch (error: any) {
@@ -244,7 +341,7 @@ export async function healthCheckSimplified(): Promise<{
 
     return {
       status: "unhealthy",
-      version: "simplified-v1",
+      version: "template-enhanced-v1",
       timestamp: new Date().toISOString(),
       error: error.message
     };

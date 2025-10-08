@@ -2,11 +2,11 @@ import "dotenv/config";
 import { envSchema } from "@agents/core";
 
 import {
-  processEmailSimplified,
-  healthCheckSimplified,
+  processEmailHybrid,
+  healthCheckHybrid,
   type ProcessEmailParams,
   type ProcessEmailResult
-} from "./simplified-processor.js";
+} from "./hybrid-processor.js";
 
 const env = envSchema.parse(process.env);
 
@@ -14,22 +14,17 @@ export type { ProcessEmailParams, ProcessEmailResult };
 
 /**
  * Main email processing function
- * Now uses simplified deterministic processor instead of multi-agent system
+ * Uses hybrid approach: deterministic for standard cases, OpenAI for complex cases
  */
 export async function processEmail(params: ProcessEmailParams): Promise<ProcessEmailResult> {
-  return processEmailSimplified(params);
+  return processEmailHybrid(params);
 }
 
 /**
  * Health check function
  */
-export async function healthCheck(): Promise<{
-  status: "healthy" | "unhealthy";
-  version: string;
-  timestamp: string;
-  error?: string;
-}> {
-  return healthCheckSimplified();
+export async function healthCheck() {
+  return healthCheckHybrid();
 }
 
 // Example usage (for local testing)
