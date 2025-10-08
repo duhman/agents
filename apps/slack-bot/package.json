@@ -10,7 +10,7 @@
   "dependencies": {
     "@agents/core": "workspace:*",
     "@agents/db": "workspace:*",
-    "@slack/bolt": "^3.17.0",
+    "@slack/bolt": "^4.5.0",
     "dotenv": "^16.3.0"
   },
   "devDependencies": {
