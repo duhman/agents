@@ -36,6 +36,8 @@ export interface PostReviewParams {
   ticketId: string;
   draftId: string;
   originalEmail: string;
+  originalEmailSubject?: string;
+  originalEmailBody?: string;
   draftText: string;
   confidence: number;
   extraction: Record<string, any>;
@@ -43,7 +45,17 @@ export interface PostReviewParams {
 }
 
 export async function postReview(params: PostReviewParams) {
-  const { ticketId, draftId, originalEmail, draftText, confidence, extraction, channel } = params;
+  const {
+    ticketId,
+    draftId,
+    originalEmail,
+    originalEmailSubject,
+    originalEmailBody,
+    draftText,
+    confidence,
+    extraction,
+    channel
+  } = params;
 
   const slack = getApp();
   try {
@@ -85,7 +97,9 @@ export async function postReview(params: PostReviewParams) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*Original Email – Subject (masked):*\n${(originalEmail?.split("\n")[0] ?? "")}`
+            text: `*Original Email – Subject (masked):*\n${
+              (originalEmailSubject ?? (originalEmail?.split("\n")[0] ?? "")).slice(0, 3000)
+            }`
           }
         },
         {
@@ -93,7 +107,7 @@ export async function postReview(params: PostReviewParams) {
           text: {
             type: "mrkdwn",
             text: (() => {
-              const body = originalEmail ?? "";
+              const body = originalEmailBody ?? originalEmail ?? "";
               const MAX = 2900;
               const safeBody = body.length > MAX ? body.slice(0, MAX) + "\n…[truncated]" : body;
               return `*Original Email – Body (masked):*\n\`\`\`${safeBody}\`\`\``;
@@ -174,6 +188,7 @@ function registerHandlers(slack: AppType) {
       const { ticketId, draftId, draftText } = value;
       const userId = body.user.id;
 
+      console.log(JSON.stringify({ level: "info", source: "bolt", action: "approve", ticketId, draftId }));
       // Store human review
       await createHumanReview({
         ticketId,
@@ -217,6 +232,7 @@ function registerHandlers(slack: AppType) {
       const value = JSON.parse((body as any).actions[0].value);
       const { ticketId, draftId, draftText } = value;
 
+      console.log(JSON.stringify({ level: "info", source: "bolt", action: "edit_open", ticketId, draftId }));
       await client.views.open({
         trigger_id: (body as any).trigger_id,
         view: {
@@ -278,6 +294,7 @@ function registerHandlers(slack: AppType) {
 
       const finalText = view.state.values.final_text_block.final_text.value || "";
 
+      console.log(JSON.stringify({ level: "info", source: "bolt", action: "edit_submit", ticketId, draftId }));
       // Store human review
       await createHumanReview({
         ticketId,
@@ -322,6 +339,7 @@ function registerHandlers(slack: AppType) {
       const { ticketId, draftId } = value;
       const userId = body.user.id;
 
+      console.log(JSON.stringify({ level: "info", source: "bolt", action: "reject", ticketId, draftId }));
       // Store human review
       await createHumanReview({
         ticketId,
@@ -355,7 +373,12 @@ function registerHandlers(slack: AppType) {
 export async function startSlackBot(port?: number): Promise<void> {
   const listenPort = port ?? (Number(process.env.PORT) || 3000);
   const slack = getApp();
-  registerHandlers(slack);
+  if (process.env.SLACK_USE_BOLT_LOCAL === "true") {
+    registerHandlers(slack);
+    console.log("Bolt local handlers registered (SLACK_USE_BOLT_LOCAL=true)");
+  } else {
+    console.log("Using serverless interactions handler; Bolt local handlers not registered (set SLACK_USE_BOLT_LOCAL=true to enable).");
+  }
   await slack.start(listenPort);
   console.log(`⚡️ Slack bot running on port ${listenPort}`);
 }
