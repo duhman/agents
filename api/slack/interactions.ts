@@ -37,7 +37,7 @@ function parseSlackPayload(req: VercelRequest): any | null {
 }
 
 function isTransientDbError(message: string): boolean {
-  return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|EAI_AGAIN|ENOTFOUND|Too many connections|terminating connection/i.test(
+  return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|ECONNABORTED|EAI_AGAIN|ENOTFOUND|Too many connections|connection timed out/i.test(
     message || ""
   );
 }
