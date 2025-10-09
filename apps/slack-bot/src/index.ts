@@ -85,7 +85,19 @@ export async function postReview(params: PostReviewParams) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*Original Email (masked):*\n\`\`\`${originalEmail}\`\`\``
+            text: `*Original Email – Subject (masked):*\n${(originalEmail?.split("\n")[0] ?? "")}`
+          }
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: (() => {
+              const body = originalEmail ?? "";
+              const MAX = 2900;
+              const safeBody = body.length > MAX ? body.slice(0, MAX) + "\n…[truncated]" : body;
+              return `*Original Email – Body (masked):*\n\`\`\`${safeBody}\`\`\``;
+            })()
           }
         },
         {

@@ -38,13 +38,13 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.18.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Run Cursor Rules Automation
-        run: tsx .cursor/automation/rules-updater.ts
+        run: pnpm exec tsx .cursor/automation/rules-updater.ts
 
       - name: Check for rule changes
         id: check_changes
@@ -68,6 +68,7 @@ jobs:
 
       - name: Create PR comment if rules out of sync
         if: steps.check_changes.outputs.changed == 'true' && github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |

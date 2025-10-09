@@ -5,6 +5,8 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { processEmail } from "../apps/agent/dist/index.js";
 // @ts-expect-error - compiled output does not ship type definitions
 import { postReview } from "../apps/slack-bot/dist/index.js";
+import { maskPII } from "@agents/core";
+
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
@@ -97,6 +99,33 @@ export default async function handler(
       return;
     }
     log("info", "Request validation successful", { source, requestId });
+    const parseAndMaskEmail = (text: string) => {
+      const masked = maskPII(text || "");
+      const lines = masked.split(/\r?\n/);
+      let subject = "";
+      let bodyStartIdx = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const l = lines[i] || "";
+        if (!subject && /^subject\s*:/i.test(l)) {
+          subject = l.replace(/^subject\s*:\s*/i, "").trim();
+        }
+        if (lines[i] === "" && i < lines.length - 1) {
+          bodyStartIdx = i + 1;
+          break;
+        }
+      }
+
+      if (!subject) {
+        const firstNonEmpty = lines.find((l: string) => (l || "").trim().length > 0) || "";
+        subject = firstNonEmpty.trim();
+      }
+
+      const body = lines.slice(bodyStartIdx).join("\n").trim();
+      const finalBody = body || masked;
+      return { subject, body: finalBody };
+    };
+
 
     // Process email through Agents SDK
     log("info", "Processing email through Agents SDK", { requestId });
@@ -116,10 +145,14 @@ export default async function handler(
             ? (result.extraction as Record<string, unknown>)
             : {};
 
-        const slackPayload: PostReviewParams = {
+        const { subject: maskedSubject, body: maskedBody } = parseAndMaskEmail(rawEmail);
+
+        const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
           ticketId: result.ticket.id,
           draftId: result.draft.id,
-          originalEmail: rawEmail, // Use original for Slack display
+          originalEmail: `${maskedSubject}\n\n${maskedBody}`,
+          originalEmailSubject: maskedSubject,
+          originalEmailBody: maskedBody,
           draftText: result.draft.draftText,
           confidence: result.confidence,
           extraction,
