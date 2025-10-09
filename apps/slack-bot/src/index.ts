@@ -46,93 +46,105 @@ export async function postReview(params: PostReviewParams) {
   const { ticketId, draftId, originalEmail, draftText, confidence, extraction, channel } = params;
 
   const slack = getApp();
-  const result = await slack.client.chat.postMessage({
-    channel,
-    text: `Draft Review Required – ${(confidence * 100).toFixed(0)}% confidence, language: ${
-      extraction.language || "unknown"
-    }`,
-    blocks: [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: "🤖 Draft Review Required"
-        }
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: `*Confidence:* ${(confidence * 100).toFixed(0)}%`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Language:* ${extraction.language || "unknown"}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Reason:* ${extraction.reason || "unknown"}`
-          },
-          {
-            type: "mrkdwn",
-            text: `*Move Date:* ${extraction.move_date || "N/A"}`
+  try {
+    const result = await slack.client.chat.postMessage({
+      channel,
+      text: `Draft Review Required – ${(confidence * 100).toFixed(0)}% confidence, language: ${
+        extraction.language || "unknown"
+      }`,
+      blocks: [
+        {
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: "🤖 Draft Review Required"
           }
-        ]
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Original Email (masked):*\n\`\`\`${originalEmail}\`\`\``
-        }
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Draft Reply:*\n\`\`\`${draftText}\`\`\``
-        }
-      },
-      {
-        type: "actions",
-        block_id: "review_actions",
-        elements: [
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "✅ Approve"
+        },
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: `*Confidence:* ${(confidence * 100).toFixed(0)}%`
             },
-            style: "primary",
-            action_id: "approve",
-            value: JSON.stringify({ ticketId, draftId, draftText })
-          },
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "✏️ Edit"
+            {
+              type: "mrkdwn",
+              text: `*Language:* ${extraction.language || "unknown"}`
             },
-            action_id: "edit",
-            value: JSON.stringify({ ticketId, draftId, draftText })
-          },
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "❌ Reject"
+            {
+              type: "mrkdwn",
+              text: `*Reason:* ${extraction.reason || "unknown"}`
             },
-            style: "danger",
-            action_id: "reject",
-            value: JSON.stringify({ ticketId, draftId })
+            {
+              type: "mrkdwn",
+              text: `*Move Date:* ${extraction.move_date || "N/A"}`
+            }
+          ]
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*Original Email (masked):*\n\`\`\`${originalEmail}\`\`\``
           }
-        ]
-      }
-    ]
-  });
-
-  return result;
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*Draft Reply:*\n\`\`\`${draftText}\`\`\``
+          }
+        },
+        {
+          type: "actions",
+          block_id: "review_actions",
+          elements: [
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                text: "✅ Approve"
+              },
+              style: "primary",
+              action_id: "approve",
+              value: JSON.stringify({ ticketId, draftId, draftText })
+            },
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                text: "✏️ Edit"
+              },
+              action_id: "edit",
+              value: JSON.stringify({ ticketId, draftId, draftText })
+            },
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                text: "❌ Reject"
+              },
+              style: "danger",
+              action_id: "reject",
+              value: JSON.stringify({ ticketId, draftId })
+            }
+          ]
+        }
+      ]
+    });
+    return result;
+  } catch (e: any) {
+    const msg = e?.data?.error || e?.message || String(e);
+    console.error(JSON.stringify({
+      level: "error",
+      message: "Slack postReview failed",
+      timestamp: new Date().toISOString(),
+      error: msg,
+      ticketId,
+      draftId
+    }));
+    throw e;
+  }
 }
 
 // Approve action
