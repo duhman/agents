@@ -36,20 +36,67 @@ function parseSlackPayload(req: VercelRequest): any | null {
   return null;
 }
 
-async function slackApi(method: string, body: Record<string, unknown>) {
+async function slackApi(method: string, body: Record<string, unknown>, requestId?: string) {
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token) throw new Error("SLACK_BOT_TOKEN not configured");
-  const res = await fetch(`https://slack.com/api/${method}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(body)
-  });
-  const json = await res.json();
-  if (!json.ok) throw new Error(`${method} failed: ${json.error || "unknown_error"}`);
-  return json;
+
+  const maxAttempts = 3;
+  const baseDelayMs = 250;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(`https://slack.com/api/${method}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      let text: string | undefined;
+      let json: any | undefined;
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        text = await res.text();
+      }
+
+      if (!res.ok) {
+        const snippet = (text || JSON.stringify(json || {})).slice(0, 300);
+        const err = new Error(`Slack HTTP ${res.status} for ${method}: ${snippet}${requestId ? ` (requestId=${requestId})` : ""}`);
+        if (res.status >= 500 && attempt < maxAttempts) {
+          await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
+          continue;
+        }
+        throw err;
+      }
+
+      if (json && json.ok !== true) {
+        throw new Error(`${method} failed: ${json.error || "unknown_error"}${requestId ? ` (requestId=${requestId})` : ""}`);
+      }
+
+      return json ?? { ok: true, raw: text };
+    } catch (e: any) {
+      clearTimeout(timeout);
+      const isAbort = e?.name === "AbortError";
+      const message = isAbort ? "timeout" : e?.message || String(e);
+      const canRetry =
+        isAbort || /fetch failed|ECONNRESET|ENOTFOUND|EAI_AGAIN|TLS|ETIMEDOUT/i.test(message);
+      if (canRetry && attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
+        continue;
+      }
+      throw new Error(`slackApi(${method}) error: ${message}${requestId ? ` (requestId=${requestId})` : ""}`);
+    }
+  }
+
+  throw new Error(`slackApi(${method}) exhausted retries${requestId ? ` (requestId=${requestId})` : ""}`);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
@@ -66,10 +113,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
-    // Immediately ack; process asynchronously
     res.status(200).json({ ok: true });
 
     const type = payload.type as string;
+    const requestId =
+      payload?.message?.ts ||
+      payload?.container?.message_ts ||
+      payload?.trigger_id ||
+      String(Date.now());
+
     if (type === "block_actions") {
       const action = payload.actions?.[0];
       const actionId = action?.action_id as string | undefined;
@@ -91,22 +143,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         });
 
         if (channelId && messageTs) {
-          await slackApi("chat.update", {
-            channel: channelId,
-            ts: messageTs,
-            text: "Draft approved",
-            blocks: [
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+          await slackApi(
+            "chat.update",
+            {
+              channel: channelId,
+              ts: messageTs,
+              text: "Draft approved",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+                  }
                 }
-              }
-            ]
-          });
+              ]
+            },
+            requestId
+          );
         }
-        log("info", "Slack approve handled", { ticketId, draftId, userId });
+        log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
         return;
       }
 
@@ -120,57 +176,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           reviewerSlackId: userId || "unknown"
         });
         if (channelId && messageTs) {
-          await slackApi("chat.update", {
-            channel: channelId,
-            ts: messageTs,
-            text: "Draft rejected",
-            blocks: [
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+          await slackApi(
+            "chat.update",
+            {
+              channel: channelId,
+              ts: messageTs,
+              text: "Draft rejected",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+                  }
                 }
-              }
-            ]
-          });
+              ]
+            },
+            requestId
+          );
         }
-        log("info", "Slack reject handled", { ticketId, draftId, userId });
+        log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
         return;
       }
 
       if (actionId === "edit" && triggerId) {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        await slackApi("views.open", {
-          trigger_id: triggerId,
-          view: {
-            type: "modal",
-            callback_id: "edit_modal",
-            private_metadata: JSON.stringify({
-              ticketId,
-              draftId,
-              channelId,
-              messageTs
-            }),
-            title: { type: "plain_text", text: "Edit Draft" },
-            submit: { type: "plain_text", text: "Send" },
-            close: { type: "plain_text", text: "Cancel" },
-            blocks: [
-              {
-                type: "input",
-                block_id: "final_text_block",
-                label: { type: "plain_text", text: "Final Reply" },
-                element: {
-                  type: "plain_text_input",
-                  action_id: "final_text",
-                  multiline: true,
-                  initial_value: draftText
+        await slackApi(
+          "views.open",
+          {
+            trigger_id: triggerId,
+            view: {
+              type: "modal",
+              callback_id: "edit_modal",
+              private_metadata: JSON.stringify({
+                ticketId,
+                draftId,
+                channelId,
+                messageTs
+              }),
+              title: { type: "plain_text", text: "Edit Draft" },
+              submit: { type: "plain_text", text: "Send" },
+              close: { type: "plain_text", text: "Cancel" },
+              blocks: [
+                {
+                  type: "input",
+                  block_id: "final_text_block",
+                  label: { type: "plain_text", text: "Final Reply" },
+                  element: {
+                    type: "plain_text_input",
+                    action_id: "final_text",
+                    multiline: true,
+                    initial_value: draftText
+                  }
                 }
-              }
-            ]
-          }
-        });
-        log("info", "Slack edit modal opened", { ticketId, draftId, userId });
+              ]
+            }
+          },
+          requestId
+        );
+        log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
         return;
       }
     }
@@ -189,31 +253,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       });
 
       if (md.channelId && md.messageTs) {
-        await slackApi("chat.update", {
-          channel: md.channelId,
-          ts: md.messageTs,
-          text: "Draft edited and approved",
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
+        await slackApi(
+          "chat.update",
+          {
+            channel: md.channelId,
+            ts: md.messageTs,
+            text: "Draft edited and approved",
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
+                }
               }
-            }
-          ]
-        });
+            ]
+          },
+          requestId
+        );
       }
       log("info", "Slack edit submission handled", {
         ticketId: md.ticketId,
         draftId: md.draftId,
-        userId
+        userId,
+        requestId
       });
       return;
     }
 
-    log("warn", "Unhandled Slack interaction", { type: payload.type });
+    log("warn", "Unhandled Slack interaction", { type: payload.type, requestId });
   } catch (error: any) {
-    log("error", "Slack interaction error", { error: error?.message || String(error) });
+    const errMsg = error?.message || String(error);
+    log("error", "Slack interaction error", {
+      error: errMsg,
+      type: payload?.type,
+      actionId: payload?.actions?.[0]?.action_id,
+      requestId: payload?.message?.ts || payload?.trigger_id || null
+    });
   }
 }

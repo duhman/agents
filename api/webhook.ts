@@ -162,9 +162,11 @@ export default async function handler(
         postReview(slackPayload).catch((error: unknown) => {
           log("error", "Slack posting failed", {
             error: parseErrorMessage(error),
-            requestId
+            requestId,
+            channel: slackChannel,
+            ticketId: result.ticket?.id,
+            draftId: result.draft?.id
           });
-          // Don't fail the webhook if Slack fails
         });
       } else {
         log("warn", "SLACK_REVIEW_CHANNEL not configured", { requestId });
