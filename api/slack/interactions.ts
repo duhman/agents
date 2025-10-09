@@ -148,13 +148,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   try {
     res.status(200).json({ ok: true });
-
+ 
     const type = payload.type as string;
     const requestId =
       payload?.message?.ts ||
       payload?.container?.message_ts ||
       payload?.trigger_id ||
       String(Date.now());
+ 
+    log("info", "Slack interaction acked", { type, requestId });
 
     if (type === "block_actions") {
       const action = payload.actions?.[0];
@@ -243,40 +245,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "edit" && triggerId) {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        await slackApi(
-          "views.open",
-          {
-            trigger_id: triggerId,
-            view: {
-              type: "modal",
-              callback_id: "edit_modal",
-              private_metadata: JSON.stringify({
-                ticketId,
-                draftId,
-                channelId,
-                messageTs
-              }),
-              title: { type: "plain_text", text: "Edit Draft" },
-              submit: { type: "plain_text", text: "Send" },
-              close: { type: "plain_text", text: "Cancel" },
-              blocks: [
-                {
-                  type: "input",
-                  block_id: "final_text_block",
-                  label: { type: "plain_text", text: "Final Reply" },
-                  element: {
-                    type: "plain_text_input",
-                    action_id: "final_text",
-                    multiline: true,
-                    initial_value: draftText
-                  }
+        (async () => {
+          try {
+            await slackApi(
+              "views.open",
+              {
+                trigger_id: triggerId,
+                view: {
+                  type: "modal",
+                  callback_id: "edit_modal",
+                  private_metadata: JSON.stringify({
+                    ticketId,
+                    draftId,
+                    channelId,
+                    messageTs
+                  }),
+                  title: { type: "plain_text", text: "Edit Draft" },
+                  submit: { type: "plain_text", text: "Send" },
+                  close: { type: "plain_text", text: "Cancel" },
+                  blocks: [
+                    {
+                      type: "input",
+                      block_id: "final_text_block",
+                      label: { type: "plain_text", text: "Final Reply" },
+                      element: {
+                        type: "plain_text_input",
+                        action_id: "final_text",
+                        multiline: true,
+                        initial_value: draftText
+                      }
+                    }
+                  ]
                 }
-              ]
+              },
+              requestId
+            );
+            log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
+          } catch (e: any) {
+            const msg = e?.message || String(e);
+            if (/expired_trigger_id|exchanged_trigger_id/i.test(msg)) {
+              log("warn", "views.open trigger_id not usable", { requestId, ticketId, draftId, reason: msg });
+            } else {
+              log("error", "Slack views.open failed", { requestId, ticketId, draftId, error: msg });
             }
-          },
-          requestId
-        );
-        log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
+          }
+        })();
         return;
       }
     }
