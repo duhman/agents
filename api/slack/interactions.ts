@@ -33,6 +33,9 @@ function parseSlackPayload(req: VercelRequest): any | null {
   } catch (_e) {
     return null;
   }
+  return null;
+}
+
 function isTransientDbError(message: string): boolean {
   return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|EAI_AGAIN|ENOTFOUND|Too many connections|terminating connection/i.test(
     message || ""
@@ -59,9 +62,6 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
     }
   }
   throw new Error("DB retries exhausted");
-}
-
-  return null;
 }
 
 async function slackApi(method: string, body: Record<string, unknown>, requestId?: string) {
