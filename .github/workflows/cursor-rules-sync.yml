@@ -43,6 +43,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Install tsx
+        run: pnpm add -g tsx
+
       - name: Run Cursor Rules Automation
         run: tsx .cursor/automation/rules-updater.ts
 
