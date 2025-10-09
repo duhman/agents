@@ -140,6 +140,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
+    log("info", "Slack interaction received (serverless)", {
+      raw_type: payload?.type,
+      has_actions: Array.isArray(payload?.actions),
+      has_view: !!payload?.view
+    });
+
   try {
     res.status(200).json({ ok: true });
 
