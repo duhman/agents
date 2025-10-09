@@ -41,7 +41,7 @@ jobs:
           version: 8
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run Cursor Rules Automation
         run: tsx .cursor/automation/rules-updater.ts
