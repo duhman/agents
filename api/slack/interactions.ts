@@ -33,6 +33,34 @@ function parseSlackPayload(req: VercelRequest): any | null {
   } catch (_e) {
     return null;
   }
+function isTransientDbError(message: string): boolean {
+  return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|EAI_AGAIN|ENOTFOUND|Too many connections|terminating connection/i.test(
+    message || ""
+  );
+}
+
+async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; actionId?: string }) {
+  const maxAttempts = 3;
+  const baseDelayMs = 200;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await op();
+    } catch (e: any) {
+      const msg = e?.message || String(e);
+      const transient = isTransientDbError(msg);
+      if (transient && attempt < maxAttempts) {
+        const delay = baseDelayMs * Math.pow(2, attempt - 1);
+        log("warn", "DB transient error, retrying", { requestId: ctx.requestId, actionId: ctx.actionId, attempt, error: msg });
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      log("error", "DB operation failed", { requestId: ctx.requestId, actionId: ctx.actionId, error: msg });
+      throw e;
+    }
+  }
+  throw new Error("DB retries exhausted");
+}
+
   return null;
 }
 
@@ -134,13 +162,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "approve") {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        await createHumanReview({
-          ticketId,
-          draftId,
-          decision: "approve",
-          finalText: draftText,
-          reviewerSlackId: userId || "unknown"
-        });
+        await withDbRetry(
+          () =>
+            createHumanReview({
+              ticketId,
+              draftId,
+              decision: "approve",
+              finalText: draftText,
+              reviewerSlackId: userId || "unknown"
+            }),
+          { requestId, actionId }
+        );
 
         if (channelId && messageTs) {
           await slackApi(
@@ -168,13 +200,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "reject") {
         const { ticketId, draftId } = JSON.parse(action.value);
-        await createHumanReview({
-          ticketId,
-          draftId,
-          decision: "reject",
-          finalText: "",
-          reviewerSlackId: userId || "unknown"
-        });
+        await withDbRetry(
+          () =>
+            createHumanReview({
+              ticketId,
+              draftId,
+              decision: "reject",
+              finalText: "",
+              reviewerSlackId: userId || "unknown"
+            }),
+          { requestId, actionId }
+        );
         if (channelId && messageTs) {
           await slackApi(
             "chat.update",
@@ -244,13 +280,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       const finalText = payload.view?.state?.values?.final_text_block?.final_text?.value || "";
       const userId = payload.user?.id as string | undefined;
 
-      await createHumanReview({
-        ticketId: md.ticketId,
-        draftId: md.draftId,
-        decision: "edit",
-        finalText,
-        reviewerSlackId: userId || "unknown"
-      });
+      await withDbRetry(
+        () =>
+          createHumanReview({
+            ticketId: md.ticketId,
+            draftId: md.draftId,
+            decision: "edit",
+            finalText,
+            reviewerSlackId: userId || "unknown"
+          }),
+        { requestId, actionId: "edit" }
+      );
 
       if (md.channelId && md.messageTs) {
         await slackApi(
