@@ -9,12 +9,13 @@ import type {
   ViewSubmitAction,
   AllMiddlewareArgs
 } from "@slack/bolt";
-import { envSchema } from "@agents/core";
+import { envSchema, logInfo } from "@agents/core";
 import { createHumanReview, getTicketById, getDraftById } from "@agents/db";
 
 // Extract App from the CommonJS default export
 const { App } = slackBolt;
 
+const SUBJECT_MAX_LENGTH = 250;
 let app: AppType | undefined;
 
 function getEnv() {
@@ -98,7 +99,7 @@ export async function postReview(params: PostReviewParams) {
           text: {
             type: "mrkdwn",
             text: `*Original Email – Subject (masked):*\n${
-              (originalEmailSubject ?? (originalEmail?.split("\n")[0] ?? "")).slice(0, 3000)
+              (originalEmailSubject ?? (originalEmail?.split("\n")[0] ?? "")).slice(0, SUBJECT_MAX_LENGTH)
             }`
           }
         },
@@ -188,7 +189,7 @@ function registerHandlers(slack: AppType) {
       const { ticketId, draftId, draftText } = value;
       const userId = body.user.id;
 
-      console.log(JSON.stringify({ level: "info", source: "bolt", action: "approve", ticketId, draftId }));
+      logInfo("bolt_action_approve", { requestId: (body as any).message?.ts || String(Date.now()), ticketId, userId }, { draftId });
       // Store human review
       await createHumanReview({
         ticketId,
@@ -232,7 +233,7 @@ function registerHandlers(slack: AppType) {
       const value = JSON.parse((body as any).actions[0].value);
       const { ticketId, draftId, draftText } = value;
 
-      console.log(JSON.stringify({ level: "info", source: "bolt", action: "edit_open", ticketId, draftId }));
+      logInfo("bolt_action_edit_open", { requestId: (body as any).message?.ts || String(Date.now()), ticketId, userId: body.user.id }, { draftId });
       await client.views.open({
         trigger_id: (body as any).trigger_id,
         view: {
@@ -294,7 +295,7 @@ function registerHandlers(slack: AppType) {
 
       const finalText = view.state.values.final_text_block.final_text.value || "";
 
-      console.log(JSON.stringify({ level: "info", source: "bolt", action: "edit_submit", ticketId, draftId }));
+      logInfo("bolt_action_edit_submit", { requestId: (metadata?.messageTs || String(Date.now())), ticketId, userId }, { draftId });
       // Store human review
       await createHumanReview({
         ticketId,
@@ -339,7 +340,7 @@ function registerHandlers(slack: AppType) {
       const { ticketId, draftId } = value;
       const userId = body.user.id;
 
-      console.log(JSON.stringify({ level: "info", source: "bolt", action: "reject", ticketId, draftId }));
+      logInfo("bolt_action_reject", { requestId: (body as any).message?.ts || String(Date.now()), ticketId, userId }, { draftId });
       // Store human review
       await createHumanReview({
         ticketId,
