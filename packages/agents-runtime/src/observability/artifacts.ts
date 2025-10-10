@@ -1,4 +1,4 @@
-import { getFlags } from "@agents/core/src/flags";
+import { getFlags } from "@agents/core";
 
 export type ArtifactType =
   | "extraction_result"
