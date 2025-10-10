@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { WorkflowCanvas } from "../../components/operator/WorkflowCanvas";
+import { maybeEnableDevtools } from "../../components/operator/devtools";
 import { useStore, store, selectNodeMeta, selectEdgeStatuses } from "../../components/operator/store";
 
 const FLAG = process.env.UI_EXPERIMENTAL_OPERATOR === "true";
@@ -14,6 +15,10 @@ export default function Operator() {
   const latestArtifacts = useStore(s => s.latestArtifacts);
   const events = useStore(s => s.events);
   const evtRef = useRef<EventSource | null>(null);
+
+  useEffect(() => {
+    maybeEnableDevtools();
+  }, []);
 
   useEffect(() => {
     if (!FLAG) return;
