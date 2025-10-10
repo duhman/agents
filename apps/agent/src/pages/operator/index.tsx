@@ -3,7 +3,7 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { WorkflowCanvas } from "../../components/operator/WorkflowCanvas";
-import { useStore, store, selectNodeMeta } from "../../components/operator/store";
+import { useStore, store, selectNodeMeta, selectEdgeStatuses } from "../../components/operator/store";
 
 const FLAG = process.env.UI_EXPERIMENTAL_OPERATOR === "true";
 
@@ -53,6 +53,7 @@ export default function Operator() {
     if (!FLAG) return <div className="p-6 text-sm">Operator UI is disabled.</div>;
     const topology = snapshot?.topology;
     const nodeMeta = selectNodeMeta({ runs, selectedRunId: selected, snapshot, latestArtifacts, events });
+    const edgeStatuses = selectEdgeStatuses({ runs, selectedRunId: selected, snapshot, latestArtifacts, events });
     return (
       <div className="flex h-screen">
         <div className="w-80 border-r p-4 space-y-2 overflow-auto">
@@ -80,6 +81,7 @@ export default function Operator() {
                   nodes={topology.nodes}
                   edges={topology.edges}
                   nodeMeta={nodeMeta}
+                  edgeStatuses={edgeStatuses}
                 />
               </div>
             ) : (

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { buildNodeMeta } from "./mapping";
+import { buildNodeMeta } from "./mapping.js";
 
 type RunMeta = {
   requestId: string;
@@ -53,4 +53,46 @@ export function useStore<T>(selector: (s: State) => T): T {
 
 export function selectNodeMeta(s: State) {
   return buildNodeMeta(s.latestArtifacts || {});
+}
+export function selectExecutedNodeIds(s: State): Set<string> {
+  const meta = buildNodeMeta(s.latestArtifacts || {});
+  const ids = new Set<string>();
+  for (const [id, m] of Object.entries(meta)) {
+    if (m.status && m.status !== "idle") ids.add(id);
+  }
+  return ids;
+}
+
+export function selectEdgeStatuses(s: State): Record<string, "animated" | "temporary" | "idle"> {
+  const topo = s.snapshot?.topology;
+  if (!topo) return {};
+  const executed = selectExecutedNodeIds(s);
+  const statuses: Record<string, "animated" | "temporary" | "idle"> = {};
+  for (const e of topo.edges || []) {
+    const active = executed.has(e.source) && executed.has(e.target);
+    statuses[e.id] = active ? "animated" : (e.type === "temporary" ? "temporary" : "idle");
+  }
+  return statuses;
+}
+
+export function selectErrorState(s: State): Record<string, { message?: string }> {
+  const out: Record<string, { message?: string }> = {};
+  const a = s.latestArtifacts || {};
+  const check = (key: string, nodeId: string) => {
+    const v = a[key];
+    if (v && (v.status === "error" || v.error)) {
+      out[nodeId] = { message: v.error || "error" };
+    }
+  };
+  check("ticket_creation_status", "create_ticket");
+  check("draft_creation_status", "generate_draft");
+  check("slack_post_status", "slack");
+  check("policy_validation", "policy");
+  return out;
+}
+export function selectNodeStatuses(s: State): Record<string, string> {
+  const meta = buildNodeMeta(s.latestArtifacts || {});
+  const out: Record<string, string> = {};
+  for (const [id, m] of Object.entries(meta)) out[id] = m.status || "idle";
+  return out;
 }

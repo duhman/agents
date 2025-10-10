@@ -12,11 +12,13 @@ type NodeMeta = {
 export function WorkflowCanvas({
   nodes,
   edges,
-  nodeMeta
+  nodeMeta,
+  edgeStatuses
 }: {
   nodes: any[];
   edges: any[];
   nodeMeta: Record<string, NodeMeta>;
+  edgeStatuses?: Record<string, "animated" | "temporary" | "idle">;
 }) {
   const enhancedNodes = useMemo(
     () =>
@@ -32,9 +34,18 @@ export function WorkflowCanvas({
     [nodes, nodeMeta]
   );
 
+  const enhancedEdges = useMemo(
+    () =>
+      (edges || []).map((e) => ({
+        ...e,
+        animated: edgeStatuses?.[e.id] === "animated",
+        type: edgeStatuses?.[e.id] === "temporary" ? "temporary" : e.type
+      })),
+    [edges, edgeStatuses]
+  );
   return (
     <div className="h-full w-full">
-      <ReactFlow nodes={enhancedNodes} edges={edges} fitView>
+      <ReactFlow nodes={enhancedNodes} edges={enhancedEdges} fitView>
         <Controls />
         <Background />
       </ReactFlow>
