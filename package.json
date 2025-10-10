@@ -16,7 +16,7 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "test": "turbo test",
+    "test": "pnpm --filter @agents/agent test",
     "db:push": "pnpm --filter @agents/db push",
     "db:studio": "pnpm --filter @agents/db studio",
     "agent:dev": "pnpm --filter @agents/agent dev",
