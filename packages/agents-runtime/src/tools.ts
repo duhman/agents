@@ -246,6 +246,7 @@ const generateDraftParameters = z.object({
       "sameie_concern",
       "payment_dispute"
     ])
+    .nullable()
     .optional()
     .describe("Detected edge case"),
   customerConcerns: z.array(z.string()).optional().describe("Customer concerns mentioned"),
