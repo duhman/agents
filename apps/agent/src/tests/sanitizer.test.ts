@@ -18,3 +18,7 @@ for (const s of samples) {
 assert(threw === samples.length, `assertMasked should throw on unmasked PII. Threw=${threw}, expected=${samples.length}`);
 
 console.log("sanitizer.test.ts passed");
+
+assertMasked({ text: "contact me at user [at] example [dot] com" });
+assertMasked([{ msg: "Masked email: u***@e***.com" }]);
+console.log("sanitizer additional denylist cases passed");
