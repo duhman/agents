@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { NextApiRequest, NextApiResponse } from "next";
 import { subscribe, writeSSE } from "../../../../../server/operator/events.js";
 

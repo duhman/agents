@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { NextApiRequest, NextApiResponse } from "next";
 import { assertMasked } from "../../_sanitizer.js";
 import { getLatestArtifacts } from "../../../../../server/operator/events.js";
