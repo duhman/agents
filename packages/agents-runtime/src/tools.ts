@@ -68,6 +68,18 @@ export const createTicketTool = tool({
         }
       );
 
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "ticket_creation_status",
+          data: {
+            ticketId: ticket.id,
+            status: "created",
+            createdAt: Date.now()
+          }
+        });
+      } catch {}
+
       return {
         ticket_id: ticket.id,
         created_at: ticket.createdAt,
@@ -76,6 +88,16 @@ export const createTicketTool = tool({
       };
     } catch (error: any) {
       logError("Ticket creation failed", { requestId: "tool-execution" }, error);
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "ticket_creation_status",
+          data: {
+            status: "error",
+            message: String(error?.message ?? "unknown")
+          }
+        });
+      } catch {}
       throw new Error(`Ticket creation failed: ${error.message}`);
     }
   }
@@ -113,6 +135,19 @@ export const createDraftTool = tool({
         }
       );
 
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "draft_creation_status",
+          data: {
+            draftId: draft.id,
+            ticketId: params.ticketId,
+            status: "created",
+            createdAt: Date.now()
+          }
+        });
+      } catch {}
+
       return {
         draft_id: draft.id,
         created_at: draft.createdAt,
@@ -121,6 +156,16 @@ export const createDraftTool = tool({
       };
     } catch (error: any) {
       logError("Draft creation failed", { requestId: "tool-execution" }, error);
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "draft_creation_status",
+          data: {
+            status: "error",
+            message: String(error?.message ?? "unknown")
+          }
+        });
+      } catch {}
       throw new Error(`Draft creation failed: ${error.message}`);
     }
   }
@@ -228,6 +273,18 @@ export const generateDraftTool = tool({
         }
       );
 
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "drafting_progress",
+          data: {
+            progress: 1,
+            partialTextMasked: maskPII(draftText),
+            language: params.language
+          }
+        });
+      } catch {}
+
       return {
         draft_text: draftText,
         language: params.language,
@@ -236,6 +293,16 @@ export const generateDraftTool = tool({
       };
     } catch (error: any) {
       logError("Draft generation failed", { requestId: "tool-execution" }, error);
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "drafting_progress",
+          data: {
+            progress: 0,
+            error: String(error?.message ?? "unknown")
+          }
+        });
+      } catch {}
       throw new Error(`Draft generation failed: ${error.message}`);
     }
   }
@@ -259,8 +326,6 @@ export const postToSlackTool = tool({
   parameters: postToSlackParameters,
   execute: async (params: z.infer<typeof postToSlackParameters>) => {
     try {
-      // This would integrate with your Slack bot
-      // For now, return success status
       logInfo(
         "Slack posting initiated",
         { requestId: "tool-execution" },
@@ -271,6 +336,29 @@ export const postToSlackTool = tool({
         }
       );
 
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "slack_post_status",
+          data: {
+            status: "queued",
+            channelId: process.env.SLACK_REVIEW_CHANNEL || "not-configured"
+          }
+        });
+      } catch {}
+
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "slack_post_status",
+          data: {
+            status: "posted",
+            channelId: process.env.SLACK_REVIEW_CHANNEL || "not-configured",
+            messageUrl: ""
+          }
+        });
+      } catch {}
+
       return {
         success: true,
         message: "Draft posted to Slack for review",
@@ -280,6 +368,16 @@ export const postToSlackTool = tool({
       };
     } catch (error: any) {
       logError("Slack posting failed", { requestId: "tool-execution" }, error);
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "slack_post_status",
+          data: {
+            status: "error",
+            message: String(error?.message ?? "unknown")
+          }
+        });
+      } catch {}
       throw new Error(`Slack posting failed: ${error.message}`);
     }
   }
@@ -394,6 +492,17 @@ export const validatePolicyComplianceTool = tool({
         }
       );
 
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "policy_validation",
+          data: {
+            overallPass: compliant,
+            checks
+          } as any
+        });
+      } catch {}
+
       return {
         compliant,
         checks,
@@ -401,6 +510,16 @@ export const validatePolicyComplianceTool = tool({
       };
     } catch (error: any) {
       logError("Policy compliance validation failed", { requestId: "tool-execution" }, error);
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "policy_validation",
+          data: {
+            overallPass: false,
+            error: String(error?.message ?? "unknown")
+          }
+        });
+      } catch {}
       throw new Error(`Policy compliance validation failed: ${error.message}`);
     }
   }
