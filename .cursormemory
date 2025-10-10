@@ -6,14 +6,14 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 
 ## Core Architecture
 
-- **Pattern**: Email ingestion → OpenAI Agents SDK orchestration → Slack HITM → Send reply → Store feedback → Fine-tune
-- **Tech Stack**: Node 20, TypeScript, OpenAI Agents SDK (`@openai/agents`), Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
+- **Pattern**: Email ingestion → **Hybrid deterministic/AI processing** → Slack HITM → Send reply → Store feedback → Fine-tune
+- **Tech Stack**: Node 20, TypeScript, **Hybrid processor** (deterministic + OpenAI fallback), Slack Bolt, Vercel Functions, Postgres (Drizzle), Zod validation
 - **Monorepo**: pnpm workspaces with Turborepo for parallel builds
-- **RAG**: OpenAI Vector Store integrated for contextual retrieval (env: `OPENAI_VECTOR_STORE_ID`)
+- **Processing**: Deterministic extraction first (fast, free), OpenAI fallback for complex cases (accurate, costs API)
 
 ## Key Constraints
 
-- Norwegian language default, English fallback
+- Norwegian language default, English fallback, Swedish support
 - End-of-month cancellation policy (must be mentioned in drafts)
 - PII masking before any LLM calls (emails/phones/addresses)
 - Vercel Functions must complete <5s (Slack webhooks timeout at 3s)
@@ -27,14 +27,15 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 
 ## Important Patterns (2025)
 
-- **OpenAI Agents SDK**: Primary runtime (`@openai/agents`) with Agents, Handoffs, Tools, and tracing
-- **Agent Architecture**: `emailProcessingAgent` → `triageAgent` → `cancellationAgent` with specialized tools
-- **Tools**: `maskPiiTool`, `vectorStoreSearchTool`, `createTicketTool`, `createDraftTool`, `calculateConfidenceTool`, `generateDraftTool`, `postToSlackTool`
-- **Optional fields**: Must use `.optional().nullable()` pattern for Agents SDK compatibility
+- **Hybrid Processing**: Deterministic extraction first, OpenAI fallback for complex cases
+- **Enhanced Schemas**: `extractionSchemaEnhanced` with edge cases, confidence factors, Swedish support
+- **Edge Case Detection**: Corporate accounts, app access issues, future dates, sameie concerns
+- **Metrics Collection**: Track processing methods, performance, confidence scores
+- **Optional fields**: Must use `.optional().nullable()` pattern for schema compatibility
 - **Drizzle**: Use `push` for dev, `generate` + `migrate` for prod
 - **Workspace references**: `"@agents/core": "workspace:*"`
-- **Vector Store Tool**: `search_vector_store` available in `@agents/agents-runtime`, used by `cancellationAgent` to fetch context for relocation cases
-- **Deterministic Fallback**: If agent doesn't create ticket/draft, fallback to deterministic templates and DB operations
+- **Deterministic Fallback**: Always falls back to deterministic processing if OpenAI fails
+- **Language Support**: Norwegian (default), English (fallback), Swedish (detected)
 
 ## File Locations
 
@@ -42,9 +43,11 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Prompts & schemas: `packages/prompts/src/templates.ts`
 - Database schema: `packages/db/src/schema.ts`
 - PII masking: `packages/core/src/index.ts`
-- Agent logic: `apps/agent/src/index.ts` (Agents SDK implementation)
+- **Main processor**: `apps/agent/src/hybrid-processor.ts` (hybrid deterministic/AI)
+- **Simplified processor**: `apps/agent/src/simplified-processor.ts` (pure deterministic)
+- **Metrics**: `apps/agent/src/metrics.ts` (performance tracking)
 - Slack HITM: `apps/slack-bot/src/index.ts`
-- Agents runtime: `packages/agents-runtime/src/` (agents, tools, guardrails)
+- Agents runtime: `packages/agents-runtime/src/` (experimental/future)
 
 ## Success Metrics (KPIs)
 
@@ -67,5 +70,6 @@ This is an OpenAI-powered email automation system for Elaway that handles subscr
 - Chose Vercel for hosting due to serverless simplicity
 - External HubSpot data pipeline handles training data export
 - OrbStack (Docker-compatible) for local Postgres
-- **Agents SDK Migration**: Completed migration to `@openai/agents` as primary runtime
+- **Architecture Simplification**: Migrated from complex multi-agent to hybrid deterministic/AI approach
 - **Production Ready**: Award-winning improvements implemented (connection pooling, error handling, structured logging)
+- **Language Support**: Added Swedish language detection and templates

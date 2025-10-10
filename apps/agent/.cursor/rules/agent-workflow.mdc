@@ -1,71 +1,186 @@
 ---
-description: Agent-specific workflow for email processing and classification
+description: Hybrid agent workflow for email processing and classification
 globs:
 alwaysApply: true
 ---
 
-# Agent Workflow Rules
+# Hybrid Agent Workflow Rules
 
-This directory contains the core agent logic for email classification and draft generation.
+This directory contains the hybrid deterministic/AI processing logic for email classification and draft generation.
 
-## Processing Flow
+## Hybrid Processing Flow
 
-Every email must follow this exact flow:
+Every email follows this hybrid approach:
 
-1. **PII Masking** → 2. **OpenAI Extraction** → 3. **Store Ticket** → 4. **Generate Draft** (if cancellation) → 5. **Calculate Confidence**
+1. **PII Masking** → 2. **Deterministic Extraction** → 3. **Complex Case Detection** → 4. **OpenAI Fallback** (if needed) → 5. **Store Ticket** → 6. **Generate Enhanced Draft** → 7. **Calculate Confidence** → 8. **Record Metrics**
 
 ```typescript
-export async function processEmail(params: ProcessEmailParams) {
+export async function processEmailHybrid(params: ProcessEmailParams) {
   // 1. PII masking (REQUIRED FIRST)
   const maskedEmail = maskPII(rawEmail);
+  const maskedCustomerEmail = maskPII(customerEmail);
   
-  // 2. Extract with OpenAI
-  const extraction = await extractFields(maskedEmail);
+  // 2. Try deterministic extraction first
+  let extraction = extractEmailDataDeterministic(rawEmail);
+  let extractionMethod: "deterministic" | "openai" = "deterministic";
   
-  // 3. Store ticket
-  const ticket = await createTicket({/* ... */});
+  // 3. Determine if we need OpenAI for complex cases
+  const needsOpenAI = 
+    !extraction.confidence_factors.standard_case ||
+    extraction.confidence_factors.clear_intent === false ||
+    extraction.policy_risks.length > 1 ||
+    (extraction.edge_case !== "none" && extraction.edge_case !== "sameie_concern");
   
-  // 4. Draft if cancellation
-  if (extraction.is_cancellation) {
-    const draftText = generateDraft({/* ... */});
-    const confidence = calculateConfidence(extraction);
-    const draft = await createDraft({/* ... */});
-    
-    return { ticket, draft, extraction, confidence };
+  // 4. OpenAI fallback for complex cases
+  if (needsOpenAI) {
+    try {
+      extraction = await extractWithOpenAI(maskedEmail, logContext);
+      extractionMethod = "openai";
+    } catch (error) {
+      // Fall back to deterministic result
+      logWarn("OpenAI extraction failed, falling back to deterministic", logContext);
+    }
   }
   
-  return { ticket, extraction, confidence: 0 };
+  // 5. Store ticket
+  const ticket = await createTicket({
+    source,
+    customerEmail: maskedCustomerEmail,
+    rawEmailMasked: maskedEmail,
+    reason: extraction.reason !== "unknown" ? extraction.reason : undefined,
+    moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
+  });
+  
+  // 6. Generate enhanced draft if cancellation
+  if (extraction.is_cancellation) {
+    const draftText = generateDraftEnhanced({
+      language: extraction.language,
+      reason: extraction.reason,
+      moveDate: extraction.move_date,
+      edgeCase: extraction.edge_case,
+      customerConcerns: extraction.customer_concerns
+    });
+    
+    // 7. Calculate enhanced confidence
+    const confidence = calculateConfidenceEnhanced(extraction);
+    
+    const draft = await createDraft({
+      ticketId: ticket.id,
+      language: extraction.language,
+      draftText,
+      confidence: String(confidence),
+      model: extractionMethod === "openai" ? "gpt-4o-hybrid-v1" : "template-enhanced-v1"
+    });
+    
+    // 8. Record metrics
+    metricsCollector.record({
+      extraction_method: extractionMethod,
+      is_cancellation: extraction.is_cancellation,
+      edge_case: extraction.edge_case,
+      confidence,
+      processing_time_ms: duration,
+      policy_compliant: validation.compliant,
+      language: extraction.language
+    });
+    
+    return { ticket, draft, extraction, confidence, extraction_method: extractionMethod };
+  }
+  
+  return { ticket, extraction, confidence: 0, extraction_method: extractionMethod };
 }
 ```
 
-## Confidence Scoring
+## Enhanced Confidence Scoring
 
-Keep scoring consistent:
+Use enhanced confidence calculation with edge cases:
 
 ```typescript
-function calculateConfidence(extraction: ExtractionResult): number {
+function calculateConfidenceEnhanced(extraction: ExtractionResultEnhanced): number {
   let confidence = 0.5; // Base score
   
-  if (extraction.is_cancellation) confidence += 0.3;
+  // Core factors
+  if (extraction.is_cancellation) confidence += 0.2;
   if (extraction.reason !== "unknown") confidence += 0.1;
   if (extraction.move_date) confidence += 0.1;
   if (extraction.policy_risks.length === 0) confidence += 0.1;
   
-  return Math.min(confidence, 1.0);
+  // Enhanced factors
+  if (extraction.confidence_factors.clear_intent) confidence += 0.1;
+  if (extraction.confidence_factors.complete_information) confidence += 0.1;
+  if (extraction.confidence_factors.standard_case) confidence += 0.1;
+  
+  // Edge case adjustments
+  if (extraction.edge_case === "none") confidence += 0.1;
+  if (extraction.edge_case === "sameie_concern") confidence += 0.05;
+  if (extraction.edge_case === "no_app_access") confidence -= 0.1;
+  if (extraction.edge_case === "corporate_account") confidence -= 0.15;
+  
+  // Language support
+  if (extraction.language === "no" || extraction.language === "en") confidence += 0.05;
+  if (extraction.language === "sv") confidence += 0.02; // Swedish support
+  
+  return Math.min(Math.max(confidence, 0.0), 1.0);
+}
+```
+
+## Edge Case Detection
+
+Handle special scenarios with enhanced detection:
+
+```typescript
+function detectEdgeCase(email: string, extraction: ExtractionResult): string {
+  const emailLower = email.toLowerCase();
+  
+  // Corporate account detection
+  if (emailLower.match(/bedrift|corporate|company|business|firma/)) {
+    return "corporate_account";
+  }
+  
+  // App access issues
+  if (emailLower.match(/ikke fungerer|not working|app.*problem|login.*issue/)) {
+    return "no_app_access";
+  }
+  
+  // Future move dates
+  if (extraction.move_date && getMonthsFromNow(extraction.move_date) > 1) {
+    return "future_move_date";
+  }
+  
+  // Already canceled
+  if (emailLower.match(/allerede.*oppsagt|already.*cancel|avsluttet|terminated/)) {
+    return "already_canceled";
+  }
+  
+  // Sameie concerns
+  if (emailLower.match(/sameie|housing association|hele|everyone|whole building/)) {
+    return "sameie_concern";
+  }
+  
+  return "none";
 }
 ```
 
 ## Error Handling
 
-Always handle extraction failures:
+Always handle extraction failures with fallback:
 
 ```typescript
-const parsed = completion.choices[0]?.message?.parsed;
-if (!parsed) {
-  throw new Error("Failed to parse extraction response");
+try {
+  const completion = await openai.chat.completions.parse({
+    // ... config
+  });
+  
+  const parsed = completion.choices[0]?.message?.parsed;
+  if (!parsed) {
+    throw new Error("Failed to parse extraction response from OpenAI");
+  }
+  
+  return extractionSchemaEnhanced.parse(parsed); // Validate with enhanced schema
+} catch (error) {
+  logWarn("OpenAI extraction failed, falling back to deterministic", logContext);
+  // Fall back to deterministic result
+  return extractEmailDataDeterministic(rawEmail);
 }
-
-return extractionSchema.parse(parsed); // Validate with Zod
 ```
 
 ## Testing
@@ -79,6 +194,9 @@ pnpm dev
 
 ## References
 
-- @packages/prompts/src/templates.ts - Extraction schema and prompts
+- @packages/prompts/src/templates.ts - Enhanced extraction schemas and prompts
 - @packages/core/src/index.ts - PII masking utilities
 - @packages/db/src/repositories.ts - Database operations
+- @apps/agent/src/hybrid-processor.ts - Main hybrid implementation
+- @apps/agent/src/simplified-processor.ts - Deterministic fallback
+- @apps/agent/src/metrics.ts - Performance metrics

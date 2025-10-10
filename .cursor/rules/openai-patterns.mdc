@@ -57,6 +57,67 @@ OpenAI released an official **Agents SDK** for TypeScript: `@openai/agents`
 
 ---
 
+## Hybrid Architecture Patterns
+
+✅ **DO:** Use deterministic extraction first, OpenAI fallback for complex cases
+
+```typescript
+// From hybrid-processor.ts
+let extraction = extractEmailDataDeterministic(rawEmail);
+let extractionMethod: "deterministic" | "openai" = "deterministic";
+
+// Determine if we need OpenAI for complex cases
+const needsOpenAI = 
+  !extraction.confidence_factors.standard_case ||
+  extraction.confidence_factors.clear_intent === false ||
+  extraction.policy_risks.length > 1 ||
+  (extraction.edge_case !== "none" && extraction.edge_case !== "sameie_concern");
+
+if (needsOpenAI) {
+  extraction = await extractWithOpenAI(maskedEmail, logContext);
+  extractionMethod = "openai";
+}
+```
+
+## Enhanced Schema Patterns
+
+✅ **DO:** Use enhanced schemas with edge cases and confidence factors
+
+```typescript
+export const extractionSchemaEnhanced = z.object({
+  is_cancellation: z.boolean(),
+  reason: z.enum(["moving", "other", "unknown"]),
+  move_date: z.string().date().optional().nullable(),
+  language: z.enum(["no", "en", "sv"]), // Added Swedish support
+  edge_case: z.enum(["none", "no_app_access", "corporate_account", "future_move_date", "already_canceled", "sameie_concern"]),
+  urgency: z.enum(["immediate", "future", "unclear"]),
+  customer_concerns: z.array(z.string()).default([]),
+  policy_risks: z.array(z.string()).default([]),
+  confidence_factors: z.object({
+    clear_intent: z.boolean(),
+    complete_information: z.boolean(),
+    standard_case: z.boolean()
+  })
+});
+```
+
+## Metrics Collection
+
+✅ **DO:** Track processing methods and performance
+
+```typescript
+// From metrics.ts
+metricsCollector.record({
+  extraction_method: extractionMethod,
+  is_cancellation: extraction.is_cancellation,
+  edge_case: extraction.edge_case,
+  confidence,
+  processing_time_ms: duration,
+  policy_compliant: validation.compliant,
+  language: extraction.language
+});
+```
+
 ## Schema Patterns (Updated)
 
 ✅ **DO:** Use `.optional().nullable()` for optional fields (correct order)
@@ -213,8 +274,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 ## References
 
-- @packages/prompts/src/templates.ts - Extraction schema
-- @apps/agent/src/index.ts - Classification implementation
+- @packages/prompts/src/templates.ts - Enhanced extraction schemas
+- @apps/agent/src/hybrid-processor.ts - Hybrid processing implementation
+- @apps/agent/src/simplified-processor.ts - Deterministic processing
+- @apps/agent/src/metrics.ts - Performance metrics collection
 - @packages/core/src/index.ts - Retry logic and logging
 - @OPENAI_AGENTS_SDK_ANALYSIS.md - Official Agents SDK evaluation
 - https://openai.github.io/openai-agents-js/ - Agents SDK docs

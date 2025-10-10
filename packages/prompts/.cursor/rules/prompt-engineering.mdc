@@ -6,62 +6,128 @@ alwaysApply: true
 
 # Prompt Engineering Rules
 
-## Schema-First Approach
+## Enhanced Schema-First Approach
 
-Always define Zod schemas before writing prompts:
+Always define enhanced Zod schemas before writing prompts:
 
 ```typescript
-export const extractionSchema = z.object({
+export const extractionSchemaEnhanced = z.object({
   is_cancellation: z.boolean(),
   reason: z.enum(["moving", "other", "unknown"]),
-  move_date: z.string().date().nullable().optional(),
-  language: z.enum(["no", "en"]),
-  policy_risks: z.array(z.string()).default([])
+  move_date: z.string().date().optional().nullable(),
+  language: z.enum(["no", "en", "sv"]), // Added Swedish support
+  edge_case: z.enum(["none", "no_app_access", "corporate_account", "future_move_date", "already_canceled", "sameie_concern"]),
+  urgency: z.enum(["immediate", "future", "unclear"]),
+  customer_concerns: z.array(z.string()).default([]),
+  policy_risks: z.array(z.string()).default([]),
+  confidence_factors: z.object({
+    clear_intent: z.boolean(),
+    complete_information: z.boolean(),
+    standard_case: z.boolean()
+  })
 });
 ```
 
 ## System Prompts
 
-Maintain separate system prompts for each language:
+Maintain separate system prompts for each language (including Swedish):
 
 ```typescript
-export const systemPolicyNO = `Du er en kundeservicerådgiver for Elaway...`;
-export const systemPolicyEN = `You are a customer service advisor for Elaway...`;
+export const systemPolicyNO = `Du er en kundeservicerådgiver for Elaway. Følg selskapets policy:
+- Oppsigelser trer i kraft ved utgangen av måneden.
+- Oppfordre til selvbetjent oppsigelse i appen når mulig.
+- Vær høflig, konsis, og merk eventuelle manglende detaljer.`;
+
+export const systemPolicyEN = `You are a customer service advisor for Elaway. Follow company policy:
+- Cancellations take effect at the end of the month.
+- Encourage self-service cancellation via the app when possible.
+- Be polite, concise, and note any missing details.`;
+
+export const systemPolicySV = `Du är en kundtjänstrådgivare för Elaway. Följ företagets policy:
+- Uppsägningar träder i kraft vid månadens slut.
+- Uppmuntra självbetjäning via appen när möjligt.
+- Var artig, koncis och notera eventuella saknade detaljer.`;
 ```
 
-## Extraction Prompts
+## Enhanced Extraction Prompts
 
-Keep extraction prompts clear and structured:
+Keep extraction prompts clear and structured with edge case detection:
 
 ```typescript
-export const extractionPrompt = (email: string) => `Analyze this customer email and extract:
+export const extractionPromptEnhanced = (email: string) => `Analyze this customer email and extract:
 - is_cancellation: true if requesting cancellation
 - reason: "moving" if relocating, "other" if different, "unknown" if unclear
 - move_date: ISO date (YYYY-MM-DD) if mentioned, null otherwise
-- language: "no" for Norwegian, "en" for English
+- language: "no" for Norwegian, "en" for English, "sv" for Swedish
+- edge_case: "none", "no_app_access", "corporate_account", "future_move_date", "already_canceled", "sameie_concern"
+- urgency: "immediate" if moving soon, "future" if later, "unclear" if no date
+- customer_concerns: list concerns like "shared_account_concern", "billing_concern", "technical_issue"
 - policy_risks: list any ambiguities
+- confidence_factors: assess clear_intent, complete_information, standard_case
 
 Email:
 ${email}`;
 ```
 
-## Draft Templates
+## Enhanced Draft Templates
 
-Use deterministic templates, not LLM generation:
+Use enhanced deterministic templates with edge case handling:
 
 ```typescript
-export function generateDraft(params: DraftParams): string {
-  const { language, reason, moveDate } = params;
+export function generateDraftEnhanced(params: EnhancedDraftParams): string {
+  const { language, reason, moveDate, edgeCase, customerConcerns } = params;
   
   // Build template deterministically
   let body = language === "no" 
-    ? "Takk for din henvendelse..."
-    : "Thank you for contacting us...";
+    ? "Takk for din henvendelse angående oppsigelse av abonnementet ditt."
+    : language === "sv"
+    ? "Tack för din förfrågan om att säga upp ditt abonnemang."
+    : "Thank you for contacting us about canceling your subscription.";
     
-  // Add conditional sections
-  if (moveDate) {
-    body += `\n\n${formatMoveDate(moveDate, language)}`;
+  // Add reason-specific content
+  if (reason === "moving") {
+    body += language === "no" 
+      ? "\n\nVi forstår at du skal flytte."
+      : language === "sv"
+      ? "\n\nVi förstår att du ska flytta."
+      : "\n\nWe understand you are relocating.";
   }
+  
+  // Add edge case handling
+  if (edgeCase === "corporate_account") {
+    body += language === "no"
+      ? "\n\nVi ser at dette er en bedriftskonto. Vi vil behandle oppsigelsen i henhold til bedriftens avtale."
+      : "\n\nWe see this is a corporate account. We will process the cancellation according to the corporate agreement.";
+  }
+  
+  if (edgeCase === "no_app_access") {
+    body += language === "no"
+      ? "\n\nHvis du har problemer med appen, kan vi hjelpe deg med oppsigelsen manuelt."
+      : "\n\nIf you're having trouble with the app, we can help you cancel manually.";
+  }
+  
+  // Add policy information
+  body += language === "no"
+    ? "\n\nOppsigelsen trer i kraft ved utgangen av den måneden vi mottar beskjeden. Du kan enkelt si opp abonnementet ditt via appen."
+    : language === "sv"
+    ? "\n\nUppsägningen träder i kraft vid månadens slut. Du kan enkelt säga upp ditt abonnemang via appen."
+    : "\n\nThe cancellation takes effect at the end of the month we receive your notice. You can easily cancel your subscription via the app.";
+    
+  // Add move date information
+  if (moveDate) {
+    body += language === "no"
+      ? `\n\nDu nevnte flyttedato ${moveDate}. Vær oppmerksom på at oppsigelsen gjelder fra månedens slutt.`
+      : language === "sv"
+      ? `\n\nDu nämnde flyttdatum ${moveDate}. Observera att uppsägningen gäller från månadens slut.`
+      : `\n\nYou mentioned a move date of ${moveDate}. Please note that the cancellation applies from the end of the month.`;
+  }
+  
+  // Add closing
+  body += language === "no"
+    ? "\n\nHvis du har spørsmål, er du velkommen til å kontakte oss igjen."
+    : language === "sv"
+    ? "\n\nOm du har frågor, är du välkommen att kontakta oss igen."
+    : "\n\nIf you have any questions, feel free to contact us again.";
   
   return body;
 }
@@ -74,7 +140,9 @@ Every draft must include:
 - ✅ End-of-month cancellation policy
 - ✅ App self-service instructions
 - ✅ Polite, branded tone
-- ✅ Language-appropriate formatting
+- ✅ Language-appropriate formatting (Norwegian, English, Swedish)
+- ✅ Edge case handling (corporate accounts, app access issues)
+- ✅ Customer concern acknowledgment
 
 ## Testing Prompts
 
@@ -97,3 +165,5 @@ Target accuracy: ≥90% on golden set
 - @documentation/project/policies.md - Tone and policy guidelines
 - @documentation/project/prompts.md - Prompt templates overview
 - @ops/scripts/eval.ts - Evaluation script
+- @packages/prompts/src/templates.ts - Enhanced schemas and templates
+- @apps/agent/src/hybrid-processor.ts - Hybrid processing implementation

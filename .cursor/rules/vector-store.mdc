@@ -1,10 +1,17 @@
 ---
-description: OpenAI Vector Store usage and RAG patterns for agents
+description: OpenAI Vector Store usage and RAG patterns for agents - PLANNED/FUTURE
 globs: packages/agents-runtime/src/**/*.ts, apps/agent/**/*.ts
 alwaysApply: false
 ---
 
 # Vector Store (RAG) Patterns
+
+> **⚠️ PLANNED - Not Yet Integrated**
+> 
+> Vector store functionality is **NOT currently implemented** in the hybrid processor.
+> This is planned for future enhancements to provide contextual retrieval for complex cases.
+> 
+> Current hybrid approach uses deterministic extraction + OpenAI fallback without vector store.
 
 ## Purpose
 

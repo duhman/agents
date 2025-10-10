@@ -41,14 +41,6 @@
   "vercel.enabled": true,
   "vercel.autoDeploy": false,
   "vercel.previewDeployments": true,
-  "typescript.preferences.includePackageJsonAutoImports": "on",
-  "typescript.suggest.autoImports": true,
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit"
-  },
   "files.associations": {
     "*.mdc": "markdown",
     "vercel.json": "json",

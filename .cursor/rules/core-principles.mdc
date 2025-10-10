@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Core Principles
 
-This project automates customer email responses using OpenAI + Slack HITM.
+This project automates customer email responses using **hybrid deterministic/AI processing** with Slack HITM.
 
 ## 1. Privacy First
 
@@ -18,7 +18,7 @@ This project automates customer email responses using OpenAI + Slack HITM.
 
 ## 2. Policy Compliance
 
-- Norwegian default; English fallback
+- Norwegian default; English fallback; Swedish support
 - End-of-month cancellation policy
 - Encourage app self-service
 - Be polite, concise, branded
@@ -30,14 +30,21 @@ This project automates customer email responses using OpenAI + Slack HITM.
 - Always use `.nullable()` with `.optional()` for optional fields
 - Validate all inputs/outputs with `safeParse`
 
-## 4. Data Flow
+## 4. Hybrid Architecture
+
+- **Deterministic first**: Pattern matching for standard cases (fast, free)
+- **AI fallback**: OpenAI for complex/ambiguous cases (accurate, costs API)
+- **Metrics collection**: Track processing methods and performance
+- **Edge case detection**: Handle special scenarios (corporate accounts, future dates)
+
+## 5. Data Flow
 
 - tickets → drafts → human_reviews
 - Store provenance and decisions
 - Export approved pairs for fine-tuning
 - Minimum 500 examples before fine-tuning
 
-## 5. Code Quality
+## 6. Code Quality
 
 - TypeScript strict mode
 - Prefer explicit types over `any`
@@ -51,6 +58,9 @@ This project automates customer email responses using OpenAI + Slack HITM.
 - `@documentation/project/prd.md` - Requirements & KPIs
 - `@documentation/project/policies.md` - Tone/policy
 - `@documentation/project/prompts.md` - Prompt templates
-- `@packages/prompts/src/templates.ts` - Extraction schema + drafting
+- `@packages/prompts/src/templates.ts` - Enhanced extraction schemas + drafting
 - `@packages/core/src/index.ts` - PII masking
 - `@packages/db/src/schema.ts` - Database schema
+- `@apps/agent/src/hybrid-processor.ts` - Main hybrid processor
+- `@apps/agent/src/simplified-processor.ts` - Pure deterministic processor
+- `@apps/agent/src/metrics.ts` - Performance metrics collection

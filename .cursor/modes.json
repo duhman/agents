@@ -17,9 +17,11 @@
         "@documentation/project/prd.md",
         "@documentation/project/policies.md",
         "@packages/prompts/src/templates.ts",
-        "@apps/agent/src/index.ts"
+        "@apps/agent/src/hybrid-processor.ts",
+        "@apps/agent/src/simplified-processor.ts",
+        "@apps/agent/src/metrics.ts"
       ],
-      "instructions": "Focus on OpenAI structured outputs, Zod schema validation, PII masking, and confidence scoring. Always use zodResponseFormat() and .optional().nullable() pattern. Refer to extraction schema in prompts package."
+      "instructions": "Focus on hybrid deterministic/AI processing, enhanced extraction schemas, PII masking, and confidence scoring. Use deterministic extraction first, OpenAI fallback for complex cases. Always use zodResponseFormat() and .optional().nullable() pattern. Record metrics for performance tracking."
     },
     {
       "name": "Database Schema",
@@ -100,7 +102,7 @@
         "@packages/agents-runtime/src/tools.ts",
         "@packages/prompts/src/templates.ts"
       ],
-      "instructions": "Use OpenAI Agents SDK patterns: typed tools with Zod, Agent.outputType, temperature 0, timeout 30000, handoffs for routing, guardrails for policy/PII."
+      "instructions": "⚠️ EXPERIMENTAL/FUTURE WORK: This mode is for OpenAI Agents SDK development in packages/agents-runtime/. Current production uses hybrid/simplified approach. Use OpenAI Agents SDK patterns: typed tools with Zod, Agent.outputType, temperature 0, timeout 30000, handoffs for routing, guardrails for policy/PII."
     }
   ],
   "defaultMode": "agent-dev"

@@ -46,6 +46,7 @@ class CursorRulesAutomation {
     if (changes.packages) await this.updateDependencyRules();
     if (changes.architecture) await this.updateArchitectureMemories();
     if ((changes as any).agentsRuntime) await this.updateAgentsSdkRules();
+    if ((changes as any).hybridProcessor) await this.updateHybridProcessorRules();
     
     // 3. Validate all rules
     await this.validateRules();
@@ -68,7 +69,10 @@ class CursorRulesAutomation {
       prompts: this.hasFileChanged("packages/prompts/src/templates.ts"),
       packages: this.hasFileChanged("package.json") || this.hasFileChanged("packages/*/package.json"),
       architecture: this.hasFileChanged("documentation/project/plan.md"),
-      agentsRuntime: this.hasFileChanged("packages/agents-runtime/src/*.ts")
+      agentsRuntime: this.hasFileChanged("packages/agents-runtime/src/*.ts"),
+      hybridProcessor: this.hasFileChanged("apps/agent/src/hybrid-processor.ts") || 
+                      this.hasFileChanged("apps/agent/src/simplified-processor.ts") ||
+                      this.hasFileChanged("apps/agent/src/metrics.ts")
     };
 
     console.log("📊 Detected changes:", changes);
@@ -242,6 +246,66 @@ class CursorRulesAutomation {
       action: "updated_agents_sdk_rules",
       timestamp: new Date(),
       changes: [`Agents: ${agentNames.length}`, `Tools: ${toolNames.length}`]
+    });
+  }
+
+  /**
+   * Update hybrid processor rules when processors change
+   */
+  private async updateHybridProcessorRules() {
+    console.log("📝 Updating hybrid processor rules...");
+
+    const hybridPath = join(this.projectRoot, "apps/agent/src/hybrid-processor.ts");
+    const simplifiedPath = join(this.projectRoot, "apps/agent/src/simplified-processor.ts");
+    const metricsPath = join(this.projectRoot, "apps/agent/src/metrics.ts");
+
+    const hybridSrc = existsSync(hybridPath) ? readFileSync(hybridPath, "utf-8") : "";
+    const simplifiedSrc = existsSync(simplifiedPath) ? readFileSync(simplifiedPath, "utf-8") : "";
+    const metricsSrc = existsSync(metricsPath) ? readFileSync(metricsPath, "utf-8") : "";
+
+    // Extract function names and patterns
+    const hybridFunctions = Array.from(hybridSrc.matchAll(/export (?:async )?function (\w+)/g)).map(m => m[1]);
+    const simplifiedFunctions = Array.from(simplifiedSrc.matchAll(/export (?:async )?function (\w+)/g)).map(m => m[1]);
+    const metricsFunctions = Array.from(metricsSrc.matchAll(/export (?:async )?function (\w+)/g)).map(m => m[1]);
+
+    // Update hybrid architecture rule
+    const ruleFile = join(this.projectRoot, ".cursor/rules/hybrid-architecture.mdc");
+    if (existsSync(ruleFile)) {
+      let ruleContent = readFileSync(ruleFile, "utf-8");
+      
+      const functionsList = [
+        ...hybridFunctions.map(f => `- \`${f}\` (hybrid-processor.ts)`),
+        ...simplifiedFunctions.map(f => `- \`${f}\` (simplified-processor.ts)`),
+        ...metricsFunctions.map(f => `- \`${f}\` (metrics.ts)`)
+      ].join("\n");
+
+      ruleContent = this.updateSection(ruleContent, "## Available Functions", `## Available Functions\n\n${functionsList}\n`);
+      
+      writeFileSync(ruleFile, ruleContent);
+    }
+
+    // Update agent workflow rule
+    const workflowRuleFile = join(this.projectRoot, "apps/agent/.cursor/rules/agent-workflow.mdc");
+    if (existsSync(workflowRuleFile)) {
+      let workflowContent = readFileSync(workflowRuleFile, "utf-8");
+      
+      // Update function references in examples
+      const updatedContent = workflowContent
+        .replace(/processEmailSimplified/g, hybridFunctions.includes('processEmailHybrid') ? 'processEmailHybrid' : 'processEmailSimplified')
+        .replace(/extractEmailData/g, hybridFunctions.includes('extractEmailDataDeterministic') ? 'extractEmailDataDeterministic' : 'extractEmailData');
+      
+      writeFileSync(workflowRuleFile, updatedContent);
+    }
+
+    this.updatesLog.push({
+      file: ruleFile,
+      action: "updated_hybrid_processor_rules",
+      timestamp: new Date(),
+      changes: [
+        `Hybrid functions: ${hybridFunctions.length}`,
+        `Simplified functions: ${simplifiedFunctions.length}`,
+        `Metrics functions: ${metricsFunctions.length}`
+      ]
     });
   }
 

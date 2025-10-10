@@ -1,10 +1,17 @@
 ---
-description: OpenAI Agents SDK patterns (Agents, Handoffs, Guardrails, Tools)
+description: OpenAI Agents SDK patterns (Agents, Handoffs, Guardrails, Tools) - OPTIONAL/REFERENCE
 globs: packages/agents-runtime/**/*.ts
 alwaysApply: false
 ---
 
 # OpenAI Agents SDK Patterns
+
+> **⚠️ OPTIONAL - For Future Enhancements**
+> 
+> This rule documents the OpenAI Agents SDK patterns in `packages/agents-runtime/`. 
+> **Current production uses the hybrid/simplified approach** in `apps/agent/src/hybrid-processor.ts`.
+> 
+> This is reference material for future multi-agent implementations.
 
 ## Agents
 ```ts

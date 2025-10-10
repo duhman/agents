@@ -68,6 +68,21 @@ After schema changes:
 3. Test repository functions
 4. Check in migration files for production
 
+## Serverless Connection Pooling
+
+For production deployment on Vercel:
+
+```typescript
+// In src/client.ts
+const isServerless = process.env.VERCEL === "1" || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const queryClient = postgres(connectionString, {
+  prepare: isServerless ? false : undefined, // Required for pooled connections
+  max: isServerless ? 1 : 10, // Single connection in serverless
+  idle_timeout: isServerless ? 20 : undefined,
+  connect_timeout: 10
+});
+```
+
 ## References
 
 - @packages/db/src/schema.ts - Current schema

@@ -11,7 +11,7 @@
             "@documentation/project/prd.md",
             "@documentation/project/policies.md",
             "@AWARD_WINNING_IMPROVEMENTS.md",
-            ".cursorrules"
+            "@SIMPLIFICATION_SUMMARY.md"
           ]
         },
         {
@@ -22,28 +22,39 @@
           "message": "⚠️ Detected potential PII. Ensure maskPII() is used before any LLM calls or storage."
         },
         {
-          "name": "Agents SDK Pattern Check",
+          "name": "Hybrid Architecture Pattern Check",
           "condition": "file_contains",
-          "patterns": ["@openai/agents"],
+          "patterns": ["hybrid-processor", "simplified-processor"],
           "action": "validate",
           "rules": [
             {
-              "pattern": "Agent\\(.*outputType",
-              "suggestion": "Type agent outputs with Zod schemas (outputType)"
+              "pattern": "extractEmailDataDeterministic",
+              "suggestion": "Use deterministic extraction first, then OpenAI fallback for complex cases"
             },
             {
-              "pattern": "handoffs:\\s*\[",
-              "suggestion": "Route work via handoffs rather than manual branching"
+              "pattern": "extractionSchemaEnhanced",
+              "suggestion": "Use enhanced schemas with edge cases and confidence factors"
             },
             {
-              "pattern": "tool\\(.*parameters",
-              "suggestion": "Define tools with strict Zod parameter schemas"
+              "pattern": "generateDraftEnhanced",
+              "suggestion": "Use enhanced draft generation with edge case handling"
             },
             {
-              "pattern": "\\.optional\\(\\)(?!\\.nullable\\(\\))",
-              "suggestion": "All optional fields must also be .nullable() in Agents SDK"
+              "pattern": "calculateConfidenceEnhanced",
+              "suggestion": "Use enhanced confidence calculation with edge case adjustments"
+            },
+            {
+              "pattern": "metricsCollector\\.record",
+              "suggestion": "Record metrics for processing methods and performance tracking"
             }
           ]
+        },
+        {
+          "name": "Swedish Language Support Check",
+          "condition": "code_contains",
+          "patterns": ["language.*enum.*no.*en"],
+          "action": "suggest",
+          "message": "💡 Consider adding Swedish ('sv') language support to language enums"
         },
         {
           "name": "Structured Logging Check",
@@ -77,6 +88,13 @@
           "files": ["packages/core/src/index.ts"],
           "action": "remind",
           "message": "🔄 Core utilities updated. Consider running `pnpm build` to ensure all packages compile correctly"
+        },
+        {
+          "name": "Check Hybrid Processor Changes",
+          "condition": "file_modified",
+          "files": ["apps/agent/src/hybrid-processor.ts", "apps/agent/src/simplified-processor.ts"],
+          "action": "remind",
+          "message": "🤖 Hybrid processor updated. Consider running `pnpm test` to verify processing logic"
         },
         {
           "name": "Format Code",
