@@ -4,6 +4,7 @@ import { maskPII, logInfo, logError, type LogContext } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
 import { generateDraft } from "@agents/prompts";
 import OpenAI from "openai";
+import { emitArtifact } from "./observability/artifacts.js";
 
 type ConfidenceFactors = {
   is_cancellation: boolean;
@@ -480,6 +481,22 @@ export const vectorStoreSearchTool = tool({
         { requestId: "tool-execution" },
         { query, resultsCount: results.length, vectorStoreId }
       );
+
+      try {
+        await emitArtifact({
+          requestId: "tool-execution",
+          type: "vector_search_context",
+          data: {
+            enabled: true,
+            query: maskPII(query),
+            results: results.map((r: string, i: number) => ({
+              id: String(i + 1),
+              score: 0,
+              titleMasked: maskPII(r)
+            }))
+          }
+        });
+      } catch {}
 
       return {
         success: true,
