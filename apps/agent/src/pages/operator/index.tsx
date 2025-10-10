@@ -2,6 +2,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { WorkflowCanvas } from "../../components/operator/WorkflowCanvas";
+import { buildNodeMeta } from "../../components/operator/mapping";
 
 const FLAG = process.env.UI_EXPERIMENTAL_OPERATOR === "true";
 
@@ -18,6 +20,7 @@ export default function Operator() {
   const [selected, setSelected] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
+  const [latestArtifacts, setLatestArtifacts] = useState<Record<string, any>>({});
   const evtRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -33,7 +36,10 @@ export default function Operator() {
     if (!selected) return;
     fetch(`/api/operator/runs/${selected}`)
       .then(r => r.json())
-      .then(setSnapshot)
+      .then((data) => {
+        setSnapshot(data);
+        setLatestArtifacts(data?.latestArtifacts || {});
+      })
       .catch(() => {});
     evtRef.current?.close();
     const es = new EventSource(`/api/operator/runs/${selected}/stream`);
@@ -41,6 +47,7 @@ export default function Operator() {
       try {
         const data = JSON.parse((e as any).data);
         setEvents(prev => [data, ...prev].slice(0, 200));
+        setLatestArtifacts(prev => ({ ...prev, [data.type]: data.data }));
       } catch {}
     });
     es.addEventListener("heartbeat", () => {});
@@ -52,6 +59,8 @@ export default function Operator() {
 
   const body = useMemo(() => {
     if (!FLAG) return <div className="p-6 text-sm">Operator UI is disabled.</div>;
+    const topology = snapshot?.topology;
+    const nodeMeta = buildNodeMeta(latestArtifacts || {});
     return (
       <div className="flex h-screen">
         <div className="w-80 border-r p-4 space-y-2 overflow-auto">
@@ -71,9 +80,19 @@ export default function Operator() {
           ))}
         </div>
         <div className="flex-1 grid grid-cols-2 gap-4 p-4">
-          <div className="border rounded p-3 overflow-auto">
-            <div className="font-medium mb-2">Snapshot</div>
-            <pre className="text-xs whitespace-pre-wrap">{snapshot ? JSON.stringify(snapshot, null, 2) : "Select a run"}</pre>
+          <div className="border rounded p-3 overflow-hidden">
+            <div className="font-medium mb-2">Workflow</div>
+            {topology ? (
+              <div className="h-[600px]">
+                <WorkflowCanvas
+                  nodes={topology.nodes}
+                  edges={topology.edges}
+                  nodeMeta={nodeMeta}
+                />
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">Select a run</div>
+            )}
           </div>
           <div className="border rounded p-3 overflow-auto">
             <div className="font-medium mb-2">Live Artifacts</div>
@@ -88,7 +107,7 @@ export default function Operator() {
         </div>
       </div>
     );
-  }, [FLAG, runs, selected, snapshot, events]);
+  }, [FLAG, runs, selected, snapshot, events, latestArtifacts]);
 
   return body;
 }
