@@ -12,6 +12,12 @@ const artifacts = {
   human_review_status: { decision: "approve" }
 };
 
+const errorArtifacts = {
+  ticket_creation_status: { status: "error", error: "fail T" },
+  draft_creation_status: { status: "error" },
+  slack_post_status: { status: "error" }
+};
+
 const meta = buildNodeMeta(artifacts);
 
 equal(meta.create_ticket, { footer: "Ticket: T-123", status: "created" }, "ticket meta mismatch");
@@ -23,3 +29,9 @@ equal(meta.triage, { footer: "Cancellation: true", status: "info" }, "triage met
 equal(meta.review, { footer: "Review: approve", status: "success" }, "review meta mismatch");
 
 console.log("mapping.test.ts passed");
+const metaErr = buildNodeMeta(errorArtifacts as any);
+equal(metaErr.create_ticket.footer, "Ticket: error", "ticket error footer mismatch");
+equal(metaErr.generate_draft.footer, "Draft: error", "draft error footer mismatch");
+equal(metaErr.slack.footer, "Slack: error", "slack error footer mismatch");
+
+console.log("mapping.error cases passed");
