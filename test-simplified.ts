@@ -4,7 +4,7 @@
  */
 
 import { maskPII } from "./packages/core/src/index.js";
-import { generateDraft } from "./packages/prompts/src/templates.js";
+import { generateDraftEnhanced } from "./packages/prompts/src/templates-enhanced.js";
 
 console.log("=".repeat(80));
 console.log("TEST 1: PII Masking");
@@ -107,7 +107,7 @@ function testDraftGeneration(language: "no" | "en", reason: string, moveDate: st
   console.log(`\n${description}`);
   console.log("-".repeat(40));
   
-  const draft = generateDraft({ language, reason, moveDate });
+  const draft = generateDraftEnhanced({ language, reason, moveDate });
   
   console.log(`Language: ${language}`);
   console.log(`Reason: ${reason}`);

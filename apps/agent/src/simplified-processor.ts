@@ -21,13 +21,11 @@ import {
   type LogContext
 } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
-import { 
-  generateDraft, 
+import {
   generateDraftEnhanced,
   calculateConfidenceEnhanced,
   detectEdgeCase,
   validatePolicyCompliance,
-  type ExtractionResult,
   type ExtractionResultEnhanced
 } from "@agents/prompts";
 import { 

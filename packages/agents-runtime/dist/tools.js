@@ -2,7 +2,7 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { maskPII, logInfo, logError } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
-import { generateDraft } from "@agents/prompts";
+import { generateDraftEnhanced } from "@agents/prompts";
 import OpenAI from "openai";
 import { emitArtifact } from "./observability/artifacts.js";
 const maskPiiParameters = z.object({
@@ -200,10 +200,26 @@ export const calculateConfidenceTool = tool({
     }
 });
 const generateDraftParameters = z.object({
-    language: z.enum(["no", "en"]).describe("Language for the draft"),
-    reason: z.string().describe("Cancellation reason"),
+    language: z.enum(["no", "en", "sv"]).describe("Language for the draft"),
+    reason: z.enum(["moving", "payment_issue", "other", "unknown"]).describe("Cancellation reason"),
     moveDate: z.string().optional().nullable().describe("Move date if mentioned"),
-    customerName: z.string().optional().nullable().describe("Customer name if available")
+    customerName: z.string().optional().nullable().describe("Customer name if available"),
+    edgeCase: z
+        .enum([
+        "none",
+        "no_app_access",
+        "corporate_account",
+        "future_move_date",
+        "already_canceled",
+        "sameie_concern",
+        "payment_dispute"
+    ])
+        .optional()
+        .describe("Detected edge case"),
+    customerConcerns: z.array(z.string()).optional().describe("Customer concerns mentioned"),
+    hasPaymentIssue: z.boolean().optional().describe("Whether payment issues were detected"),
+    paymentConcerns: z.array(z.string()).optional().describe("Specific payment concerns"),
+    ragContext: z.array(z.string()).optional().describe("Optional RAG context snippets")
 });
 export const generateDraftTool = tool({
     name: "generate_draft",
@@ -211,20 +227,27 @@ export const generateDraftTool = tool({
     parameters: generateDraftParameters,
     execute: async (params) => {
         try {
-            const draftText = generateDraft({
+            const draftText = generateDraftEnhanced({
                 language: params.language,
                 reason: params.reason,
-                moveDate: params.moveDate,
-                customerName: params.customerName ?? undefined
+                moveDate: params.moveDate ?? undefined,
+                customerName: params.customerName ?? undefined,
+                edgeCase: params.edgeCase ?? "none",
+                customerConcerns: params.customerConcerns ?? [],
+                hasPaymentIssue: params.hasPaymentIssue ?? false,
+                paymentConcerns: params.paymentConcerns ?? [],
+                ragContext: params.ragContext ?? []
             });
             const analysis = {
-                word_count: draftText.split(" ").length,
-                includes_policy: draftText.includes("end of the month") || draftText.includes("utgangen av måneden"),
-                includes_self_service: draftText.includes("app") || draftText.includes("appen"),
-                includes_polite_tone: draftText.includes("thank you") ||
-                    draftText.includes("takk") ||
-                    draftText.includes("please") ||
-                    draftText.includes("vennligst")
+                word_count: draftText.split(/\s+/).filter(Boolean).length,
+                includes_policy: draftText.toLowerCase().includes("end of the month") ||
+                    draftText.toLowerCase().includes("ut inneværende måned"),
+                includes_self_service: draftText.toLowerCase().includes("app") ||
+                    draftText.toLowerCase().includes("appen"),
+                includes_polite_tone: draftText.toLowerCase().includes("thank you") ||
+                    draftText.toLowerCase().includes("takk") ||
+                    draftText.toLowerCase().includes("please") ||
+                    draftText.toLowerCase().includes("vennligst")
             };
             logInfo("Draft generated successfully", { requestId: "tool-execution" }, {
                 language: params.language,

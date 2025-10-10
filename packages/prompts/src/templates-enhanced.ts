@@ -11,6 +11,14 @@
  */
 
 import { z } from "zod";
+import {
+  detectCancellationIntent,
+  detectPaymentIssue,
+  detectLanguage,
+  extractCustomerConcerns,
+  calculateConfidenceFactors,
+  detectEdgeCase as detectEdgeCaseFromPatterns
+} from "./patterns.js";
 
 // ============================================================================
 // ENHANCED EXTRACTION SCHEMA
@@ -273,10 +281,15 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     let body = greeting("no", customerName);
 
     // Handle edge cases first
+    const policyReminderNO = () => {
+      return `\n\nNB! Gjør dette når du er ferdig med å bruke ladestasjonen, du vil miste tilgangen til ladestasjonen når du har kansellert abonnementet.\n\nUtestående krav for inneværende måned til hele abonnementet utløper blir automatisk belastet når oppsigelsen blir registrert.\n\nVi har ingen oppsigelsestid, så abonnementet avsluttes når du registrerer oppsigelsen.`;
+    };
+
     if (edgeCase === "no_app_access") {
       body += `\n\nTakk for beskjed! Vi hjelper deg gjerne å avslutte abonnementet manuelt.`;
       body += `\n\nFor å fortsette, bekreft gjerne adressen eller ladeboksen, så hjelper vi deg å avslutte.`;
       body += `\n\nOppsigelsen gjelder ut inneværende måned.`;
+      body += policyReminderNO();
       return body + closing("no");
     }
 
@@ -284,6 +297,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
       body += `\n\nTakk for beskjed! Når du avslutter ditt personlige abonnement i appen, påvirker det kun din egen konto – ikke hele sameiets tilgang.`;
       body += `\n\nDu kan trygt avslutte i Elaway-appen:\nMeny → Administrer abonnement → Avslutt abonnement nå.`;
       body += `\n\nOppsigelsen gjelder ut inneværende måned.`;
+      body += policyReminderNO();
       return body + closing("no");
     }
 
@@ -327,6 +341,8 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
       body += ` Dersom du har problemer med appen eller ikke har tilgang, hjelper vi deg gjerne manuelt – gi oss beskjed.`;
     }
 
+    body += policyReminderNO();
+
     return body + closing("no");
   }
 
@@ -334,11 +350,16 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
   if (language === "en") {
     let body = greeting("en", customerName);
 
+    const policyReminderEN = () => {
+      return `\n\nNB! Do this when you have finished using the charging station; you will lose access to the charger once the subscription has been canceled.\n\nOutstanding charges for the current month until the subscription ends will be automatically billed when the cancellation is registered.\n\nWe do not have a notice period, so the subscription ends as soon as you register the cancellation.`;
+    };
+
     // Handle edge cases
     if (edgeCase === "no_app_access") {
       body += `\n\nThank you for reaching out! We're happy to help you cancel your subscription manually.`;
       body += `\n\nTo proceed, please confirm your address or charging box location, and we'll process the cancellation for you.`;
       body += `\n\nThe cancellation will take effect at the end of the current month.`;
+      body += policyReminderEN();
       return body + closing("en");
     }
 
@@ -346,6 +367,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
       body += `\n\nThank you for reaching out! When you cancel your personal subscription in the app, it only affects your own account – not the entire housing association's access.`;
       body += `\n\nYou can safely cancel in the Elaway app:\nMenu → Manage Subscription → Cancel Subscription.`;
       body += `\n\nThe cancellation will take effect at the end of the current month.`;
+      body += policyReminderEN();
       return body + closing("en");
     }
 
@@ -385,6 +407,8 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     if (edgeCase !== "no_app_access") {
       body += ` If you have trouble accessing the app, we are happy to help you manually.`;
     }
+
+    body += policyReminderEN();
 
     return body + closing("en");
   }

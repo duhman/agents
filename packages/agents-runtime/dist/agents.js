@@ -1,6 +1,6 @@
 import { Agent } from "@openai/agents";
 import { z } from "zod";
-import { extractionSchema, systemPolicyEN } from "@agents/prompts";
+import { extractionSchemaEnhanced, systemPolicyEN_Enhanced } from "@agents/prompts";
 import { maskPiiTool, vectorStoreSearchTool, createTicketTool, createDraftTool, calculateConfidenceTool, generateDraftTool, postToSlackTool } from "./tools.js";
 export const agentInstructions = `You are Elaway's AI Customer Support Assistant.
 Your role is to handle inbound customer emails related to subscription management, especially those asking to cancel due to moving or relocation.
@@ -56,18 +56,22 @@ Always return a JSON object:
 // Enhanced extraction agent with comprehensive instructions
 export const extractionAgent = new Agent({
     name: "Email Extractor",
-    instructions: `${systemPolicyEN}
+    instructions: `${systemPolicyEN_Enhanced}
 
 You are an expert email classifier for Elaway's customer service automation system.
 
 TASK: Analyze customer emails and extract structured information for automated response generation.
 
 EXTRACTION REQUIREMENTS:
-- is_cancellation: Determine if customer is requesting subscription cancellation
-- reason: Classify as "moving" (relocation), "other" (different reason), or "unknown" (unclear)
-- move_date: Extract any mentioned dates in ISO format (YYYY-MM-DD)
-- language: Detect primary language ("no" for Norwegian, "en" for English)
-- policy_risks: Identify any ambiguities, unclear dates, or policy concerns
+- is_cancellation: Determine if the customer is requesting subscription cancellation
+- reason: Classify as "moving", "payment_issue", "other", or "unknown"
+- move_date: Extract mentioned dates (convert to ISO YYYY-MM-DD when possible)
+- language: Detect primary language ("no", "en", "sv")
+- edge_case: Identify edge cases (no_app_access, corporate_account, future_move_date, already_canceled, sameie_concern, payment_dispute)
+- has_payment_issue & payment_concerns: Capture billing-related issues
+- urgency: Determine if cancellation is immediate or in the future
+- customer_concerns & policy_risks: Capture customer worries and compliance risks
+- confidence_factors: Assess clear_intent, complete_information, standard_case
 
 ANALYSIS GUIDELINES:
 - Look for explicit cancellation requests ("cancel", "oppsigelse", "terminate")
@@ -80,7 +84,7 @@ CONTEXT AWARENESS:
 - Consider Norwegian business culture and communication patterns
 - Be aware of common customer concerns and edge cases
 - Maintain high accuracy for policy-critical decisions`,
-    outputType: extractionSchema,
+    outputType: extractionSchemaEnhanced,
     model: "gpt-4o-2024-08-06",
     modelSettings: {
         temperature: 0
@@ -90,7 +94,7 @@ CONTEXT AWARENESS:
 // Enhanced drafting agent with proper schema and tools
 export const draftingAgent = new Agent({
     name: "Draft Generator",
-    instructions: `${systemPolicyEN}
+    instructions: `${systemPolicyEN_Enhanced}
 
 You are an expert customer service response generator for Elaway.
 
@@ -120,7 +124,7 @@ POLICY COMPLIANCE:
     outputType: z.object({
         draft: z.string().describe("The generated email response"),
         confidence: z.number().min(0).max(1).describe("Confidence score for the draft"),
-        language: z.enum(["no", "en"]).describe("Language of the generated response"),
+        language: z.enum(["no", "en", "sv"]).describe("Language of the generated response"),
         policy_compliant: z.boolean().describe("Whether the draft includes required policy statements")
     }),
     model: "gpt-4o-2024-08-06",
@@ -157,7 +161,7 @@ CRITICAL REQUIREMENTS:
         ticket_id: z.string().describe("Database ID of created ticket"),
         draft_id: z.string().optional().nullable().describe("Database ID of created draft"),
         confidence: z.number().min(0).max(1).describe("Overall confidence score"),
-        extraction: extractionSchema.describe("Extracted email information"),
+        extraction: extractionSchemaEnhanced.describe("Extracted email information"),
         draft_text: z.string().optional().nullable().describe("Generated response text"),
         context_used: z
             .array(z.string())
@@ -239,7 +243,7 @@ CRITICAL SUCCESS FACTORS:
         draft_id: z.string().optional().nullable().describe("Created draft ID if applicable"),
         confidence: z.number().min(0).max(1).describe("Overall confidence score"),
         route: z.string().describe("How the email was routed"),
-        extraction: extractionSchema.optional().nullable().describe("Extracted email information"),
+        extraction: extractionSchemaEnhanced.optional().nullable().describe("Extracted email information"),
         draft_text: z.string().optional().nullable().describe("Generated response text"),
         error: z.string().optional().nullable().describe("Error message if processing failed"),
         processing_time_ms: z.number().optional().nullable().describe("Time taken to process")

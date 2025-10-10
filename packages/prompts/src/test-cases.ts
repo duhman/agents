@@ -451,7 +451,10 @@ export async function runTestSuite(
       language: extraction.language,
       reason: extraction.reason,
       moveDate: extraction.move_date,
-      edgeCase: extraction.edge_case
+      edgeCase: extraction.edge_case,
+      customerConcerns: extraction.customer_concerns,
+      hasPaymentIssue: extraction.has_payment_issue,
+      paymentConcerns: extraction.payment_concerns
     });
 
     // Validate response
