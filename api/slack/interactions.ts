@@ -170,76 +170,108 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "approve") {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        await withDbRetry(
-          () =>
-            createHumanReview({
-              ticketId,
-              draftId,
-              decision: "approve",
-              finalText: draftText,
-              reviewerSlackId: userId || "unknown"
-            }),
-          { requestId, actionId }
-        );
-
-        if (channelId && messageTs) {
-          await slackApi(
-            "chat.update",
-            {
-              channel: channelId,
-              ts: messageTs,
-              text: "Draft approved",
-              blocks: [
-                {
-                  type: "section",
-                  text: {
-                    type: "mrkdwn",
-                    text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
-                  }
-                }
-              ]
-            },
-            requestId
+        try {
+          await withDbRetry(
+            () =>
+              createHumanReview({
+                ticketId,
+                draftId,
+                decision: "approve",
+                finalText: draftText,
+                reviewerSlackId: userId || "unknown"
+              }),
+            { requestId, actionId }
           );
+
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.update",
+              {
+                channel: channelId,
+                ts: messageTs,
+                text: "Draft approved",
+                blocks: [
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+                    }
+                  }
+                ]
+              },
+              requestId
+            );
+          }
+          log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
+        } catch (error: any) {
+          const errMsg = error?.message || String(error);
+          log("error", "Slack approve failed", { requestId, ticketId, draftId, userId, error: errMsg });
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.postMessage",
+              {
+                channel: channelId,
+                text: `Kunne ikke lagre godkjenningen for <@${userId}> – prøv igjen om noen sekunder.`,
+                thread_ts: messageTs
+              },
+              requestId
+            ).catch(() => {});
+          }
         }
-        log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
         return;
       }
 
       if (actionId === "reject") {
         const { ticketId, draftId } = JSON.parse(action.value);
-        await withDbRetry(
-          () =>
-            createHumanReview({
-              ticketId,
-              draftId,
-              decision: "reject",
-              finalText: "",
-              reviewerSlackId: userId || "unknown"
-            }),
-          { requestId, actionId }
-        );
-        if (channelId && messageTs) {
-          await slackApi(
-            "chat.update",
-            {
-              channel: channelId,
-              ts: messageTs,
-              text: "Draft rejected",
-              blocks: [
-                {
-                  type: "section",
-                  text: {
-                    type: "mrkdwn",
-                    text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
-                  }
-                }
-              ]
-            },
-            requestId
+        try {
+          await withDbRetry(
+            () =>
+              createHumanReview({
+                ticketId,
+                draftId,
+                decision: "reject",
+                finalText: "",
+                reviewerSlackId: userId || "unknown"
+              }),
+            { requestId, actionId }
           );
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.update",
+              {
+                channel: channelId,
+                ts: messageTs,
+                text: "Draft rejected",
+                blocks: [
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+                    }
+                  }
+                ]
+              },
+              requestId
+            );
+          }
+          log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
+        } catch (error: any) {
+          const errMsg = error?.message || String(error);
+          log("error", "Slack reject failed", { requestId, ticketId, draftId, userId, error: errMsg });
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.postMessage",
+              {
+                channel: channelId,
+                text: `Kunne ikke lagre avslaget for <@${userId}> – prøv igjen om noen sekunder.`,
+                thread_ts: messageTs
+              },
+              requestId
+            ).catch(() => {});
+          }
         }
-        log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
         return;
       }
 
@@ -299,44 +331,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       const finalText = payload.view?.state?.values?.final_text_block?.final_text?.value || "";
       const userId = payload.user?.id as string | undefined;
 
-      await withDbRetry(
-        () =>
-          createHumanReview({
-            ticketId: md.ticketId,
-            draftId: md.draftId,
-            decision: "edit",
-            finalText,
-            reviewerSlackId: userId || "unknown"
-          }),
-        { requestId, actionId: "edit" }
-      );
-
-      if (md.channelId && md.messageTs) {
-        await slackApi(
-          "chat.update",
-          {
-            channel: md.channelId,
-            ts: md.messageTs,
-            text: "Draft edited and approved",
-            blocks: [
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
-                }
-              }
-            ]
-          },
-          requestId
+      try {
+        await withDbRetry(
+          () =>
+            createHumanReview({
+              ticketId: md.ticketId,
+              draftId: md.draftId,
+              decision: "edit",
+              finalText,
+              reviewerSlackId: userId || "unknown"
+            }),
+          { requestId, actionId: "edit" }
         );
+
+        if (md.channelId && md.messageTs) {
+          await slackApi(
+            "chat.update",
+            {
+              channel: md.channelId,
+              ts: md.messageTs,
+              text: "Draft edited and approved",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `✏️ *Edited* by <@${userId}>\n\nCustom reply will be sent.`
+                  }
+                }
+              ]
+            },
+            requestId
+          );
+        }
+        log("info", "Slack edit submission handled", {
+          ticketId: md.ticketId,
+          draftId: md.draftId,
+          userId,
+          requestId
+        });
+      } catch (error: any) {
+        const errMsg = error?.message || String(error);
+        log("error", "Slack edit submission failed", {
+          requestId,
+          ticketId: md.ticketId,
+          draftId: md.draftId,
+          userId,
+          error: errMsg
+        });
+        if (md.channelId && md.messageTs) {
+          await slackApi(
+            "chat.postMessage",
+            {
+              channel: md.channelId,
+              text: `Kunne ikke lagre redigeringen for <@${userId}> – prøv igjen om noen sekunder.`,
+              thread_ts: md.messageTs
+            },
+            requestId
+          ).catch(() => {});
+        }
       }
-      log("info", "Slack edit submission handled", {
-        ticketId: md.ticketId,
-        draftId: md.draftId,
-        userId,
-        requestId
-      });
       return;
     }
 

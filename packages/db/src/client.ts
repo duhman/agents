@@ -45,20 +45,33 @@ try {
 // For migrations
 export const migrationClient = postgres(connectionString, { max: 1 });
 
-// For query client - optimized for serverless with connection pooling
+declare global {
+  // eslint-disable-next-line no-var
+  var __agentsDbQueryClient: ReturnType<typeof postgres> | undefined;
+}
 
-// Create connection pool optimized for Vercel serverless functions
-const queryClient = postgres(connectionString, {
-  // Disable prepared statements for serverless/pooled connections
-  prepare: isServerless ? false : undefined,
-  // Connection pooling configuration for Vercel
-  max: isServerless ? 1 : 10,
-  idle_timeout: isServerless ? 20 : undefined,
-  connect_timeout: 10,
-  // Additional Vercel optimizations
-  transform: {
-    undefined: null // Transform undefined to null for PostgreSQL
-  }
-});
+if (!globalThis.__agentsDbQueryClient) {
+  const connectTimeoutSeconds = isServerless ? 30 : 10;
+  globalThis.__agentsDbQueryClient = postgres(connectionString, {
+    // Disable prepared statements for serverless/pooled connections
+    prepare: isServerless ? false : undefined,
+    // Connection pooling configuration for Vercel
+    max: isServerless ? 1 : 10,
+    idle_timeout: isServerless ? 20 : undefined,
+    connect_timeout: connectTimeoutSeconds,
+    // Additional Vercel optimizations
+    transform: {
+      undefined: null // Transform undefined to null for PostgreSQL
+    }
+  });
+
+  logStructured("info", "Postgres query client initialised", {
+    requestId: "db-init",
+    isServerless,
+    connectTimeoutSeconds
+  });
+}
+
+const queryClient = globalThis.__agentsDbQueryClient;
 
 export const db = drizzle(queryClient, { schema });
