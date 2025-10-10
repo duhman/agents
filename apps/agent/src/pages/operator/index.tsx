@@ -1,33 +1,25 @@
 // @ts-nocheck (important-comment)
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { WorkflowCanvas } from "../../components/operator/WorkflowCanvas";
-import { buildNodeMeta } from "../../components/operator/mapping";
+import { useStore, store, selectNodeMeta } from "../../components/operator/store";
 
 const FLAG = process.env.UI_EXPERIMENTAL_OPERATOR === "true";
 
-type RunMeta = {
-  requestId: string;
-  createdAt: number;
-  status: "running" | "completed" | "error";
-  lastArtifactType?: string;
-  updatedAt: number;
-};
-
 export default function Operator() {
-  const [runs, setRuns] = useState<RunMeta[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [snapshot, setSnapshot] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [latestArtifacts, setLatestArtifacts] = useState<Record<string, any>>({});
+  const runs = useStore(s => s.runs);
+  const selected = useStore(s => s.selectedRunId);
+  const snapshot = useStore(s => s.snapshot);
+  const latestArtifacts = useStore(s => s.latestArtifacts);
+  const events = useStore(s => s.events);
   const evtRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     if (!FLAG) return;
     fetch("/api/operator/runs")
       .then(r => r.json())
-      .then(setRuns)
+      .then(store.setRuns)
       .catch(() => {});
   }, []);
 
@@ -37,8 +29,8 @@ export default function Operator() {
     fetch(`/api/operator/runs/${selected}`)
       .then(r => r.json())
       .then((data) => {
-        setSnapshot(data);
-        setLatestArtifacts(data?.latestArtifacts || {});
+        store.setSnapshot(data);
+        store.mergeArtifact("bootstrap", data?.latestArtifacts || {});
       })
       .catch(() => {});
     evtRef.current?.close();
@@ -46,8 +38,8 @@ export default function Operator() {
     es.addEventListener("artifact", (e: MessageEvent) => {
       try {
         const data = JSON.parse((e as any).data);
-        setEvents(prev => [data, ...prev].slice(0, 200));
-        setLatestArtifacts(prev => ({ ...prev, [data.type]: data.data }));
+        store.pushEvent(data);
+        store.mergeArtifact(data.type, data.data);
       } catch {}
     });
     es.addEventListener("heartbeat", () => {});
@@ -60,7 +52,7 @@ export default function Operator() {
   const body = useMemo(() => {
     if (!FLAG) return <div className="p-6 text-sm">Operator UI is disabled.</div>;
     const topology = snapshot?.topology;
-    const nodeMeta = buildNodeMeta(latestArtifacts || {});
+    const nodeMeta = selectNodeMeta({ runs, selectedRunId: selected, snapshot, latestArtifacts, events });
     return (
       <div className="flex h-screen">
         <div className="w-80 border-r p-4 space-y-2 overflow-auto">
@@ -69,7 +61,7 @@ export default function Operator() {
           {runs.map(r => (
             <button
               key={r.requestId}
-              onClick={() => setSelected(r.requestId)}
+              onClick={() => store.selectRun(r.requestId)}
               className={`w-full text-left text-sm rounded px-2 py-1 hover:bg-gray-100 ${selected === r.requestId ? "bg-gray-100" : ""}`}
             >
               <div className="font-mono text-xs">{r.requestId}</div>
