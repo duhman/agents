@@ -127,6 +127,113 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
   throw new Error(`slackApi(${method}) exhausted retries${requestId ? ` (requestId=${requestId})` : ""}`);
 }
 
+interface EditModalViewParams {
+  ticketId: string;
+  draftId: string;
+  channelId?: string;
+  messageTs?: string;
+  draftText: string;
+}
+
+export interface EditModalViewBuildResult {
+  view: Record<string, unknown>;
+  trimmedDraft: boolean;
+  metadataLength: number;
+}
+
+type ApproveActionValue = {
+  ticketId: string;
+  draftId: string;
+  draftText: string;
+};
+
+type RejectActionValue = {
+  ticketId: string;
+  draftId: string;
+};
+
+export function buildEditModalView(params: EditModalViewParams): EditModalViewBuildResult {
+  const { ticketId, draftId, channelId, messageTs } = params;
+  const draftText = params.draftText ?? "";
+
+  const trimmedDraft = draftText.length > 3000;
+  const initialValue = trimmedDraft ? draftText.slice(0, 3000) : draftText;
+
+  const metadataPayload: Record<string, string> = {
+    ticketId,
+    draftId
+  };
+  if (channelId) metadataPayload.channelId = channelId;
+  if (messageTs) metadataPayload.messageTs = messageTs;
+
+  const privateMetadata = JSON.stringify(metadataPayload);
+
+  return {
+    view: {
+      type: "modal",
+      callback_id: "edit_modal",
+      private_metadata: privateMetadata,
+      title: { type: "plain_text", text: "Edit Draft" },
+      submit: { type: "plain_text", text: "Send" },
+      close: { type: "plain_text", text: "Cancel" },
+      blocks: [
+        {
+          type: "input",
+          block_id: "final_text_block",
+          label: { type: "plain_text", text: "Final Reply" },
+          element: {
+            type: "plain_text_input",
+            action_id: "final_text",
+            multiline: true,
+            initial_value: initialValue
+          }
+        }
+      ]
+    },
+    trimmedDraft,
+    metadataLength: privateMetadata.length
+  };
+}
+
+function safeParseAction(
+  action: { value?: unknown },
+  requestId: string,
+  actionId: "approve"
+): ApproveActionValue | null;
+function safeParseAction(
+  action: { value?: unknown },
+  requestId: string,
+  actionId: "reject"
+): RejectActionValue | null;
+function safeParseAction(
+  action: { value?: unknown },
+  requestId: string,
+  actionId: "approve" | "reject"
+): ApproveActionValue | RejectActionValue | null {
+  try {
+    const payload = typeof action.value === "string" ? JSON.parse(action.value) : action.value;
+    if (!payload || typeof payload !== "object") throw new Error("empty_payload");
+
+    const ticketId = (payload as any).ticketId;
+    const draftId = (payload as any).draftId;
+    if (typeof ticketId !== "string" || typeof draftId !== "string") {
+      throw new Error("missing_ticket_or_draft_id");
+    }
+
+    if (actionId === "approve") {
+      const draftText = (payload as any).draftText;
+      if (typeof draftText !== "string") throw new Error("missing_draft_text");
+      return { ticketId, draftId, draftText };
+    }
+
+    return { ticketId, draftId };
+  } catch (error: any) {
+    const errMsg = error?.message || String(error);
+    log("error", "Slack action payload parse failed", { requestId, actionId, error: errMsg });
+    return null;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Slack expects a 200 within 3s
   if (req.method !== "POST") {
@@ -146,16 +253,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       has_view: !!payload?.view
     });
 
+  let responded = false;
+  const respond = (body: Record<string, unknown>, status: number = 200) => {
+    if (responded) return;
+    responded = true;
+    res.status(status).json(body);
+  };
+
+  const respondOk = () => respond({ ok: true });
+
   try {
-    res.status(200).json({ ok: true });
- 
     const type = payload.type as string;
     const requestId =
       payload?.message?.ts ||
       payload?.container?.message_ts ||
       payload?.trigger_id ||
       String(Date.now());
- 
+
     log("info", "Slack interaction acked", { type, requestId });
 
     if (type === "block_actions") {
@@ -166,7 +280,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       const triggerId = payload.trigger_id as string | undefined;
       const userId = payload.user?.id as string | undefined;
 
-      if (!actionId) return;
+      if (!actionId) {
+        respondOk();
+        log("warn", "Slack block action missing action_id", { requestId, channelId, messageTs, userId });
+        return;
+      }
 
       log("info", "Slack block action dispatched", {
         requestId,
@@ -177,159 +295,158 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       });
 
       if (actionId === "approve") {
-        const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        log("info", "Slack approve handling started", { requestId, ticketId, draftId, userId });
-        try {
-          await withDbRetry(
-            () =>
-              createHumanReview({
-                ticketId,
-                draftId,
-                decision: "approve",
-                finalText: draftText,
-                reviewerSlackId: userId || "unknown"
-              }),
-            { requestId, actionId }
-          );
-
-          if (channelId && messageTs) {
-            await slackApi(
-              "chat.update",
-              {
-                channel: channelId,
-                ts: messageTs,
-                text: "Draft approved",
-                blocks: [
-                  {
-                    type: "section",
-                    text: {
-                      type: "mrkdwn",
-                      text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
-                    }
-                  }
-                ]
-              },
-              requestId
+        respondOk();
+        void (async () => {
+          const parsed = safeParseAction(action, requestId, "approve");
+          if (!parsed) return;
+          const { ticketId, draftId, draftText } = parsed;
+          try {
+            log("info", "Slack approve handling started", { requestId, ticketId, draftId, userId });
+            await withDbRetry(
+              () =>
+                createHumanReview({
+                  ticketId,
+                  draftId,
+                  decision: "approve",
+                  finalText: draftText,
+                  reviewerSlackId: userId || "unknown"
+                }),
+              { requestId, actionId }
             );
+
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.update",
+                {
+                  channel: channelId,
+                  ts: messageTs,
+                  text: "Draft approved",
+                  blocks: [
+                    {
+                      type: "section",
+                      text: {
+                        type: "mrkdwn",
+                        text: `✅ *Approved* by <@${userId}>\n\nReply will be sent to customer.`
+                      }
+                    }
+                  ]
+                },
+                requestId
+              );
+            }
+            log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
+          } catch (error: any) {
+            const errMsg = error?.message || String(error);
+            log("error", "Slack approve failed", { requestId, ticketId, draftId, userId, error: errMsg });
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.postMessage",
+                {
+                  channel: channelId,
+                  text: `Kunne ikke lagre godkjenningen for <@${userId}> – prøv igjen om noen sekunder.`,
+                  thread_ts: messageTs
+                },
+                requestId
+              ).catch(() => {});
+            }
           }
-          log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
-        } catch (error: any) {
-          const errMsg = error?.message || String(error);
-          log("error", "Slack approve failed", { requestId, ticketId, draftId, userId, error: errMsg });
-          if (channelId && messageTs) {
-            await slackApi(
-              "chat.postMessage",
-              {
-                channel: channelId,
-                text: `Kunne ikke lagre godkjenningen for <@${userId}> – prøv igjen om noen sekunder.`,
-                thread_ts: messageTs
-              },
-              requestId
-            ).catch(() => {});
-          }
-        }
+        })();
         return;
       }
 
       if (actionId === "reject") {
-        const { ticketId, draftId } = JSON.parse(action.value);
-        log("info", "Slack reject handling started", { requestId, ticketId, draftId, userId });
-        try {
-          await withDbRetry(
-            () =>
-              createHumanReview({
-                ticketId,
-                draftId,
-                decision: "reject",
-                finalText: "",
-                reviewerSlackId: userId || "unknown"
-              }),
-            { requestId, actionId }
-          );
-          if (channelId && messageTs) {
-            await slackApi(
-              "chat.update",
-              {
-                channel: channelId,
-                ts: messageTs,
-                text: "Draft rejected",
-                blocks: [
-                  {
-                    type: "section",
-                    text: {
-                      type: "mrkdwn",
-                      text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
-                    }
-                  }
-                ]
-              },
-              requestId
+        respondOk();
+        void (async () => {
+          const parsed = safeParseAction(action, requestId, "reject");
+          if (!parsed) return;
+          const { ticketId, draftId } = parsed;
+          try {
+            log("info", "Slack reject handling started", { requestId, ticketId, draftId, userId });
+            await withDbRetry(
+              () =>
+                createHumanReview({
+                  ticketId,
+                  draftId,
+                  decision: "reject",
+                  finalText: "",
+                  reviewerSlackId: userId || "unknown"
+                }),
+              { requestId, actionId }
             );
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.update",
+                {
+                  channel: channelId,
+                  ts: messageTs,
+                  text: "Draft rejected",
+                  blocks: [
+                    {
+                      type: "section",
+                      text: {
+                        type: "mrkdwn",
+                        text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
+                      }
+                    }
+                  ]
+                },
+                requestId
+              );
+            }
+            log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
+          } catch (error: any) {
+            const errMsg = error?.message || String(error);
+            log("error", "Slack reject failed", { requestId, ticketId, draftId, userId, error: errMsg });
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.postMessage",
+                {
+                  channel: channelId,
+                  text: `Kunne ikke lagre avslaget for <@${userId}> – prøv igjen om noen sekunder.`,
+                  thread_ts: messageTs
+                },
+                requestId
+              ).catch(() => {});
+            }
           }
-          log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
-        } catch (error: any) {
-          const errMsg = error?.message || String(error);
-          log("error", "Slack reject failed", { requestId, ticketId, draftId, userId, error: errMsg });
-          if (channelId && messageTs) {
-            await slackApi(
-              "chat.postMessage",
-              {
-                channel: channelId,
-                text: `Kunne ikke lagre avslaget for <@${userId}> – prøv igjen om noen sekunder.`,
-                thread_ts: messageTs
-              },
-              requestId
-            ).catch(() => {});
-          }
-        }
+        })();
         return;
       }
 
-      if (actionId === "edit" && triggerId) {
-        const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+      if (actionId === "edit") {
         try {
-          await slackApi(
-            "views.open",
-            {
-              trigger_id: triggerId,
-              view: {
-                type: "modal",
-                callback_id: "edit_modal",
-                private_metadata: JSON.stringify({
-                  ticketId,
-                  draftId,
-                  channelId,
-                  messageTs
-                }),
-                title: { type: "plain_text", text: "Edit Draft" },
-                submit: { type: "plain_text", text: "Send" },
-                close: { type: "plain_text", text: "Cancel" },
-                blocks: [
-                  {
-                    type: "input",
-                    block_id: "final_text_block",
-                    label: { type: "plain_text", text: "Final Reply" },
-                    element: {
-                      type: "plain_text_input",
-                      action_id: "final_text",
-                      multiline: true,
-                      initial_value: draftText
-                    }
-                  }
-                ]
-              }
-            },
-            requestId
-          );
-          log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
-        } catch (e: any) {
-          const msg = e?.message || String(e);
-          if (/expired_trigger_id|exchanged_trigger_id/i.test(msg)) {
-            log("warn", "views.open trigger_id not usable", { requestId, ticketId, draftId, reason: msg });
-          } else {
-            log("error", "Slack views.open failed", { requestId, ticketId, draftId, error: msg });
+          const { ticketId, draftId, draftText } = JSON.parse(action.value);
+          log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+          const { view, trimmedDraft, metadataLength } = buildEditModalView({
+            ticketId,
+            draftId,
+            channelId,
+            messageTs,
+            draftText
+          });
+
+          if (trimmedDraft) {
+            log("warn", "Draft text trimmed for modal", { requestId, ticketId, draftId, userId });
           }
+          if (metadataLength > 2000) {
+            log("warn", "Modal private metadata approaching Slack size limit", {
+              requestId,
+              ticketId,
+              draftId,
+              metadataLength
+            });
+          }
+
+          respond({ response_action: "push", view });
+          log("info", "Slack edit modal pushed", { ticketId, draftId, userId, requestId });
+        } catch (error: any) {
+          const errMsg = error?.message || String(error);
+          log("error", "Slack edit modal build failed", { requestId, userId, error: errMsg });
+          respond({
+            response_type: "ephemeral",
+            replace_original: false,
+            text: "Kunne ikke åpne redigeringsvinduet – prøv igjen om noen sekunder."
+          });
           if (channelId && messageTs) {
             await slackApi(
               "chat.postMessage",
@@ -345,11 +462,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         return;
       }
 
+      respondOk();
       log("warn", "Unhandled Slack block action", { requestId, actionId });
       return;
     }
 
     if (type === "view_submission" && payload.view?.callback_id === "edit_modal") {
+      respondOk();
       const md = JSON.parse(payload.view.private_metadata || "{}");
       const finalText = payload.view?.state?.values?.final_text_block?.final_text?.value || "";
       const userId = payload.user?.id as string | undefined;
@@ -424,6 +543,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
+    respondOk();
     log("warn", "Unhandled Slack interaction", { type: payload.type, requestId });
   } catch (error: any) {
     const errMsg = error?.message || String(error);
@@ -433,5 +553,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       actionId: payload?.actions?.[0]?.action_id,
       requestId: payload?.message?.ts || payload?.trigger_id || null
     });
+    if (!responded) {
+      respond({ ok: false, error: "internal_error" }, 500);
+    }
   }
 }
