@@ -217,10 +217,10 @@ const generateDraftParameters = z.object({
         .nullable()
         .optional()
         .describe("Detected edge case"),
-    customerConcerns: z.array(z.string()).optional().describe("Customer concerns mentioned"),
-    hasPaymentIssue: z.boolean().optional().describe("Whether payment issues were detected"),
-    paymentConcerns: z.array(z.string()).optional().describe("Specific payment concerns"),
-    ragContext: z.array(z.string()).optional().describe("Optional RAG context snippets")
+    customerConcerns: z.array(z.string()).nullable().optional().describe("Customer concerns mentioned"),
+    hasPaymentIssue: z.boolean().nullable().optional().describe("Whether payment issues were detected"),
+    paymentConcerns: z.array(z.string()).nullable().optional().describe("Specific payment concerns"),
+    ragContext: z.array(z.string()).nullable().optional().describe("Optional RAG context snippets")
 });
 export const generateDraftTool = tool({
     name: "generate_draft",
