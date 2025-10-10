@@ -168,6 +168,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (!actionId) return;
 
+      log("info", "Slack block action dispatched", {
+        requestId,
+        actionId,
+        channelId,
+        messageTs,
+        userId
+      });
+
       if (actionId === "approve") {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
         try {
@@ -324,12 +332,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         })();
         return;
       }
+
+      log("warn", "Unhandled Slack block action", { requestId, actionId });
+      return;
     }
 
     if (type === "view_submission" && payload.view?.callback_id === "edit_modal") {
       const md = JSON.parse(payload.view.private_metadata || "{}");
       const finalText = payload.view?.state?.values?.final_text_block?.final_text?.value || "";
       const userId = payload.user?.id as string | undefined;
+
+      log("info", "Slack view submission dispatched", {
+        requestId,
+        ticketId: md.ticketId,
+        draftId: md.draftId,
+        userId
+      });
 
       try {
         await withDbRetry(
