@@ -1,4 +1,5 @@
 import { z } from "zod";
+export { detectCancellationIntent, detectPaymentIssue, detectLanguage, extractCustomerConcerns, calculateConfidenceFactors, detectEdgeCase as detectEdgeCaseFromPatterns } from "./patterns.js";
 export declare const extractionSchema: z.ZodObject<{
     is_cancellation: z.ZodBoolean;
     reason: z.ZodEnum<["moving", "other", "unknown"]>;
@@ -7,13 +8,13 @@ export declare const extractionSchema: z.ZodObject<{
     policy_risks: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
 }, "strip", z.ZodTypeAny, {
     is_cancellation: boolean;
-    reason: "unknown" | "moving" | "other";
+    reason: "moving" | "unknown" | "other";
     language: "no" | "en";
     policy_risks: string[];
     move_date?: string | null | undefined;
 }, {
     is_cancellation: boolean;
-    reason: "unknown" | "moving" | "other";
+    reason: "moving" | "unknown" | "other";
     language: "no" | "en";
     move_date?: string | null | undefined;
     policy_risks?: string[] | undefined;

@@ -96,6 +96,42 @@ export async function postReview(params: PostReviewParams) {
         },
         {
           type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: `*Edge Case:* ${extraction.edge_case || "none"}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Payment Issue:* ${extraction.has_payment_issue ? "⚠️ Yes" : "✅ No"}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*RAG Context:* ${extraction.rag_context_used ? "📚 Used" : "📝 Template"}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Urgency:* ${extraction.urgency || "unclear"}`
+            }
+          ]
+        },
+        // Show payment concerns and customer concerns if they exist
+        ...(extraction.payment_concerns && extraction.payment_concerns.length > 0 ? [{
+          type: "section" as const,
+          text: {
+            type: "mrkdwn" as const,
+            text: `*💳 Payment Concerns:* ${extraction.payment_concerns.join(", ")}`
+          }
+        }] : []),
+        ...(extraction.customer_concerns && extraction.customer_concerns.length > 0 ? [{
+          type: "section" as const,
+          text: {
+            type: "mrkdwn" as const,
+            text: `*🤔 Customer Concerns:* ${extraction.customer_concerns.join(", ")}`
+          }
+        }] : []),
+        {
+          type: "section",
           text: {
             type: "mrkdwn",
             text: `*Original Email – Subject (masked):*\n${

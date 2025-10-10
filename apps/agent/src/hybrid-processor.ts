@@ -35,6 +35,7 @@ import {
   validatePolicyCompliance,
   type ExtractionResultEnhanced
 } from "@agents/prompts";
+import { getVectorStoreContext } from "./rag-context.js";
 import { extractEmailData as extractEmailDataDeterministic } from "./simplified-processor.js";
 import { metricsCollector } from "./metrics.js";
 
@@ -194,13 +195,24 @@ export async function processEmailHybrid(
 
     logInfo("Ticket created", logContext, { ticketId: ticket.id });
 
-    // Generate enhanced draft
+    // Get RAG context for enhanced draft generation
+    const ragContext = await getVectorStoreContext(extraction, logContext);
+    
+    logInfo("RAG context retrieved", logContext, {
+      contextCount: ragContext.length,
+      hasContext: ragContext.length > 0
+    });
+
+    // Generate enhanced draft with RAG context
     const draftText = generateDraftEnhanced({
       language: extraction.language,
       reason: extraction.reason,
       moveDate: extraction.move_date,
       edgeCase: extraction.edge_case,
-      customerConcerns: extraction.customer_concerns
+      customerConcerns: extraction.customer_concerns,
+      hasPaymentIssue: extraction.has_payment_issue,
+      paymentConcerns: extraction.payment_concerns,
+      ragContext: ragContext
     });
 
     const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
@@ -255,7 +267,10 @@ export async function processEmailHybrid(
       confidence,
       processing_time_ms: duration,
       policy_compliant: validation.compliant,
-      language: extraction.language
+      language: extraction.language,
+      rag_context_used: ragContext.length > 0,
+      rag_context_count: ragContext.length,
+      has_payment_issue: extraction.has_payment_issue
     });
     
     logInfo("Email processing completed successfully", {

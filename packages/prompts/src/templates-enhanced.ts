@@ -19,7 +19,7 @@ import { z } from "zod";
 export const extractionSchemaEnhanced = z.object({
   // Core fields
   is_cancellation: z.boolean().describe("True if customer is requesting subscription cancellation"),
-  reason: z.enum(["moving", "other", "unknown"]).describe("Reason for cancellation"),
+  reason: z.enum(["moving", "payment_issue", "other", "unknown"]).describe("Reason for cancellation"),
   move_date: z.string().date().optional().nullable().describe("Move date in ISO format if mentioned"),
   language: z.enum(["no", "en", "sv"]).describe("Detected language (Norwegian, English, Swedish)"),
   
@@ -30,8 +30,13 @@ export const extractionSchemaEnhanced = z.object({
     "corporate_account",
     "future_move_date",
     "already_canceled",
-    "sameie_concern"
+    "sameie_concern",
+    "payment_dispute"
   ]).describe("Identified edge case requiring special handling"),
+  
+  // Payment issue support
+  has_payment_issue: z.boolean().describe("True if email mentions payment problems, billing issues, refunds, or charges"),
+  payment_concerns: z.array(z.string()).default([]).describe("Specific payment issues mentioned"),
   
   urgency: z.enum(["immediate", "future", "unclear"]).describe("Timing urgency of cancellation"),
   
@@ -200,6 +205,9 @@ export interface DraftParamsEnhanced {
   customerName?: string;
   edgeCase?: string;
   customerConcerns?: string[];
+  hasPaymentIssue?: boolean;
+  paymentConcerns?: string[];
+  ragContext?: string[];
 }
 
 /**
@@ -231,7 +239,21 @@ function formatDate(dateStr: string, lang: "no" | "en"): string {
  * Structure: Greeting → Acknowledgment → Instructions → Policy → Closing
  */
 export function generateDraftEnhanced(params: DraftParamsEnhanced): string {
-  const { language, reason, moveDate, customerName, edgeCase, customerConcerns } = params;
+  const { language, reason, moveDate, customerName, edgeCase, customerConcerns, hasPaymentIssue, paymentConcerns, ragContext } = params;
+  
+  // Generate base template
+  let draft = generateBaseTemplate(params);
+  
+  // If RAG context available, enhance with context
+  if (ragContext && ragContext.length > 0) {
+    draft = enhanceDraftWithRagContext(draft, ragContext, params);
+  }
+  
+  return draft;
+}
+
+function generateBaseTemplate(params: DraftParamsEnhanced): string {
+  const { language, reason, moveDate, customerName, edgeCase, customerConcerns, hasPaymentIssue, paymentConcerns } = params;
 
   // Helper to format greeting
   const greeting = (lang: "no" | "en" | "sv", name?: string) => {
@@ -271,8 +293,13 @@ export function generateDraftEnhanced(params: DraftParamsEnhanced): string {
       return body + closing("no");
     }
 
-    // Standard relocation case
-    body += `\n\nTakk for beskjed! Vi forstår at du skal flytte og ønsker å avslutte abonnementet ditt.`;
+    // Handle payment issues
+    if (hasPaymentIssue) {
+      body += `\n\nTakk for beskjed! Vi forstår at du har spørsmål angående fakturering eller betaling.`;
+    } else {
+      // Standard relocation case
+      body += `\n\nTakk for beskjed! Vi forstår at du skal flytte og ønsker å avslutte abonnementet ditt.`;
+    }
 
     // Handle move date timing
     if (moveDate) {
@@ -328,8 +355,13 @@ export function generateDraftEnhanced(params: DraftParamsEnhanced): string {
       return body + closing("en");
     }
 
-    // Standard relocation case
-    body += `\n\nThank you for reaching out! We understand that you are moving and would like to cancel your subscription.`;
+    // Handle payment issues
+    if (hasPaymentIssue) {
+      body += `\n\nThank you for reaching out! We understand you have questions about billing or payment.`;
+    } else {
+      // Standard relocation case
+      body += `\n\nThank you for reaching out! We understand that you are moving and would like to cancel your subscription.`;
+    }
 
     // Handle move date timing
     if (moveDate) {
@@ -504,4 +536,64 @@ EMAIL:
 ${email}
 
 Analyze carefully and extract all fields accurately.`;
+
+// ============================================================================
+// RAG CONTEXT ENHANCEMENT
+// ============================================================================
+
+function enhanceDraftWithRagContext(
+  baseDraft: string,
+  context: string[],
+  params: DraftParamsEnhanced
+): string {
+  // For payment issues, add specific guidance from real examples
+  if (params.hasPaymentIssue && context.length > 0) {
+    const paymentGuidance = extractPaymentGuidance(context[0]);
+    if (paymentGuidance) {
+      baseDraft += `\n\n${paymentGuidance}`;
+    }
+  }
+  
+  // For edge cases, adapt tone from similar cases
+  if (params.edgeCase !== "none" && context.length > 0) {
+    // Use context to inform phrasing (not copy verbatim)
+    baseDraft = adaptToneFromContext(baseDraft, context[0], params.language);
+  }
+  
+  return baseDraft;
+}
+
+function extractPaymentGuidance(context: string): string | null {
+  // Extract payment-related guidance from RAG context
+  const lower = context.toLowerCase();
+  
+  if (lower.includes('refund') || lower.includes('refusjon') || lower.includes('återbetalning')) {
+    return "Vi vil sjekke betalingshistorikken din og ordne eventuelle refusjoner.";
+  }
+  
+  if (lower.includes('double') || lower.includes('dobbel') || lower.includes('dubbel')) {
+    return "Vi ser at det kan være et dobbelt trekk. Vi vil undersøke dette umiddelbart.";
+  }
+  
+  return null;
+}
+
+function adaptToneFromContext(baseDraft: string, context: string, language: string): string {
+  // Adapt the tone based on successful examples from similar cases
+  const lower = context.toLowerCase();
+  
+  // If the context shows a particularly empathetic response, enhance the draft
+  if (lower.includes('beklager') || lower.includes('sorry') || lower.includes('ursäkta')) {
+    if (language === "no") {
+      return baseDraft.replace("Takk for beskjed", "Takk for beskjed, og beklager eventuelle ulemper");
+    } else if (language === "en") {
+      return baseDraft.replace("Thank you for reaching out", "Thank you for reaching out, and we apologize for any inconvenience");
+    } else if (language === "sv") {
+      return baseDraft.replace("Tack för att du hörde av dig", "Tack för att du hörde av dig, och vi ber om ursäkt för eventuella olägenheter");
+    }
+  }
+  
+  return baseDraft;
+}
+
 

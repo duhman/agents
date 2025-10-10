@@ -1,4 +1,7 @@
 import { z } from "zod";
+// Re-export pattern functions
+export { detectCancellationIntent, detectPaymentIssue, detectLanguage, extractCustomerConcerns, calculateConfidenceFactors, detectEdgeCase as detectEdgeCaseFromPatterns } from "./patterns.js";
+// Legacy schema for backward compatibility
 export const extractionSchema = z.object({
     is_cancellation: z.boolean(),
     reason: z.enum(["moving", "other", "unknown"]),
@@ -6,7 +9,7 @@ export const extractionSchema = z.object({
     language: z.enum(["no", "en"]),
     policy_risks: z.array(z.string()).default([])
 });
-// System prompts
+// Legacy system prompts for backward compatibility
 export const systemPolicyNO = `Du er en kundeservicerådgiver for Elaway. Følg selskapets policy:
 - Oppsigelser trer i kraft ved utgangen av måneden.
 - Oppfordre til selvbetjent oppsigelse i appen når mulig.
@@ -15,7 +18,7 @@ export const systemPolicyEN = `You are a customer service advisor for Elaway. Fo
 - Cancellations take effect at the end of the month.
 - Encourage self-service cancellation via the app when possible.
 - Be polite, concise, and note any missing details.`;
-// Extraction prompt
+// Legacy extraction prompt for backward compatibility
 export const extractionPrompt = (email) => `Analyze this customer email and extract:
 - is_cancellation: true if the customer is requesting to cancel their subscription
 - reason: "moving" if relocating/moving, "other" if different reason, "unknown" if unclear

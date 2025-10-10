@@ -102,4 +102,5 @@ export function validateWebhookRequest(body) {
         throw error;
     }
 }
+export { getFlags } from "./flags.js";
 //# sourceMappingURL=index.js.map

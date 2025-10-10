@@ -67,4 +67,5 @@ export type WebhookRequest = z.infer<typeof webhookRequestSchema>;
  * Validate webhook request body
  */
 export declare function validateWebhookRequest(body: any): WebhookRequest;
+export { getFlags } from "./flags.js";
 //# sourceMappingURL=index.d.ts.map

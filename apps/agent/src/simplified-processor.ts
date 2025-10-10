@@ -26,8 +26,17 @@ import {
   generateDraftEnhanced,
   calculateConfidenceEnhanced,
   detectEdgeCase,
+  validatePolicyCompliance,
   type ExtractionResult,
   type ExtractionResultEnhanced
+} from "@agents/prompts";
+import { 
+  detectCancellationIntent,
+  detectPaymentIssue,
+  detectLanguage,
+  extractCustomerConcerns,
+  calculateConfidenceFactors,
+  detectEdgeCaseFromPatterns
 } from "@agents/prompts";
 
 export interface ProcessEmailParams {
@@ -61,42 +70,23 @@ function getMonthsFromNow(dateStr: string): number {
 }
 
 /**
- * Deterministic email extraction using pattern matching
- * Enhanced with edge cases, Swedish support, and confidence factors
+ * Deterministic email extraction using enhanced pattern matching
+ * Uses patterns from patterns.ts for better accuracy
  */
 export function extractEmailData(email: string): ExtractionResultEnhanced {
-  const emailLower = email.toLowerCase();
+  // Use enhanced pattern detection
+  const isCancellation = detectCancellationIntent(email);
+  const hasPaymentIssue = detectPaymentIssue(email);
+  const language = detectLanguage(email);
+  const customerConcerns = extractCustomerConcerns(email);
+  const confidenceFactors = calculateConfidenceFactors(email);
   
-  const cancellationKeywords = [
-    'cancel', 'oppsigelse', 'terminate', 'stop', 'avslutte',
-    'si opp', 'say opp', 'slette', 'delete', 'avsluta', 'avslut'
-  ];
-  const isCancellation = cancellationKeywords.some(keyword => emailLower.includes(keyword));
+  const emailLower = email.toLowerCase();
   
   const movingKeywords = [
     'flytt', 'moving', 'relocat', 'move', 'new address', 'ny adresse', 'nya adress'
   ];
   const isMoving = movingKeywords.some(keyword => emailLower.includes(keyword));
-  
-  // Enhanced language detection with Swedish support
-  const norwegianIndicators = ['jeg', 'vi', 'du', 'har', 'til', 'med', 'og', 'en', 'er', 'på'];
-  const norwegianCount = norwegianIndicators.filter(word => 
-    emailLower.split(/\s+/).includes(word)
-  ).length;
-  
-  const swedishIndicators = ['jag', 'ska', 'vill', 'mitt', 'från', 'och', 'att', 'är', 'för'];
-  const swedishCount = swedishIndicators.filter(word => 
-    emailLower.split(/\s+/).includes(word)
-  ).length;
-  
-  let language: "no" | "en" | "sv";
-  if (norwegianCount >= 2) {
-    language = "no";
-  } else if (swedishCount >= 2) {
-    language = "sv";
-  } else {
-    language = "en";
-  }
   
   let moveDate: string | null = null;
   const datePatterns = [
@@ -123,9 +113,16 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
     }
   }
   
-  let reason: "moving" | "other" | "unknown";
+  // Determine reason with payment issue support
+  let reason: "moving" | "payment_issue" | "other" | "unknown";
   if (isCancellation) {
-    reason = isMoving ? "moving" : "other";
+    if (hasPaymentIssue) {
+      reason = "payment_issue";
+    } else if (isMoving) {
+      reason = "moving";
+    } else {
+      reason = "other";
+    }
   } else {
     reason = "unknown";
   }
@@ -134,38 +131,32 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
   if (isCancellation && !moveDate && isMoving) {
     policyRisks.push("Moving mentioned but no date found");
   }
+  if (hasPaymentIssue && !customerConcerns.includes('payment_issue')) {
+    policyRisks.push("Payment issue detected but not explicitly mentioned");
+  }
   
-  // Detect edge cases
-  const edgeCaseResult = detectEdgeCase(email, {
-    move_date: moveDate,
-    is_cancellation: isCancellation,
-    reason
-  });
-  const edgeCase = edgeCaseResult as "none" | "no_app_access" | "corporate_account" | "future_move_date" | "already_canceled" | "sameie_concern";
+  // Detect edge cases using enhanced detection
+  const detectedEdgeCase = detectEdgeCaseFromPatterns(email);
+  const edgeCase = detectedEdgeCase as "none" | "no_app_access" | "corporate_account" | "future_move_date" | "already_canceled" | "sameie_concern" | "payment_dispute";
   
   // Determine urgency
   const urgency: "immediate" | "future" | "unclear" = moveDate ? 
     (getMonthsFromNow(moveDate) > 1 ? "future" : "immediate") : 
     (isCancellation ? "immediate" : "unclear");
   
-  // Extract customer concerns
-  const customerConcerns: string[] = [];
-  if (emailLower.match(/sameie|housing association|hele|everyone|whole building|bedrift|corporate|company/)) {
-    customerConcerns.push("shared_account_concern");
+  // Extract payment concerns
+  const paymentConcerns: string[] = [];
+  if (hasPaymentIssue) {
+    if (emailLower.includes('refund') || emailLower.includes('refusjon') || emailLower.includes('återbetalning')) {
+      paymentConcerns.push('refund_request');
+    }
+    if (emailLower.includes('double') || emailLower.includes('dobbel') || emailLower.includes('dubbel')) {
+      paymentConcerns.push('double_charge');
+    }
+    if (emailLower.includes('error') || emailLower.includes('feil') || emailLower.includes('fel')) {
+      paymentConcerns.push('billing_error');
+    }
   }
-  if (emailLower.match(/bill|faktura|charge|belast|invoice|payment|betaling/)) {
-    customerConcerns.push("billing_concern");
-  }
-  if (emailLower.match(/problem|issue|error|feil|ikke fungerer|not working|broken/)) {
-    customerConcerns.push("technical_issue");
-  }
-  
-  // Calculate confidence factors
-  const confidence_factors = {
-    clear_intent: isCancellation && reason !== "unknown",
-    complete_information: isCancellation && (!!moveDate || reason === "moving"),
-    standard_case: edgeCase === "none" && customerConcerns.length === 0
-  };
   
   return {
     is_cancellation: isCancellation,
@@ -173,10 +164,12 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
     move_date: moveDate,
     language,
     edge_case: edgeCase,
+    has_payment_issue: hasPaymentIssue,
+    payment_concerns: paymentConcerns,
     urgency,
     customer_concerns: customerConcerns,
     policy_risks: policyRisks,
-    confidence_factors
+    confidence_factors: confidenceFactors
   };
 }
 
@@ -237,7 +230,10 @@ export async function processEmailSimplified(
       reason: extraction.reason,
       moveDate: extraction.move_date,
       edgeCase: extraction.edge_case,
-      customerConcerns: extraction.customer_concerns
+      customerConcerns: extraction.customer_concerns,
+      hasPaymentIssue: extraction.has_payment_issue,
+      paymentConcerns: extraction.payment_concerns,
+      ragContext: [] // No RAG context in simplified processor
     });
     
     const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;

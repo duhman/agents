@@ -4,6 +4,7 @@ import { maskPII, logInfo, logError } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
 import { generateDraft } from "@agents/prompts";
 import OpenAI from "openai";
+import { emitArtifact } from "./observability/artifacts.js";
 const maskPiiParameters = z.object({
     email: z.string().describe("Email text to mask")
 });
@@ -51,6 +52,18 @@ export const createTicketTool = tool({
                 ticketId: ticket.id,
                 source: ticket.source
             });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "ticket_creation_status",
+                    data: {
+                        ticketId: ticket.id,
+                        status: "created",
+                        createdAt: Date.now()
+                    }
+                });
+            }
+            catch { }
             return {
                 ticket_id: ticket.id,
                 created_at: ticket.createdAt,
@@ -60,6 +73,17 @@ export const createTicketTool = tool({
         }
         catch (error) {
             logError("Ticket creation failed", { requestId: "tool-execution" }, error);
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "ticket_creation_status",
+                    data: {
+                        status: "error",
+                        message: String(error?.message ?? "unknown")
+                    }
+                });
+            }
+            catch { }
             throw new Error(`Ticket creation failed: ${error.message}`);
         }
     }
@@ -89,6 +113,19 @@ export const createDraftTool = tool({
                 ticketId: params.ticketId,
                 confidence: params.confidence
             });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "draft_creation_status",
+                    data: {
+                        draftId: draft.id,
+                        ticketId: params.ticketId,
+                        status: "created",
+                        createdAt: Date.now()
+                    }
+                });
+            }
+            catch { }
             return {
                 draft_id: draft.id,
                 created_at: draft.createdAt,
@@ -98,6 +135,17 @@ export const createDraftTool = tool({
         }
         catch (error) {
             logError("Draft creation failed", { requestId: "tool-execution" }, error);
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "draft_creation_status",
+                    data: {
+                        status: "error",
+                        message: String(error?.message ?? "unknown")
+                    }
+                });
+            }
+            catch { }
             throw new Error(`Draft creation failed: ${error.message}`);
         }
     }
@@ -183,6 +231,18 @@ export const generateDraftTool = tool({
                 wordCount: analysis.word_count,
                 policyCompliant: analysis.includes_policy
             });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "drafting_progress",
+                    data: {
+                        progress: 1,
+                        partialTextMasked: maskPII(draftText),
+                        language: params.language
+                    }
+                });
+            }
+            catch { }
             return {
                 draft_text: draftText,
                 language: params.language,
@@ -192,6 +252,17 @@ export const generateDraftTool = tool({
         }
         catch (error) {
             logError("Draft generation failed", { requestId: "tool-execution" }, error);
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "drafting_progress",
+                    data: {
+                        progress: 0,
+                        error: String(error?.message ?? "unknown")
+                    }
+                });
+            }
+            catch { }
             throw new Error(`Draft generation failed: ${error.message}`);
         }
     }
@@ -213,13 +284,34 @@ export const postToSlackTool = tool({
     parameters: postToSlackParameters,
     execute: async (params) => {
         try {
-            // This would integrate with your Slack bot
-            // For now, return success status
             logInfo("Slack posting initiated", { requestId: "tool-execution" }, {
                 ticketId: params.ticketId,
                 draftId: params.draftId,
                 confidence: params.confidence
             });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "slack_post_status",
+                    data: {
+                        status: "queued",
+                        channelId: process.env.SLACK_REVIEW_CHANNEL || "not-configured"
+                    }
+                });
+            }
+            catch { }
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "slack_post_status",
+                    data: {
+                        status: "posted",
+                        channelId: process.env.SLACK_REVIEW_CHANNEL || "not-configured",
+                        messageUrl: ""
+                    }
+                });
+            }
+            catch { }
             return {
                 success: true,
                 message: "Draft posted to Slack for review",
@@ -230,6 +322,17 @@ export const postToSlackTool = tool({
         }
         catch (error) {
             logError("Slack posting failed", { requestId: "tool-execution" }, error);
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "slack_post_status",
+                    data: {
+                        status: "error",
+                        message: String(error?.message ?? "unknown")
+                    }
+                });
+            }
+            catch { }
             throw new Error(`Slack posting failed: ${error.message}`);
         }
     }
@@ -303,6 +406,17 @@ export const validatePolicyComplianceTool = tool({
                 compliant,
                 checks
             });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "policy_validation",
+                    data: {
+                        overallPass: compliant,
+                        checks
+                    }
+                });
+            }
+            catch { }
             return {
                 compliant,
                 checks,
@@ -311,6 +425,17 @@ export const validatePolicyComplianceTool = tool({
         }
         catch (error) {
             logError("Policy compliance validation failed", { requestId: "tool-execution" }, error);
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "policy_validation",
+                    data: {
+                        overallPass: false,
+                        error: String(error?.message ?? "unknown")
+                    }
+                });
+            }
+            catch { }
             throw new Error(`Policy compliance validation failed: ${error.message}`);
         }
     }
@@ -365,6 +490,22 @@ export const vectorStoreSearchTool = tool({
                 .filter((line) => line.trim().length > 0)
                 .slice(0, maxResults);
             logInfo("Vector store search completed", { requestId: "tool-execution" }, { query, resultsCount: results.length, vectorStoreId });
+            try {
+                await emitArtifact({
+                    requestId: "tool-execution",
+                    type: "vector_search_context",
+                    data: {
+                        enabled: true,
+                        query: maskPII(query),
+                        results: results.map((r, i) => ({
+                            id: String(i + 1),
+                            score: 0,
+                            titleMasked: maskPII(r)
+                        }))
+                    }
+                });
+            }
+            catch { }
             return {
                 success: true,
                 results,

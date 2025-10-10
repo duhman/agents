@@ -15,6 +15,7 @@
     "src/hybrid-processor.ts",
     "src/simplified-processor.ts",
     "src/pages/**",
-    "src/components/operator/**"
+    "src/components/**",
+    "src/tests/**"
   ]
 }
