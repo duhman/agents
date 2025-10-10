@@ -178,6 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "approve") {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
+        log("info", "Slack approve handling started", { requestId, ticketId, draftId, userId });
         try {
           await withDbRetry(
             () =>
@@ -232,6 +233,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "reject") {
         const { ticketId, draftId } = JSON.parse(action.value);
+        log("info", "Slack reject handling started", { requestId, ticketId, draftId, userId });
         try {
           await withDbRetry(
             () =>
@@ -285,51 +287,61 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (actionId === "edit" && triggerId) {
         const { ticketId, draftId, draftText } = JSON.parse(action.value);
-        (async () => {
-          try {
-            await slackApi(
-              "views.open",
-              {
-                trigger_id: triggerId,
-                view: {
-                  type: "modal",
-                  callback_id: "edit_modal",
-                  private_metadata: JSON.stringify({
-                    ticketId,
-                    draftId,
-                    channelId,
-                    messageTs
-                  }),
-                  title: { type: "plain_text", text: "Edit Draft" },
-                  submit: { type: "plain_text", text: "Send" },
-                  close: { type: "plain_text", text: "Cancel" },
-                  blocks: [
-                    {
-                      type: "input",
-                      block_id: "final_text_block",
-                      label: { type: "plain_text", text: "Final Reply" },
-                      element: {
-                        type: "plain_text_input",
-                        action_id: "final_text",
-                        multiline: true,
-                        initial_value: draftText
-                      }
+        log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+        try {
+          await slackApi(
+            "views.open",
+            {
+              trigger_id: triggerId,
+              view: {
+                type: "modal",
+                callback_id: "edit_modal",
+                private_metadata: JSON.stringify({
+                  ticketId,
+                  draftId,
+                  channelId,
+                  messageTs
+                }),
+                title: { type: "plain_text", text: "Edit Draft" },
+                submit: { type: "plain_text", text: "Send" },
+                close: { type: "plain_text", text: "Cancel" },
+                blocks: [
+                  {
+                    type: "input",
+                    block_id: "final_text_block",
+                    label: { type: "plain_text", text: "Final Reply" },
+                    element: {
+                      type: "plain_text_input",
+                      action_id: "final_text",
+                      multiline: true,
+                      initial_value: draftText
                     }
-                  ]
-                }
+                  }
+                ]
+              }
+            },
+            requestId
+          );
+          log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
+        } catch (e: any) {
+          const msg = e?.message || String(e);
+          if (/expired_trigger_id|exchanged_trigger_id/i.test(msg)) {
+            log("warn", "views.open trigger_id not usable", { requestId, ticketId, draftId, reason: msg });
+          } else {
+            log("error", "Slack views.open failed", { requestId, ticketId, draftId, error: msg });
+          }
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.postMessage",
+              {
+                channel: channelId,
+                text: `Kunne ikke åpne redigeringsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
+                thread_ts: messageTs
               },
               requestId
-            );
-            log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
-          } catch (e: any) {
-            const msg = e?.message || String(e);
-            if (/expired_trigger_id|exchanged_trigger_id/i.test(msg)) {
-              log("warn", "views.open trigger_id not usable", { requestId, ticketId, draftId, reason: msg });
-            } else {
-              log("error", "Slack views.open failed", { requestId, ticketId, draftId, error: msg });
-            }
+            ).catch(() => {});
           }
-        })();
+        }
         return;
       }
 
