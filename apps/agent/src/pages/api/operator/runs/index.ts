@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { assertMasked } from "../_sanitizer.js";
+import { getRecentRuns } from "../../../../server/operator/events.js";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const recent = Number(req.query.recent ?? 50);
-    const items: unknown[] = [];
+    const items = getRecentRuns().slice(0, Math.max(1, Math.min(200, recent)));
     assertMasked(items);
     res.status(200).json(items);
   } catch (e: any) {
