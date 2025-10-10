@@ -4,7 +4,7 @@ export function buildNodeMeta(latestArtifacts: Record<string, any>) {
   if (latestArtifacts.ticket_creation_status) {
     const t = latestArtifacts.ticket_creation_status;
     meta.create_ticket = {
-      footer: `Ticket: ${t.ticketId ?? '—'}`,
+      footer: t.status === 'error' ? 'Ticket: error' : `Ticket: ${t.ticketId ?? '—'}`,
       status: t.status ?? 'unknown'
     };
   }
@@ -12,7 +12,7 @@ export function buildNodeMeta(latestArtifacts: Record<string, any>) {
   if (latestArtifacts.draft_creation_status) {
     const d = latestArtifacts.draft_creation_status;
     meta.generate_draft = {
-      footer: `Draft: ${d.draftId ?? '—'}`,
+      footer: d.status === 'error' ? 'Draft: error' : `Draft: ${d.draftId ?? '—'}`,
       status: d.status ?? 'unknown'
     };
   }
@@ -37,7 +37,7 @@ export function buildNodeMeta(latestArtifacts: Record<string, any>) {
   if (latestArtifacts.slack_post_status) {
     const s = latestArtifacts.slack_post_status;
     meta.slack = {
-      footer: `Slack: ${s.status}`,
+      footer: s.status === 'error' ? 'Slack: error' : `Slack: ${s.status}`,
       status: s.status,
       linkUrl: s.messageUrl || ''
     };

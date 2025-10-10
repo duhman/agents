@@ -1,6 +1,7 @@
 // @ts-nocheck
 import type { NextApiRequest, NextApiResponse } from "next";
 import { subscribe, writeSSE } from "../../../../../server/operator/events.js";
+import { requireOperatorAuth, auditLog } from "../../_auth.js";
 
 export const config = {
   api: {
@@ -9,6 +10,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  auditLog(req);
+  if (!requireOperatorAuth(req, res)) return;
   const { requestId } = req.query as { requestId: string };
 
   res.setHeader("Content-Type", "text/event-stream");

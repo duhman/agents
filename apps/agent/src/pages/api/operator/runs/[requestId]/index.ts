@@ -2,8 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { assertMasked } from "../../_sanitizer.js";
 import { getLatestArtifacts } from "../../../../../server/operator/events.js";
+import { requireOperatorAuth, auditLog } from "../../_auth.js";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  auditLog(req);
+  if (!requireOperatorAuth(req, res)) return;
   try {
     const { requestId } = req.query as { requestId: string };
     const latestArtifacts = getLatestArtifacts(requestId);
