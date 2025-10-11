@@ -13,7 +13,77 @@ import {
   type LogContext 
 } from "@agents/core";
 import { vectorStoreSearchTool } from "@agents/agents-runtime";
+import OpenAI from "openai";
 import type { ExtractionResultEnhanced } from "@agents/prompts";
+
+// Direct wrapper for vector store search to bypass SDK invoke wrapper
+async function searchVectorStoreDirect(query: string, maxResults: number): Promise<{
+  success: boolean;
+  results: string[];
+  vector_store_id?: string;
+  message?: string;
+}> {
+  try {
+    const vectorStoreId = process.env.OPENAI_VECTOR_STORE_ID;
+
+    if (!vectorStoreId) {
+      logError(
+        "Vector store ID not configured",
+        { requestId: "tool-execution" },
+        new Error("Missing OPENAI_VECTOR_STORE_ID")
+      );
+      return {
+        success: false,
+        results: [],
+        message: "OPENAI_VECTOR_STORE_ID is not set"
+      };
+    }
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Use Responses API with file_search tool attached to the vector store.
+    // Casting to any to avoid SDK type churn while keeping runtime behavior.
+    const response: any = await (openai as any).responses.create({
+      model: "gpt-4o-2024-08-06",
+      input:
+        `Return up to ${maxResults} short bullet snippets from the most relevant HubSpot tickets for this query. ` +
+        `Each snippet should be concise and directly useful for drafting a reply. Query: ${query}`,
+      tools: [{ type: "file_search" }],
+      attachments: [
+        {
+          vector_store_id: vectorStoreId,
+          tools: [{ type: "file_search" }]
+        }
+      ]
+    });
+
+    // Extract text output; if structured citations are available, prefer them.
+    let outputText: string = response?.output_text || "";
+    if (!outputText && response?.choices?.[0]?.message?.content) {
+      outputText = String(response.choices[0].message.content);
+    }
+
+    const results = outputText
+      .split(/\n+/)
+      .filter((line: string) => line.trim().length > 0)
+      .slice(0, maxResults);
+
+    logInfo(
+      "Vector store search completed",
+      { requestId: "tool-execution" },
+      { query, resultsCount: results.length, vectorStoreId }
+    );
+
+    return {
+      success: true,
+      results,
+      vector_store_id: vectorStoreId
+    };
+  } catch (error: any) {
+    logError("Vector store search failed", { requestId: "tool-execution" }, error);
+    throw new Error(`Vector store search failed: ${error.message}`);
+  }
+}
 
 /**
  * Get vector store context for enhanced draft generation
@@ -48,10 +118,8 @@ export async function getVectorStoreContext(
   const startTime = Date.now();
 
   try {
-    const results = await (vectorStoreSearchTool as any).execute({
-      query,
-      maxResults: 3 // Keep small - just for tone/phrasing examples
-    });
+    // Use direct wrapper to bypass SDK invoke wrapper
+    const results = await searchVectorStoreDirect(query, 3);
 
     const duration = Date.now() - startTime;
     
