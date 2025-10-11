@@ -109,6 +109,13 @@ export default async function handler(
         const l = lines[i] || "";
         if (!subject && /^subject\s*:/i.test(l)) {
           subject = l.replace(/^subject\s*:\s*/i, "").trim();
+          // If we found a subject line, the body starts after it (skip empty lines)
+          bodyStartIdx = i + 1;
+          // Skip any empty lines after the subject
+          while (bodyStartIdx < lines.length && (lines[bodyStartIdx] || "").trim() === "") {
+            bodyStartIdx++;
+          }
+          break;
         }
         if (lines[i] === "" && i < lines.length - 1) {
           bodyStartIdx = i + 1;
