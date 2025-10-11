@@ -58,5 +58,5 @@
     "@openai/agents-core": "^0.1.8",
     "openai": "^6.2.0"
   },
-  "packageManager": "pnpm@10.18.0"
+  "packageManager": "pnpm@10.18.2"
 }

@@ -58,48 +58,6 @@ export async function postReview(params: PostReviewParams) {
             text: "🤖 Draft Review Required"
           }
         },
-        {
-          type: "section",
-          fields: [
-            {
-              type: "mrkdwn",
-              text: `*Confidence:* ${(confidence * 100).toFixed(0)}%`
-            },
-            {
-              type: "mrkdwn",
-              text: `*Language:* ${extraction.language || "unknown"}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*Reason:* ${extraction.reason || "unknown"}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*Move Date:* ${extraction.move_date || "N/A"}`
-            }
-          ]
-        },
-        {
-          type: "section",
-          fields: [
-            {
-              type: "mrkdwn",
-              text: `*Edge Case:* ${extraction.edge_case || "none"}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*Payment Issue:* ${extraction.has_payment_issue ? "⚠️ Yes" : "✅ No"}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*RAG Context:* ${extraction.rag_context_used ? "📚 Used" : "📝 Template"}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*Urgency:* ${extraction.urgency || "unclear"}`
-            }
-          ]
-        },
         // Show payment concerns and customer concerns if they exist
         ...(extraction.payment_concerns && extraction.payment_concerns.length > 0 ? [{
           type: "section" as const,
