@@ -20,7 +20,6 @@
     "db:push": "pnpm --filter @agents/db push",
     "db:studio": "pnpm --filter @agents/db studio",
     "agent:dev": "pnpm --filter @agents/agent dev",
-    "slack:dev": "pnpm --filter @agents/slack-bot dev",
     "eval": "tsx ops/scripts/eval.ts",
     "export-jsonl": "tsx ops/scripts/export-jsonl.ts",
     "finetune": "tsx ops/scripts/finetune.ts",

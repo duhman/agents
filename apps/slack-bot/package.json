@@ -4,13 +4,10 @@
   "main": "./src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "DOTENV_CONFIG_PATH=../../.env node --require dotenv/config --enable-source-maps ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
     "build": "tsc"
   },
   "dependencies": {
     "@agents/core": "workspace:*",
-    "@agents/db": "workspace:*",
-    "@slack/bolt": "^4.5.0",
     "dotenv": "^16.3.0"
   },
   "devDependencies": {

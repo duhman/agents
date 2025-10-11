@@ -161,7 +161,6 @@ Cursor now has access to (via Docs panel):
 ```bash
 # Development
 pnpm agent:dev          # Test agent locally
-pnpm slack:dev          # Test Slack bot with ngrok
 pnpm db:studio          # Open Drizzle Studio
 
 # Quality
