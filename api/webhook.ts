@@ -104,33 +104,37 @@ export default async function handler(
       const lines = masked.split(/\r?\n/);
       let subject = "";
       let bodyStartIdx = 0;
+      let foundSubjectLine = false;
 
+      // Look for "Subject: " line (case-insensitive)
       for (let i = 0; i < lines.length; i++) {
         const l = lines[i] || "";
         if (!subject && /^subject\s*:/i.test(l)) {
           subject = l.replace(/^subject\s*:\s*/i, "").trim();
-          // If we found a subject line, the body starts after it (skip empty lines)
+          foundSubjectLine = true;
+          // Body starts after subject (skip empty lines)
           bodyStartIdx = i + 1;
-          // Skip any empty lines after the subject
           while (bodyStartIdx < lines.length && (lines[bodyStartIdx] || "").trim() === "") {
             bodyStartIdx++;
           }
           break;
         }
-        if (lines[i] === "" && i < lines.length - 1) {
-          bodyStartIdx = i + 1;
-          break;
-        }
       }
 
-      if (!subject) {
-        const firstNonEmpty = lines.find((l: string) => (l || "").trim().length > 0) || "";
-        subject = firstNonEmpty.trim();
+      // If no "Subject: " line found, don't guess - use empty subject
+      if (!foundSubjectLine) {
+        subject = "";
+        bodyStartIdx = 0;
       }
 
       const body = lines.slice(bodyStartIdx).join("\n").trim();
       const finalBody = body || masked;
-      return { subject, body: finalBody };
+      
+      return { 
+        subject, 
+        body: finalBody,
+        hasSubject: foundSubjectLine
+      };
     };
 
 

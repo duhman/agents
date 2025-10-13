@@ -1,0 +1,46 @@
+---
+description: Email intent classification rules and patterns to prevent misclassification
+globs: packages/prompts/src/patterns.ts, apps/agent/src/*.ts
+alwaysApply: false
+---
+
+# Email Classification Rules
+
+## Critical Classification Principles
+
+**ALWAYS check exclusion patterns BEFORE inclusion patterns**
+
+### Non-Cancellation Patterns (Must be excluded)
+
+- Feedback requests: "rate", "rating", "survey", "how would you rate"
+- General questions: "how do i", "what is", "where can"
+- Support requests: "help with", "problem with", "not working"
+- Inquiry notifications: "Inquiry #"
+
+### Classification Flow
+
+1. **First**: Check if email matches non-cancellation patterns → return false
+2. **Then**: Check if email matches cancellation patterns → return true
+3. **Finally**: Analyze subject and body separately for context
+
+### Code Pattern
+
+```typescript
+export function detectCancellationIntent(email: string): boolean {
+  // CRITICAL: Check exclusions first
+  if (isNonCancellationEmail(email)) {
+    return false;
+  }
+  
+  // Then check for cancellation patterns
+  return hasCancellationPatterns(email);
+}
+```
+
+## Testing Requirements
+
+Always test with these edge cases:
+- Feedback emails: "How would you rate the received customer service?"
+- Question emails: "How do I update my payment method?"
+- Support emails: "The app is not working"
+- Actual cancellations: "I am moving and want to cancel"

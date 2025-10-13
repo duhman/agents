@@ -537,9 +537,22 @@ export function detectEdgeCase(email: string, extraction: Partial<ExtractionResu
 
 export const extractionPromptEnhanced = (email: string) => `Analyze this customer email and extract structured information:
 
+CRITICAL: First determine if this is actually a cancellation request or something else.
+
+NON-CANCELLATION INDICATORS (set is_cancellation to FALSE):
+- Feedback requests: "How would you rate...", "Rate our service", "Survey", "Inquiry #"
+- General questions: "How do I...", "What is...", "Where can I..."
+- Support requests: "Help with...", "Problem with...", "Not working..."
+- Payment inquiries without cancellation intent
+
+CANCELLATION INDICATORS (set is_cancellation to TRUE):
+- Clear cancellation request: "cancel", "oppsigelse", "terminate", "stop subscription"
+- Moving/relocation with cancellation context: "moving and want to cancel"
+- End of service: "end my subscription", "avslutt abonnement"
+
 REQUIRED FIELDS:
-- is_cancellation: true if requesting subscription cancellation
-- reason: "moving" (relocating), "other" (different reason), "unknown" (unclear)
+- is_cancellation: true ONLY if this is a clear cancellation request
+- reason: "moving" (relocating), "other" (different reason), "unknown" (unclear or NOT a cancellation)
 - move_date: ISO date (YYYY-MM-DD) if mentioned, null otherwise
 - language: "no" (Norwegian), "en" (English), "sv" (Swedish)
 - edge_case: Identify special cases:
@@ -559,7 +572,7 @@ REQUIRED FIELDS:
 EMAIL:
 ${email}
 
-Analyze carefully and extract all fields accurately.`;
+Analyze carefully. If this is NOT a cancellation request, set is_cancellation to false and reason to "unknown".`;
 
 // ============================================================================
 // RAG CONTEXT ENHANCEMENT

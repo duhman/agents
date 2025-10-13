@@ -35,6 +35,7 @@ import {
   validatePolicyCompliance,
   type ExtractionResultEnhanced
 } from "@agents/prompts";
+import { isNonCancellationEmail } from "@agents/prompts";
 import { getVectorStoreContext } from "./rag-context.js";
 import { extractEmailData as extractEmailDataDeterministic } from "./simplified-processor.js";
 import { metricsCollector } from "./metrics.js";
@@ -172,8 +173,11 @@ export async function processEmailHybrid(
       edgeCase: extraction.edge_case
     });
 
+    // CRITICAL: Validate extraction result
     if (!extraction.is_cancellation) {
-      logInfo("Not a cancellation request - no action taken", logContext);
+      logInfo("Not a cancellation request - no action taken", logContext, {
+        detected_type: isNonCancellationEmail(rawEmail) ? "non_cancellation_pattern" : "no_cancellation_intent"
+      });
       return {
         success: true,
         ticket: null,
@@ -182,6 +186,13 @@ export async function processEmailHybrid(
         extraction_method: extractionMethod,
         error: undefined
       };
+    }
+    
+    // Additional validation: Check confidence factors
+    if (extraction.confidence_factors.clear_intent === false) {
+      logWarn("Unclear cancellation intent - flagging for review", logContext, {
+        extraction
+      });
     }
 
     // Create ticket
@@ -270,7 +281,9 @@ export async function processEmailHybrid(
       language: extraction.language,
       rag_context_used: ragContext.length > 0,
       rag_context_count: ragContext.length,
-      has_payment_issue: extraction.has_payment_issue
+      has_payment_issue: extraction.has_payment_issue,
+      non_cancellation_detected: isNonCancellationEmail(rawEmail),
+      subject_analyzed: true
     });
     
     logInfo("Email processing completed successfully", {

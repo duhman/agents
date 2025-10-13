@@ -20,6 +20,10 @@ export interface ProcessingMetrics {
   rag_context_usage_rate: number;
   avg_rag_context_count: number;
   payment_issues_handled: number;
+  // Classification debugging metrics
+  non_cancellation_detected: number;
+  subject_analyzed: number;
+  exclusion_pattern_matched: Record<string, number>;
 }
 
 class MetricsCollector {
@@ -38,7 +42,11 @@ class MetricsCollector {
     rag_queries_successful: 0,
     rag_context_usage_rate: 0,
     avg_rag_context_count: 0,
-    payment_issues_handled: 0
+    payment_issues_handled: 0,
+    // Classification debugging metrics
+    non_cancellation_detected: 0,
+    subject_analyzed: 0,
+    exclusion_pattern_matched: {}
   };
 
   private confidenceSum = 0;
@@ -57,6 +65,10 @@ class MetricsCollector {
     rag_context_used?: boolean;
     rag_context_count?: number;
     has_payment_issue?: boolean;
+    // Classification debugging metrics
+    non_cancellation_detected?: boolean;
+    subject_analyzed?: boolean;
+    exclusion_pattern_matched?: string;
   }) {
     this.metrics.total_processed++;
     
@@ -109,6 +121,20 @@ class MetricsCollector {
     if (data.has_payment_issue) {
       this.metrics.payment_issues_handled++;
     }
+
+    // Track classification debugging metrics
+    if (data.non_cancellation_detected) {
+      this.metrics.non_cancellation_detected++;
+    }
+
+    if (data.subject_analyzed) {
+      this.metrics.subject_analyzed++;
+    }
+
+    if (data.exclusion_pattern_matched) {
+      this.metrics.exclusion_pattern_matched[data.exclusion_pattern_matched] = 
+        (this.metrics.exclusion_pattern_matched[data.exclusion_pattern_matched] || 0) + 1;
+    }
   }
 
   getMetrics(): ProcessingMetrics {
@@ -119,7 +145,11 @@ class MetricsCollector {
       rag_queries_successful: this.metrics.rag_queries_successful || 0,
       rag_context_usage_rate: this.metrics.rag_context_usage_rate || 0,
       avg_rag_context_count: this.metrics.avg_rag_context_count || 0,
-      payment_issues_handled: this.metrics.payment_issues_handled || 0
+      payment_issues_handled: this.metrics.payment_issues_handled || 0,
+      // Ensure classification debugging metrics are included
+      non_cancellation_detected: this.metrics.non_cancellation_detected || 0,
+      subject_analyzed: this.metrics.subject_analyzed || 0,
+      exclusion_pattern_matched: this.metrics.exclusion_pattern_matched || {}
     };
   }
 
@@ -139,7 +169,11 @@ class MetricsCollector {
       rag_queries_successful: 0,
       rag_context_usage_rate: 0,
       avg_rag_context_count: 0,
-      payment_issues_handled: 0
+      payment_issues_handled: 0,
+      // Classification debugging metrics
+      non_cancellation_detected: 0,
+      subject_analyzed: 0,
+      exclusion_pattern_matched: {}
     };
     this.confidenceSum = 0;
     this.timeSum = 0;

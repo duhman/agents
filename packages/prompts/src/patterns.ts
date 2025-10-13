@@ -88,6 +88,22 @@ export const PAYMENT_ISSUE_PATTERNS = {
   ]
 };
 
+export const NON_CANCELLATION_PATTERNS = {
+  feedback_requests: [
+    'rate', 'rating', 'feedback', 'survey', 'how would you rate',
+    'customer service', 'satisfaction', 'experience', 'inquiry #'
+  ],
+  questions: [
+    'how do i', 'how can i', 'what is', 'where can', 'when will',
+    'spørsmål', 'fråga', 'question'
+  ],
+  support_requests: [
+    'help with', 'problem with', 'issue with', 'not working',
+    'technical support', 'teknisk support', 'app not working',
+    'cannot access', 'access the charging station'
+  ]
+};
+
 export const EDGE_CASE_PATTERNS = {
   no_app_access: {
     norwegian: ['ikke app', 'ingen app', 'klarer ikke app', 'app fungerer ikke', 'app problem'],
@@ -127,9 +143,48 @@ export const EDGE_CASE_PATTERNS = {
 };
 
 /**
+ * Detect if an email is clearly NOT a cancellation request
+ */
+export function isNonCancellationEmail(email: string): boolean {
+  const lower = email.toLowerCase();
+  
+  // Check for feedback/survey patterns
+  const hasFeedbackPattern = NON_CANCELLATION_PATTERNS.feedback_requests.some(
+    pattern => lower.includes(pattern)
+  );
+  
+  if (hasFeedbackPattern) return true;
+  
+  // Check for support request patterns
+  const hasSupportPattern = NON_CANCELLATION_PATTERNS.support_requests.some(
+    pattern => lower.includes(pattern)
+  );
+  
+  if (hasSupportPattern) return true;
+  
+  // Check for question patterns (without cancellation keywords)
+  const hasQuestionPattern = NON_CANCELLATION_PATTERNS.questions.some(
+    pattern => lower.includes(pattern)
+  );
+  
+  const hasCancellationKeyword = Object.values(CANCELLATION_PATTERNS).some(patterns =>
+    patterns.some(pattern => lower.includes(pattern))
+  );
+  
+  if (hasQuestionPattern && !hasCancellationKeyword) return true;
+  
+  return false;
+}
+
+/**
  * Detect if an email contains cancellation intent
  */
 export function detectCancellationIntent(email: string): boolean {
+  // CRITICAL: Check for non-cancellation patterns first
+  if (isNonCancellationEmail(email)) {
+    return false;
+  }
+  
   const lower = email.toLowerCase();
   
   return Object.values(CANCELLATION_PATTERNS).some(patterns => 
@@ -227,6 +282,68 @@ export function extractCustomerConcerns(email: string): string[] {
   }
   
   return concerns;
+}
+
+/**
+ * Analyze email structure to separate subject and body
+ */
+export function analyzeEmailStructure(rawEmail: string): {
+  subject: string;
+  body: string;
+  hasSubject: boolean;
+} {
+  const lines = rawEmail.split(/\r?\n/);
+  let subject = "";
+  let bodyStartIdx = 0;
+  let hasSubject = false;
+  
+  // Look for "Subject: " line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] || "";
+    if (/^subject\s*:/i.test(line)) {
+      subject = line.replace(/^subject\s*:\s*/i, "").trim();
+      hasSubject = true;
+      // Body starts after subject (skip empty lines)
+      bodyStartIdx = i + 1;
+      while (bodyStartIdx < lines.length && !lines[bodyStartIdx]?.trim()) {
+        bodyStartIdx++;
+      }
+      break;
+    }
+  }
+  
+  const body = lines.slice(bodyStartIdx).join("\n").trim();
+  
+  return {
+    subject: subject || lines[0]?.trim() || "",
+    body: body || rawEmail,
+    hasSubject
+  };
+}
+
+/**
+ * Enhanced cancellation detection with subject/body analysis
+ */
+export function detectCancellationIntentEnhanced(rawEmail: string): boolean {
+  // CRITICAL: Check for non-cancellation patterns first
+  if (isNonCancellationEmail(rawEmail)) {
+    return false;
+  }
+  
+  const { subject, body } = analyzeEmailStructure(rawEmail);
+  
+  // Analyze subject and body separately
+  const subjectHasCancellation = detectCancellationIntent(subject);
+  const bodyHasCancellation = detectCancellationIntent(body);
+  
+  // If subject clearly indicates non-cancellation (feedback, inquiry), reject
+  const subjectIsNonCancellation = isNonCancellationEmail(subject);
+  if (subjectIsNonCancellation) {
+    return false;
+  }
+  
+  // Require cancellation intent in either subject OR body
+  return subjectHasCancellation || bodyHasCancellation;
 }
 
 /**

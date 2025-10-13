@@ -30,6 +30,7 @@ import {
 } from "@agents/prompts";
 import { 
   detectCancellationIntent,
+  detectCancellationIntentEnhanced,
   detectPaymentIssue,
   detectLanguage,
   extractCustomerConcerns,
@@ -72,8 +73,8 @@ function getMonthsFromNow(dateStr: string): number {
  * Uses patterns from patterns.ts for better accuracy
  */
 export function extractEmailData(email: string): ExtractionResultEnhanced {
-  // Use enhanced pattern detection
-  const isCancellation = detectCancellationIntent(email);
+  // Use enhanced detection with subject/body separation
+  const isCancellation = detectCancellationIntentEnhanced(email);
   const hasPaymentIssue = detectPaymentIssue(email);
   const language = detectLanguage(email);
   const customerConcerns = extractCustomerConcerns(email);
