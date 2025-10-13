@@ -149,6 +149,7 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000); // Increased to 10 seconds
     try {
+      log("info", "Slack API request started", { method, attempt, requestId });
       const res = await fetch(`https://slack.com/api/${method}`, {
         method: "POST",
         headers: {
@@ -180,15 +181,24 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
       }
 
       if (json && json.ok !== true) {
+        log("error", "Slack API error response", { method, attempt, requestId, error: json.error, response: json });
         const errorDetails = {
           method,
           error: json.error,
           response_metadata: json.response_metadata,
           requestId
         };
-        log("error", "Slack API error response", errorDetails);
+        log("error", "Slack API error response (details)", errorDetails);
         throw new Error(`${method} failed: ${json.error || "unknown_error"}${requestId ? ` (requestId=${requestId})` : ""}`);
       }
+
+      log("info", "Slack API request succeeded", {
+        method,
+        attempt,
+        requestId,
+        responseKeys: json ? Object.keys(json) : [],
+        ok: json?.ok
+      });
 
       return json ?? { ok: true, raw: text };
     } catch (e: any) {
