@@ -356,16 +356,16 @@ export function calculateConfidenceFactors(email: string): {
 } {
   const lower = email.toLowerCase();
   
-  // Clear intent: email contains clear cancellation language
-  const clear_intent = detectCancellationIntent(email);
+  // Clear intent: email contains clear cancellation language (use enhanced detection)
+  const clear_intent = detectCancellationIntentEnhanced(email);
   
   // Complete information: email contains move date or specific reason
   const hasMoveDate = /\d{1,2}[.\/\-]\d{1,2}[.\/\-]\d{2,4}|\d{4}[.\/\-]\d{1,2}[.\/\-]\d{1,2}|(januar|februar|mars|april|mai|juni|juli|august|september|oktober|november|desember|january|february|march|april|may|june|july|august|september|october|november|december)/i.test(email);
   const hasSpecificReason = lower.includes('flytter') || lower.includes('moving') || lower.includes('flyttar');
   const complete_information = hasMoveDate || hasSpecificReason;
   
-  // Standard case: no edge cases detected
-  const standard_case = detectEdgeCase(email) === 'none' && !detectPaymentIssue(email);
+  // Standard case: no edge cases detected AND it's actually a cancellation
+  const standard_case = detectEdgeCase(email) === 'none' && !detectPaymentIssue(email) && clear_intent;
   
   return {
     clear_intent,
