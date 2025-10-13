@@ -58,6 +58,12 @@ await client.views.open({
 });
 ```
 
+🚨 **When opening from a message button:**
+
+- Call `views.open` synchronously and only acknowledge *after* the API responds so the trigger stays valid.
+- Do **not** `ack()` or `respond({ ok: true })` before awaiting `views.open`; Slack will silently drop the modal if the request finishes early.
+- Still keep total runtime < 3 s – the API call should complete fast enough when done immediately.
+
 ## Human Review Storage
 
 Always log decisions to database:

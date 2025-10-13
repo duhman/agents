@@ -104,6 +104,7 @@ export default async function handler(
       const masked = maskPII(text || "");
       const lines = masked.split(/\r?\n/);
       let subject = "";
+      let subjectIdx = -1;
       let bodyStartIdx = 0;
       let foundSubjectLine = false;
 
@@ -113,6 +114,7 @@ export default async function handler(
         if (!subject && /^subject\s*:/i.test(l)) {
           subject = l.replace(/^subject\s*:\s*/i, "").trim();
           foundSubjectLine = true;
+          subjectIdx = i;
           // Body starts after subject (skip empty lines)
           bodyStartIdx = i + 1;
           while (bodyStartIdx < lines.length && (lines[bodyStartIdx] || "").trim() === "") {
@@ -129,7 +131,16 @@ export default async function handler(
       }
 
       const body = lines.slice(bodyStartIdx).join("\n").trim();
-      const finalBody = body || masked;
+      let finalBody = body;
+
+      if (!finalBody && foundSubjectLine && subjectIdx >= 0) {
+        const withoutSubject = lines.filter((_, idx) => idx !== subjectIdx).join("\n").trim();
+        finalBody = withoutSubject;
+      }
+
+      if (!finalBody) {
+        finalBody = masked;
+      }
       
       return { 
         subject, 
