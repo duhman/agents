@@ -64,6 +64,39 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
   throw new Error("DB retries exhausted");
 }
 
+async function validateSlackToken(requestId?: string) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token) throw new Error("SLACK_BOT_TOKEN not configured");
+  
+  try {
+    const res = await fetch("https://slack.com/api/auth.test", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    
+    const result = await res.json();
+    if (!result.ok) {
+      log("error", "Slack token validation failed", { requestId, error: result.error });
+      throw new Error(`Invalid Slack token: ${result.error}`);
+    }
+    
+    log("info", "Slack token validated", { 
+      requestId, 
+      botId: result.bot_id, 
+      userId: result.user_id,
+      team: result.team
+    });
+    
+    return result;
+  } catch (error: any) {
+    log("error", "Slack token validation error", { requestId, error: error.message });
+    throw error;
+  }
+}
+
 async function slackApi(method: string, body: Record<string, unknown>, requestId?: string) {
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token) throw new Error("SLACK_BOT_TOKEN not configured");
@@ -73,7 +106,7 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 10000); // Increased to 10 seconds
     try {
       const res = await fetch(`https://slack.com/api/${method}`, {
         method: "POST",
@@ -106,6 +139,13 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
       }
 
       if (json && json.ok !== true) {
+        const errorDetails = {
+          method,
+          error: json.error,
+          response_metadata: json.response_metadata,
+          requestId
+        };
+        log("error", "Slack API error response", errorDetails);
         throw new Error(`${method} failed: ${json.error || "unknown_error"}${requestId ? ` (requestId=${requestId})` : ""}`);
       }
 
@@ -417,6 +457,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         respondOk();
         void (async () => {
           try {
+            // Validate Slack token first
+            await validateSlackToken(requestId);
+            
             const { ticketId, draftId, draftText } = JSON.parse(action.value);
             log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
             
@@ -440,8 +483,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
               });
             }
 
+            // Validate trigger_id before using it
+            if (!triggerId) {
+              throw new Error("Missing trigger_id in block_actions payload");
+            }
+            
+            log("info", "Attempting views.open", { 
+              requestId, 
+              ticketId, 
+              draftId, 
+              userId, 
+              triggerId: triggerId.substring(0, 20) + "...",
+              hasView: !!view,
+              viewType: view?.type
+            });
+
             // Use views.open with trigger_id
-            await slackApi(
+            const result = await slackApi(
               "views.open",
               {
                 trigger_id: triggerId,
@@ -450,7 +508,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
               requestId
             );
             
-            log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
+            log("info", "Slack edit modal opened successfully", { 
+              ticketId, 
+              draftId, 
+              userId, 
+              requestId,
+              viewId: result?.view?.id,
+              ok: result?.ok,
+              responseKeys: Object.keys(result || {})
+            });
           } catch (error: any) {
             const errMsg = error?.message || String(error);
             log("error", "Slack edit modal open failed", { requestId, userId, error: errMsg });
