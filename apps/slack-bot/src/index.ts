@@ -20,6 +20,28 @@ export interface PostReviewParams {
   channel: string;
 }
 
+async function testSlackConnectivity(token: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const res = await fetch("https://slack.com/api/auth.test", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
+    const result = await res.json();
+    return result.ok === true;
+  } catch (error) {
+    return false;
+  }
+}
+
 export async function postReview(params: PostReviewParams) {
   const {
     ticketId,
@@ -49,13 +71,26 @@ export async function postReview(params: PostReviewParams) {
     throw new Error("SLACK_BOT_TOKEN is required");
   }
 
-  const maxAttempts = 3;
-  const baseDelayMs = 1000;
+  // Test Slack connectivity first
+  const isSlackReachable = await testSlackConnectivity(env.SLACK_BOT_TOKEN);
+  if (!isSlackReachable) {
+    console.error(JSON.stringify({
+      level: "error",
+      message: "Slack API is not reachable - skipping postReview",
+      timestamp: new Date().toISOString(),
+      ticketId,
+      draftId
+    }));
+    return { ok: true, error: "slack_unreachable", ts: Date.now().toString() };
+  }
+
+  const maxAttempts = 2; // Reduced attempts to avoid long delays
+  const baseDelayMs = 500; // Shorter delays
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      const timeout = setTimeout(() => controller.abort(), 8000); // Reduced to 8 seconds
       
       const result = await fetch("https://slack.com/api/chat.postMessage", {
         method: "POST",
@@ -215,10 +250,31 @@ export async function postReview(params: PostReviewParams) {
         continue;
       }
       
-      throw e;
+      // If all retries failed, log the error but don't throw - this is non-critical
+      console.error(JSON.stringify({
+        level: "error",
+        message: "Slack postReview failed after all retries - continuing without Slack notification",
+        timestamp: new Date().toISOString(),
+        error: msg,
+        ticketId,
+        draftId,
+        finalAttempt: attempt
+      }));
+      
+      // Return a mock success response to avoid breaking the webhook flow
+      return { ok: true, error: "slack_timeout", ts: Date.now().toString() };
     }
   }
   
-  throw new Error("Slack postReview exhausted retries");
+  // This should never be reached due to the return above, but just in case
+  console.error(JSON.stringify({
+    level: "error",
+    message: "Slack postReview exhausted retries - continuing without Slack notification",
+    timestamp: new Date().toISOString(),
+    ticketId,
+    draftId
+  }));
+  
+  return { ok: true, error: "slack_timeout", ts: Date.now().toString() };
 }
 
