@@ -64,36 +64,44 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
   throw new Error("DB retries exhausted");
 }
 
-async function validateSlackToken(requestId?: string) {
+async function validateSlackToken(requestId?: string): Promise<boolean> {
   const token = process.env.SLACK_BOT_TOKEN;
-  if (!token) throw new Error("SLACK_BOT_TOKEN not configured");
-  
+  if (!token) {
+    log("error", "Slack token validation failed", { requestId, error: "SLACK_BOT_TOKEN not configured" });
+    return false;
+  }
+
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     const res = await fetch("https://slack.com/api/auth.test", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
-      }
-    });
-    
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout));
+
     const result = await res.json();
-    if (!result.ok) {
-      log("error", "Slack token validation failed", { requestId, error: result.error });
-      throw new Error(`Invalid Slack token: ${result.error}`);
+    if (!res.ok || result.ok !== true) {
+      const error = result?.error || `status_${res.status}`;
+      log("error", "Slack token validation failed", { requestId, error });
+      return false;
     }
-    
-    log("info", "Slack token validated", { 
-      requestId, 
-      botId: result.bot_id, 
+
+    log("info", "Slack token validated", {
+      requestId,
+      botId: result.bot_id,
       userId: result.user_id,
       team: result.team
     });
-    
-    return result;
+
+    return true;
   } catch (error: any) {
-    log("error", "Slack token validation error", { requestId, error: error.message });
-    throw error;
+    log("error", "Slack token validation error", { requestId, error: error?.message || String(error) });
+    return false;
   }
 }
 
@@ -457,10 +465,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         respondOk();
         void (async () => {
           try {
-            // Validate Slack token first
-            await validateSlackToken(requestId);
-            
             const { ticketId, draftId, draftText } = JSON.parse(action.value);
+            const tokenValidationPromise = validateSlackToken(requestId);
             log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
             
             const { view, trimmedDraft, metadataLength } = buildEditModalView({
@@ -517,6 +523,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
               ok: result?.ok,
               responseKeys: Object.keys(result || {})
             });
+
+            await tokenValidationPromise;
           } catch (error: any) {
             const errMsg = error?.message || String(error);
             log("error", "Slack edit modal open failed", { requestId, userId, error: errMsg });
