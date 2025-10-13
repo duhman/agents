@@ -207,6 +207,14 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
       const message = isAbort ? "timeout" : e?.message || String(e);
       const canRetry =
         isAbort || /fetch failed|ECONNRESET|ENOTFOUND|EAI_AGAIN|TLS|ETIMEDOUT/i.test(message);
+      log(canRetry && attempt < maxAttempts ? "warn" : "error", "Slack API request failed", {
+        method,
+        attempt,
+        requestId,
+        error: message,
+        abort: isAbort,
+        willRetry: canRetry && attempt < maxAttempts
+      });
       if (canRetry && attempt < maxAttempts) {
         await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
         continue;
