@@ -12,6 +12,11 @@ const log = (level: LogLevel, message: string, data: Record<string, unknown> = {
   else console.log(payload);
 };
 
+const TOKEN_VALIDATION_TTL_MS = 5 * 60 * 1000;
+let lastSuccessfulTokenValidation = 0;
+let lastTokenValidationResult: boolean | null = null;
+let tokenValidationInFlight: Promise<boolean> | null = null;
+
 function parseSlackPayload(req: VercelRequest): any | null {
   try {
     if (typeof req.body === "string") {
@@ -71,37 +76,65 @@ async function validateSlackToken(requestId?: string): Promise<boolean> {
     return false;
   }
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+  const now = Date.now();
 
-    const res = await fetch("https://slack.com/api/auth.test", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout));
-
-    const result = await res.json();
-    if (!res.ok || result.ok !== true) {
-      const error = result?.error || `status_${res.status}`;
-      log("error", "Slack token validation failed", { requestId, error });
-      return false;
-    }
-
-    log("info", "Slack token validated", {
-      requestId,
-      botId: result.bot_id,
-      userId: result.user_id,
-      team: result.team
-    });
-
+  if (lastTokenValidationResult === true && now - lastSuccessfulTokenValidation < TOKEN_VALIDATION_TTL_MS) {
+    log("info", "Slack token validation skipped (cached success)", { requestId });
     return true;
-  } catch (error: any) {
-    log("error", "Slack token validation error", { requestId, error: error?.message || String(error) });
-    return false;
+  }
+
+  if (tokenValidationInFlight) {
+    log("info", "Slack token validation reusing in-flight check", { requestId });
+    return tokenValidationInFlight;
+  }
+
+  try {
+    tokenValidationInFlight = (async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const res = await fetch("https://slack.com/api/auth.test", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        const result = await res.json();
+        if (!res.ok || result.ok !== true) {
+          const error = result?.error || `status_${res.status}`;
+          log("error", "Slack token validation failed", { requestId, error });
+          lastTokenValidationResult = false;
+          return false;
+        }
+
+        log("info", "Slack token validated", {
+          requestId,
+          botId: result.bot_id,
+          userId: result.user_id,
+          team: result.team
+        });
+
+        lastSuccessfulTokenValidation = Date.now();
+        lastTokenValidationResult = true;
+        return true;
+      } catch (error: any) {
+        log("error", "Slack token validation error", { requestId, error: error?.message || String(error) });
+        lastTokenValidationResult = false;
+        return false;
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+
+    return await tokenValidationInFlight;
+  } finally {
+    tokenValidationInFlight = null;
   }
 }
 
