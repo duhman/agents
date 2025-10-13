@@ -1,135 +1,105 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-// @ts-expect-error - compiled output does not ship type definitions
-import { db } from "../packages/db/dist/index.js";
-// @ts-expect-error - compiled output does not ship type definitions
-import { tickets } from "../packages/db/dist/index.js";
+import { getSlackRetryQueueStatus, processSlackRetryQueue } from "../apps/slack-bot/dist/index.js";
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
-const parseErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
-
-interface ServiceStatus {
-  status: "healthy" | "unhealthy";
-  latency_ms?: number;
+async function checkSlackAPIHealth(): Promise<{
+  reachable: boolean;
+  responseTime: number;
   error?: string;
-}
-
-interface HealthResponse {
-  status: "healthy" | "degraded" | "unhealthy";
-  timestamp: string;
-  duration_ms: number;
-  version: string;
-  environment: string;
-  services: {
-    database: ServiceStatus;
-    openai: ServiceStatus;
-    slack?: ServiceStatus;
-  };
-}
-
-async function checkDatabase(): Promise<ServiceStatus> {
-  const start = Date.now();
+  statusCode?: number;
+  timestamp: number;
+}> {
+  const startTime = Date.now();
+  
   try {
-    // Simple query to verify database connectivity
-    await db.select().from(tickets).limit(1);
+    const token = process.env.SLACK_BOT_TOKEN;
+    if (!token) {
+      return {
+        reachable: false,
+        responseTime: Date.now() - startTime,
+        error: "SLACK_BOT_TOKEN not configured",
+        timestamp: Date.now()
+      };
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const res = await fetch("https://slack.com/api/auth.test", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
+    const responseTime = Date.now() - startTime;
+    const result = await res.json();
+    
     return {
-      status: "healthy",
-      latency_ms: Date.now() - start
+      reachable: result.ok === true,
+      responseTime,
+      statusCode: res.status,
+      timestamp: Date.now(),
+      error: result.ok ? undefined : result.error
     };
-  } catch (error) {
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
     return {
-      status: "unhealthy",
-      latency_ms: Date.now() - start,
-      error: parseErrorMessage(error)
+      reachable: false,
+      responseTime,
+      timestamp: Date.now(),
+      error: error?.message || String(error)
     };
   }
 }
 
-async function checkOpenAI(): Promise<ServiceStatus> {
-  // Check if OpenAI API key is configured
-  if (!process.env.OPENAI_API_KEY) {
-    return {
-      status: "unhealthy",
-      error: "OPENAI_API_KEY not configured"
-    };
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  if (req.method !== "GET") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
-  // Don't make actual API call to avoid quota usage
-  return {
-    status: "healthy"
-  };
-}
-
-async function checkSlack(): Promise<ServiceStatus> {
-  // Check if Slack is configured (optional service)
-  const hasSlackToken = !!process.env.SLACK_BOT_TOKEN;
-  const hasSlackSecret = !!process.env.SLACK_SIGNING_SECRET;
-  const hasSlackChannel = !!process.env.SLACK_REVIEW_CHANNEL;
-
-  if (!hasSlackToken || !hasSlackSecret || !hasSlackChannel) {
-    return {
-      status: "unhealthy",
-      error: "Slack credentials not fully configured (optional)"
-    };
-  }
-
-  return {
-    status: "healthy"
-  };
-}
-
-export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
-  const start = Date.now();
   try {
-    // Check all services in parallel
-    const [database, openai, slack] = await Promise.all([
-      checkDatabase(),
-      checkOpenAI(),
-      checkSlack()
+    const [slackHealth, retryQueueStatus] = await Promise.all([
+      checkSlackAPIHealth(),
+      Promise.resolve(getSlackRetryQueueStatus())
     ]);
 
-    const duration = Date.now() - start;
+    // Process retry queue if there are items
+    if (retryQueueStatus.count > 0) {
+      try {
+        await processSlackRetryQueue();
+      } catch (error) {
+        console.error("Error processing retry queue:", error);
+      }
+    }
 
-    const health: HealthResponse = {
+    const health = {
       status: "healthy",
       timestamp: new Date().toISOString(),
-      duration_ms: duration,
-      version: process.env.VERCEL_GIT_COMMIT_SHA || "local",
-      environment: process.env.NODE_ENV || "development",
       services: {
-        database,
-        openai,
-        slack
-      }
+        slack: {
+          reachable: slackHealth.reachable,
+          responseTime: slackHealth.responseTime,
+          statusCode: slackHealth.statusCode,
+          error: slackHealth.error,
+          lastChecked: new Date(slackHealth.timestamp).toISOString()
+        }
+      },
+      retryQueue: retryQueueStatus
     };
 
-    // Determine overall health status
-    const criticalServices = [database, openai];
-    const hasUnhealthyCritical = criticalServices.some(service => service.status === "unhealthy");
-
-    if (hasUnhealthyCritical) {
-      health.status = "unhealthy";
-      return res.status(503).json(health);
-    }
-
-    // Slack is optional, so only mark as degraded if it's unhealthy
-    if (slack.status === "unhealthy") {
-      health.status = "degraded";
-    }
-
-    return res.status(200).json(health);
-  } catch (error) {
-    const duration = Date.now() - start;
-    const message = parseErrorMessage(error);
-
-    return res.status(500).json({
+    res.status(200).json(health);
+  } catch (error: any) {
+    console.error("Health check error:", error);
+    res.status(500).json({
       status: "unhealthy",
       timestamp: new Date().toISOString(),
-      duration_ms: duration,
-      version: process.env.VERCEL_GIT_COMMIT_SHA || "local",
-      environment: process.env.NODE_ENV || "development",
-      error: message
+      error: error?.message || String(error)
     });
   }
 }

@@ -20,7 +20,32 @@ export interface PostReviewParams {
   channel: string;
 }
 
-async function testSlackConnectivity(token: string): Promise<boolean> {
+interface SlackHealthCheck {
+  reachable: boolean;
+  responseTime: number;
+  error?: string;
+  statusCode?: number;
+  timestamp: number;
+}
+
+interface SlackRetryItem {
+  ticketId: string;
+  draftId: string;
+  channel: string;
+  originalEmail: string;
+  originalEmailSubject?: string;
+  originalEmailBody?: string;
+  draftText: string;
+  confidence: number;
+  extraction: Record<string, any>;
+  retryCount: number;
+  nextRetryAt: number;
+  createdAt: number;
+}
+
+async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
+  const startTime = Date.now();
+  
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
@@ -35,10 +60,132 @@ async function testSlackConnectivity(token: string): Promise<boolean> {
     });
     
     clearTimeout(timeout);
+    const responseTime = Date.now() - startTime;
     const result = await res.json();
-    return result.ok === true;
-  } catch (error) {
-    return false;
+    
+    return {
+      reachable: result.ok === true,
+      responseTime,
+      statusCode: res.status,
+      timestamp: Date.now(),
+      error: result.ok ? undefined : result.error
+    };
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    return {
+      reachable: false,
+      responseTime,
+      timestamp: Date.now(),
+      error: error?.message || String(error)
+    };
+  }
+}
+
+// Simple in-memory retry queue (in production, use Redis or database)
+const slackRetryQueue: SlackRetryItem[] = [];
+
+async function queueSlackRetry(params: PostReviewParams): Promise<void> {
+  const retryItem: SlackRetryItem = {
+    ...params,
+    retryCount: 0,
+    nextRetryAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+    createdAt: Date.now()
+  };
+  
+  slackRetryQueue.push(retryItem);
+  
+  console.log(JSON.stringify({
+    level: "info",
+    message: "Queued Slack post for retry",
+    timestamp: new Date().toISOString(),
+    ticketId: params.ticketId,
+    draftId: params.draftId,
+    retryCount: retryItem.retryCount,
+    nextRetryAt: new Date(retryItem.nextRetryAt).toISOString()
+  }));
+}
+
+async function processRetryQueue(): Promise<void> {
+  const now = Date.now();
+  const itemsToRetry = slackRetryQueue.filter(item => 
+    item.nextRetryAt <= now && item.retryCount < 3
+  );
+  
+  for (const item of itemsToRetry) {
+    try {
+      console.log(JSON.stringify({
+        level: "info",
+        message: "Processing Slack retry queue item",
+        timestamp: new Date().toISOString(),
+        ticketId: item.ticketId,
+        draftId: item.draftId,
+        retryCount: item.retryCount
+      }));
+      
+      // Test connectivity before retry
+      const slackHealth = await testSlackConnectivity(process.env.SLACK_BOT_TOKEN || "");
+      if (!slackHealth.reachable) {
+        // Update retry time and continue
+        item.retryCount++;
+        item.nextRetryAt = Date.now() + (5 * 60 * 1000 * Math.pow(2, item.retryCount)); // Exponential backoff
+        continue;
+      }
+      
+      // Attempt to post to Slack
+      const result = await postReview(item);
+      if (result.ok) {
+        // Remove from queue on success
+        const index = slackRetryQueue.indexOf(item);
+        if (index > -1) {
+          slackRetryQueue.splice(index, 1);
+        }
+        
+        console.log(JSON.stringify({
+          level: "info",
+          message: "Slack retry successful - removed from queue",
+          timestamp: new Date().toISOString(),
+          ticketId: item.ticketId,
+          draftId: item.draftId,
+          retryCount: item.retryCount
+        }));
+      } else {
+        // Increment retry count
+        item.retryCount++;
+        item.nextRetryAt = Date.now() + (5 * 60 * 1000 * Math.pow(2, item.retryCount));
+      }
+    } catch (error: any) {
+      console.error(JSON.stringify({
+        level: "error",
+        message: "Slack retry failed",
+        timestamp: new Date().toISOString(),
+        ticketId: item.ticketId,
+        draftId: item.draftId,
+        retryCount: item.retryCount,
+        error: error?.message || String(error)
+      }));
+      
+      item.retryCount++;
+      item.nextRetryAt = Date.now() + (5 * 60 * 1000 * Math.pow(2, item.retryCount));
+    }
+  }
+  
+  // Remove items that have exceeded max retries
+  const maxRetries = 3;
+  const itemsToRemove = slackRetryQueue.filter(item => item.retryCount >= maxRetries);
+  for (const item of itemsToRemove) {
+    const index = slackRetryQueue.indexOf(item);
+    if (index > -1) {
+      slackRetryQueue.splice(index, 1);
+    }
+    
+    console.error(JSON.stringify({
+      level: "error",
+      message: "Slack retry exhausted - removed from queue",
+      timestamp: new Date().toISOString(),
+      ticketId: item.ticketId,
+      draftId: item.draftId,
+      finalRetryCount: item.retryCount
+    }));
   }
 }
 
@@ -71,17 +218,34 @@ export async function postReview(params: PostReviewParams) {
     throw new Error("SLACK_BOT_TOKEN is required");
   }
 
-  // Test Slack connectivity first
-  const isSlackReachable = await testSlackConnectivity(env.SLACK_BOT_TOKEN);
-  if (!isSlackReachable) {
+  // Test Slack connectivity first with detailed health check
+  const slackHealth = await testSlackConnectivity(env.SLACK_BOT_TOKEN);
+  
+  console.log(JSON.stringify({
+    level: "info",
+    message: "Slack API health check",
+    timestamp: new Date().toISOString(),
+    ticketId,
+    draftId,
+    reachable: slackHealth.reachable,
+    responseTime: slackHealth.responseTime,
+    statusCode: slackHealth.statusCode,
+    error: slackHealth.error
+  }));
+  
+  if (!slackHealth.reachable) {
     console.error(JSON.stringify({
       level: "error",
-      message: "Slack API is not reachable - skipping postReview",
+      message: "Slack API is not reachable - queuing for retry",
       timestamp: new Date().toISOString(),
       ticketId,
-      draftId
+      draftId,
+      healthCheck: slackHealth
     }));
-    return { ok: true, error: "slack_unreachable", ts: Date.now().toString() };
+    
+    // Queue for retry instead of failing immediately
+    await queueSlackRetry(params);
+    return { ok: true, error: "slack_unreachable_queued", ts: Date.now().toString() };
   }
 
   const maxAttempts = 2; // Reduced attempts to avoid long delays
@@ -276,5 +440,23 @@ export async function postReview(params: PostReviewParams) {
   }));
   
   return { ok: true, error: "slack_timeout", ts: Date.now().toString() };
+}
+
+// Export function to process retry queue (call this periodically)
+export async function processSlackRetryQueue(): Promise<void> {
+  await processRetryQueue();
+}
+
+// Export function to get retry queue status
+export function getSlackRetryQueueStatus(): { count: number; items: Array<{ ticketId: string; draftId: string; retryCount: number; nextRetryAt: number }> } {
+  return {
+    count: slackRetryQueue.length,
+    items: slackRetryQueue.map(item => ({
+      ticketId: item.ticketId,
+      draftId: item.draftId,
+      retryCount: item.retryCount,
+      nextRetryAt: item.nextRetryAt
+    }))
+  };
 }
 
