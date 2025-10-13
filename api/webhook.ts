@@ -1,6 +1,7 @@
 // JS version of webhook to avoid TS types and monorepo type resolution in Vercel
 import { randomUUID } from "crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { waitUntil } from "@vercel/functions";
 // @ts-expect-error - compiled output does not ship type definitions
 import { processEmail } from "../apps/agent/dist/index.js";
 // @ts-expect-error - compiled output does not ship type definitions
@@ -178,7 +179,7 @@ export default async function handler(
           channel: slackChannel
         };
 
-        postReview(slackPayload).catch((error: unknown) => {
+        const slackTask = postReview(slackPayload).catch((error: unknown) => {
           log("error", "Slack posting failed", {
             error: parseErrorMessage(error),
             requestId,
@@ -187,6 +188,13 @@ export default async function handler(
             draftId: result.draft?.id
           });
         });
+
+        if (typeof waitUntil === "function") {
+          waitUntil(slackTask);
+        } else {
+          // Non-Vercel environments: still fire-and-forget without blocking response
+          void slackTask;
+        }
       } else {
         log("warn", "SLACK_REVIEW_CHANNEL not configured", { requestId });
       }
