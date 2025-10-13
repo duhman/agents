@@ -513,86 +513,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
 
       if (actionId === "edit") {
-        respondOk();
-        void (async () => {
-          try {
-            const { ticketId, draftId, draftText } = JSON.parse(action.value);
-            const tokenValidationPromise = validateSlackToken(requestId);
-            log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
-            
-            const { view, trimmedDraft, metadataLength } = buildEditModalView({
+        try {
+          const { ticketId, draftId, draftText } = JSON.parse(action.value);
+          const tokenValidationPromise = validateSlackToken(requestId);
+          log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+
+          const { view, trimmedDraft, metadataLength } = buildEditModalView({
+            ticketId,
+            draftId,
+            channelId,
+            messageTs,
+            draftText
+          });
+
+          if (trimmedDraft) {
+            log("warn", "Draft text trimmed for modal", { requestId, ticketId, draftId, userId });
+          }
+          if (metadataLength > 2000) {
+            log("warn", "Modal private metadata approaching Slack size limit", {
+              requestId,
               ticketId,
               draftId,
-              channelId,
-              messageTs,
-              draftText
+              metadataLength
             });
+          }
 
-            if (trimmedDraft) {
-              log("warn", "Draft text trimmed for modal", { requestId, ticketId, draftId, userId });
-            }
-            if (metadataLength > 2000) {
-              log("warn", "Modal private metadata approaching Slack size limit", {
-                requestId,
-                ticketId,
-                draftId,
-                metadataLength
-              });
-            }
+          if (!triggerId) {
+            throw new Error("Missing trigger_id in block_actions payload");
+          }
 
-            // Validate trigger_id before using it
-            if (!triggerId) {
-              throw new Error("Missing trigger_id in block_actions payload");
-            }
-            
-            log("info", "Attempting views.open", { 
-              requestId, 
-              ticketId, 
-              draftId, 
-              userId, 
-              triggerId: triggerId.substring(0, 20) + "...",
-              hasView: !!view,
-              viewType: view?.type
-            });
+          log("info", "Attempting views.open", {
+            requestId,
+            ticketId,
+            draftId,
+            userId,
+            triggerId: triggerId.substring(0, 20) + "...",
+            hasView: !!view,
+            viewType: view?.type
+          });
 
-            // Use views.open with trigger_id
-            const result = await slackApi(
-              "views.open",
+          const result = await slackApi(
+            "views.open",
+            {
+              trigger_id: triggerId,
+              view
+            },
+            requestId
+          );
+
+          log("info", "Slack edit modal opened successfully", {
+            ticketId,
+            draftId,
+            userId,
+            requestId,
+            viewId: result?.view?.id,
+            ok: result?.ok,
+            responseKeys: Object.keys(result || {})
+          });
+
+          await tokenValidationPromise;
+          respondOk();
+        } catch (error: any) {
+          const errMsg = error?.message || String(error);
+          log("error", "Slack edit modal open failed", { requestId, userId, error: errMsg });
+
+          respond({ ok: false, error: "modal_open_failed" }, 200);
+
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.postMessage",
               {
-                trigger_id: triggerId,
-                view
+                channel: channelId,
+                text: `Kunne ikke åpne redigeringsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
+                thread_ts: messageTs
               },
               requestId
-            );
-            
-            log("info", "Slack edit modal opened successfully", { 
-              ticketId, 
-              draftId, 
-              userId, 
-              requestId,
-              viewId: result?.view?.id,
-              ok: result?.ok,
-              responseKeys: Object.keys(result || {})
-            });
-
-            await tokenValidationPromise;
-          } catch (error: any) {
-            const errMsg = error?.message || String(error);
-            log("error", "Slack edit modal open failed", { requestId, userId, error: errMsg });
-            
-            if (channelId && messageTs) {
-              await slackApi(
-                "chat.postMessage",
-                {
-                  channel: channelId,
-                  text: `Kunne ikke åpne redigeringsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
-                  thread_ts: messageTs
-                },
-                requestId
-              ).catch(() => {});
-            }
+            ).catch(() => {});
           }
-        })();
+        }
         return;
       }
 
