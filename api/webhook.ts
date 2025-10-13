@@ -150,6 +150,14 @@ export default async function handler(
     if (result.draft && result.ticket) {
       const slackChannel = process.env.SLACK_REVIEW_CHANNEL;
       if (slackChannel) {
+        log("info", "Attempting to post draft to Slack", {
+          requestId,
+          channel: slackChannel,
+          ticketId: result.ticket.id,
+          draftId: result.draft.id,
+          confidence: result.confidence
+        });
+        
         // Fire and forget - don't await Slack posting to stay under 5s
         const extraction =
           typeof result.extraction === "object" && result.extraction !== null
@@ -182,6 +190,13 @@ export default async function handler(
       } else {
         log("warn", "SLACK_REVIEW_CHANNEL not configured", { requestId });
       }
+    } else {
+      log("warn", "No draft or ticket created, skipping Slack posting", {
+        requestId,
+        hasDraft: !!result.draft,
+        hasTicket: !!result.ticket,
+        success: result.success
+      });
     }
 
     const duration = Date.now() - startTime;

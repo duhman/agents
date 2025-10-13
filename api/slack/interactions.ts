@@ -414,51 +414,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
 
       if (actionId === "edit") {
-        try {
-          const { ticketId, draftId, draftText } = JSON.parse(action.value);
-          log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
-          const { view, trimmedDraft, metadataLength } = buildEditModalView({
-            ticketId,
-            draftId,
-            channelId,
-            messageTs,
-            draftText
-          });
-
-          if (trimmedDraft) {
-            log("warn", "Draft text trimmed for modal", { requestId, ticketId, draftId, userId });
-          }
-          if (metadataLength > 2000) {
-            log("warn", "Modal private metadata approaching Slack size limit", {
-              requestId,
+        respondOk();
+        void (async () => {
+          try {
+            const { ticketId, draftId, draftText } = JSON.parse(action.value);
+            log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+            
+            const { view, trimmedDraft, metadataLength } = buildEditModalView({
               ticketId,
               draftId,
-              metadataLength
+              channelId,
+              messageTs,
+              draftText
             });
-          }
 
-          respond({ response_action: "push", view });
-          log("info", "Slack edit modal pushed", { ticketId, draftId, userId, requestId });
-        } catch (error: any) {
-          const errMsg = error?.message || String(error);
-          log("error", "Slack edit modal build failed", { requestId, userId, error: errMsg });
-          respond({
-            response_type: "ephemeral",
-            replace_original: false,
-            text: "Kunne ikke åpne redigeringsvinduet – prøv igjen om noen sekunder."
-          });
-          if (channelId && messageTs) {
+            if (trimmedDraft) {
+              log("warn", "Draft text trimmed for modal", { requestId, ticketId, draftId, userId });
+            }
+            if (metadataLength > 2000) {
+              log("warn", "Modal private metadata approaching Slack size limit", {
+                requestId,
+                ticketId,
+                draftId,
+                metadataLength
+              });
+            }
+
+            // Use views.open with trigger_id
             await slackApi(
-              "chat.postMessage",
+              "views.open",
               {
-                channel: channelId,
-                text: `Kunne ikke åpne redigeringsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
-                thread_ts: messageTs
+                trigger_id: triggerId,
+                view
               },
               requestId
-            ).catch(() => {});
+            );
+            
+            log("info", "Slack edit modal opened", { ticketId, draftId, userId, requestId });
+          } catch (error: any) {
+            const errMsg = error?.message || String(error);
+            log("error", "Slack edit modal open failed", { requestId, userId, error: errMsg });
+            
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.postMessage",
+                {
+                  channel: channelId,
+                  text: `Kunne ikke åpne redigeringsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
+                  thread_ts: messageTs
+                },
+                requestId
+              ).catch(() => {});
+            }
           }
-        }
+        })();
         return;
       }
 

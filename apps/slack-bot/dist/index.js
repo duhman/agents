@@ -7,6 +7,16 @@ function getEnv() {
 }
 export async function postReview(params) {
     const { ticketId, draftId, originalEmail, originalEmailSubject, originalEmailBody, draftText, confidence, extraction, channel } = params;
+    console.log(JSON.stringify({
+        level: "info",
+        message: "postReview called",
+        timestamp: new Date().toISOString(),
+        ticketId,
+        draftId,
+        channel,
+        confidence,
+        draftTextLength: draftText?.length || 0
+    }));
     const env = getEnv();
     if (!env.SLACK_BOT_TOKEN) {
         throw new Error("SLACK_BOT_TOKEN is required");
@@ -116,6 +126,15 @@ export async function postReview(params) {
         if (!response.ok) {
             throw new Error(`Slack API error: ${response.error}`);
         }
+        console.log(JSON.stringify({
+            level: "info",
+            message: "Slack postReview successful",
+            timestamp: new Date().toISOString(),
+            ticketId,
+            draftId,
+            channel,
+            messageTs: response.ts
+        }));
         return response;
     }
     catch (e) {

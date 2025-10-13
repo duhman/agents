@@ -39,7 +39,8 @@ Responses pass a PII sanitizer that rejects payloads with unmasked emails/phones
 ## Slack Modal Requirements (2025-10-10)
 - Ack every interaction within 3 seconds (`response_action` or 200 JSON) — [Slack docs](https://docs.slack.dev/interactivity/handling-user-interaction)
 - `trigger_id` & modal interactivity pointers expire 3 seconds after Slack issues them — [Modals guide](https://docs.slack.dev/surfaces/modals)
-- Prefer pushing modal views via HTTP response (`response_action: "push"`) to avoid `views.open` retries/timeouts in serverless runtimes
+- For `view_submission` events: use HTTP response (`response_action: "push"`) to avoid `views.open` retries/timeouts in serverless runtimes
+- For `block_actions` events: use `views.open` API with `trigger_id` (response_action is not supported)
 - Trim or reject payloads beyond Slack’s 3k plain-text input limit before responding; log when fallback truncation occurs
 
 ## UI
