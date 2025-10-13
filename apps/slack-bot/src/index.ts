@@ -50,6 +50,9 @@ export async function postReview(params: PostReviewParams) {
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const result = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
@@ -148,8 +151,11 @@ export async function postReview(params: PostReviewParams) {
           ]
         }
         ]
-      })
+      }),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeout);
 
     if (!result.ok) {
       const errorText = await result.text();
