@@ -163,6 +163,15 @@ if (!subject && !bodyText) {
 const rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
 ```
 
+### 6. Rejection Feedback Modal (2025 Update)
+
+To capture training data for rejected drafts, the Slack interaction now launches a modal when reviewers click **Reject**:
+
+- The modal requires a short rationale (max 2000 characters).
+- The response is stored in `human_reviews.final_text` with `decision = "reject"`.
+- The original Slack message is updated to remove buttons and display the rejection banner plus the provided reason.
+- Errors posting the update fall back to thread messages so reviewers know the status.
+
 ## Key Improvements
 
 ### Reliability

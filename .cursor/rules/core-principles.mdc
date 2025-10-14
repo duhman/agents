@@ -39,10 +39,11 @@ This project automates customer email responses using **hybrid deterministic/AI 
 
 ## 5. Data Flow
 
-- tickets → drafts → human_reviews
-- Store provenance and decisions
-- Export approved pairs for fine-tuning
-- Minimum 500 examples before fine-tuning
+- tickets → drafts → human_reviews (one row per reviewer action)
+- Store provenance, decision (`approve`/`edit`/`reject`), and reviewer-provided text (final reply or rejection rationale)
+- Humans still send customer replies manually today—automation can hook into the stored decisions later
+- Export approved (and optionally edited) examples for fine-tuning when volume ≥500
+- Slack is the only reviewer surface; the experimental operator UI has been retired
 
 ## 6. Code Quality
 

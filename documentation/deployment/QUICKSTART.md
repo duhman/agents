@@ -138,6 +138,7 @@ tsx ops/scripts/finetune.ts
 - Slack requires response <3s
 - Use async jobs for long-running tasks
 - Check ngrok tunnel is active
+- No additional operator UI is deployed—reviewers interact entirely through Slack
 
 ## Project Structure
 
@@ -145,7 +146,7 @@ tsx ops/scripts/finetune.ts
 /apps
   /agent       - OpenAI classify+draft worker
   /slack-bot   - HITM review interface
-  /mailer      - Send approved replies
+  /mailer      - Optional HubSpot/SMTP sender (not wired into HITM yet)
   /ingestor    - Webhook handlers
 /packages
   /core        - PII masking, env validation
@@ -165,4 +166,3 @@ tsx ops/scripts/finetune.ts
 - **Deployment:** `DEPLOYMENT.md`
 - **Cursor Setup:** `CURSOR_SETUP.md`
 - **Policies:** `docs/policies.md`
-

@@ -103,13 +103,17 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
   - Draft reply.
   - Confidence score.
   - Buttons: **Approve**, **Reject**, **Edit**.
-- Approve → auto-send via email API.
-- Reject/Edit → send human version to customer + log both versions.
+- Approve → store decision and draft text in `human_reviews`.
+- Edit → open modal, capture final reply text, store in `human_reviews`.
+- Reject → open modal, capture rejection rationale, store in `human_reviews`.
+- Human agents remain responsible for sending any customer-facing replies (automation deferred).
+- There is no separate operator dashboard; Slack is the sole HITM surface.
 
 ### Feedback Loop
 
 - Store each case with fields:
   - Ticket ID, Customer Email, Draft Reply, Human Final Reply, Decision.
+- For rejections, capture reviewer rationale text (stored as `finalText`) via Slack modal.
 - Mark as positive (approve) or negative (reject/edit).
 - Export dataset regularly for fine-tuning.
 
@@ -129,8 +133,8 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
 1. **Email Inbound** →
 2. **OpenAI Agents SDK Orchestration (emailProcessingAgent → triageAgent → cancellationAgent)** →
 3. **Slack HITM review** →
-   - Approve → Customer (via HubSpot/Email API).
-   - Reject/Edit → Human sends; feedback stored.
+   - Approve/Edit/Reject → Store reviewer decision + final text/rationale.
+   - Human sends follow-up manually today (mailer integration optional).
 4. **Feedback Store** →
 5. **Fine-Tuning Loop (OpenAI API)** →
 6. **Updated LLM Agent**

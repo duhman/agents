@@ -22,7 +22,7 @@ pnpm exec tsx test-simplified.ts  # Test the system
 This system uses a **deterministic, template-based approach** for maximum reliability and speed:
 
 ```
-Email → Extract (regex) → Generate Draft (templates) → Database → Slack HITM → Send
+Email → Extract (regex) → Generate Draft (templates) → Database → Slack HITM → Human follow-up
 ```
 
 **Key Features:**
@@ -45,7 +45,7 @@ This project demonstrates production-ready implementation of:
 - ✅ **Standardized Webhooks**: Consistent subject/body input format
 - 🚀 **Fast Performance**: <500ms deterministic, <3s with OpenAI fallback
 - 🎯 **Health Checks**: Comprehensive monitoring with Slack connectivity tests
-- 🤝 **Reliable Slack HITM**: Enhanced retry logic and background task handling
+- 🤝 **Reliable Slack HITM**: Enhanced retry logic and background task handling (Slack is the only reviewer surface; the experimental operator UI has been removed)
 - 📋 **Database Persistence**: Tickets, drafts, and human reviews tracked
 - 🌐 **Multi-Language Support**: Norwegian, English, and Swedish templates
 - 🔄 **Retry Queues**: Automatic retry for failed Slack posts with exponential backoff

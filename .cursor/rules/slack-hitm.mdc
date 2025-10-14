@@ -127,6 +127,8 @@ Store context in button values as JSON:
 }
 ```
 
+⚠️ **Size guard:** Slack button `value` fields are limited to 2 KB. If drafts can exceed ~1900 characters, trim before serializing or rely on server-side lookups (e.g., by ID) to avoid silent failures.
+
 ### Modals for Edits
 
 Use modals for complex edits with `private_metadata`:
@@ -143,11 +145,33 @@ await client.views.open({
 });
 ```
 
+### Modal Timing Rules
+
 🚨 **When opening from a message button:**
 
-- Call `views.open` synchronously and only acknowledge *after* the API responds so the trigger stays valid.
-- Do **not** `ack()` or `respond({ ok: true })` before awaiting `views.open`; Slack will silently drop the modal if the request finishes early.
-- Still keep total runtime < 3 s – the API call should complete fast enough when done immediately.
+- Call `views.open` synchronously within the 3 s window. Keep any other work async (wrap in `void` self-executing functions).
+- Only send the HTTP acknowledgement *after* `views.open` resolves. Responding first invalidates the trigger and the modal never appears.
+- Always guard for missing `trigger_id`; fail fast and send a friendly thread message if modal launch fails.
+
+### Reject Feedback Modal (2025)
+
+When a reviewer clicks **Reject**, open a modal that captures a short rationale:
+
+```typescript
+const { view } = buildRejectModalView({
+  ticketId,
+  draftId,
+  channelId,
+  messageTs
+});
+
+await slackApi("views.open", { trigger_id: triggerId, view }, requestId);
+```
+
+- Require input (`response_action: "errors"`) if the field is empty.
+- Trim input to 2000 characters to stay within Slack limits.
+- Escape mrkdwn when echoing the reason.
+- Update the original message to remove action buttons and show the rejection banner + quoted reason.
 
 ## Human Review Storage
 
@@ -158,10 +182,14 @@ await createHumanReview({
   ticketId,
   draftId,
   decision: "approve" | "edit" | "reject",
-  finalText: draftText,
+  finalText: draftTextOrReason,
   reviewerSlackId: userId
 });
 ```
+
+- **Approve**: store the generated draft as `finalText`.
+- **Edit**: store the reviewer-provided reply from the modal.
+- **Reject**: store the rejection rationale (used later for training & QA).
 
 ## Message Formatting
 
@@ -195,4 +223,5 @@ try {
 
 - @apps/slack-bot/src/index.ts - HITM implementation
 - @packages/db/src/repositories.ts - Human review storage
+- @api/slack/interactions.ts - Modal + response handling
 - @documentation/project/policies.md - Review policies

@@ -6,18 +6,21 @@ This directory contains project-specific rules for Cursor AI in modern `.mdc` fo
 
 ### Root Rules (`.cursor/rules/`)
 
-| Rule File                   | Type          | Description                                          | Applies To                                                  |
-| --------------------------- | ------------- | ---------------------------------------------------- | ----------------------------------------------------------- |
-| `core-principles.mdc`       | Always        | Core principles (Privacy, Compliance, Schema-Driven) | All files                                                   |
-| `openai-patterns.mdc`       | Auto-Attached | OpenAI v5 API best practices with retry logic        | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`            |
-| `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns with date handling              | `packages/db/**/*.ts`                                       |
-| `observability-logging.mdc` | Auto-Attached | Structured logging and observability patterns        | `apps/**/*.ts`, `packages/core/**/*.ts`                     |
-| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow with enhanced reliability        | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`               |
-| `webhook-patterns.mdc`      | Auto-Attached | Webhook handling with multi-format support           | `api/webhook.ts`, `api/**/*.ts`                             |
-| `vercel-deployment.mdc`     | Auto-Attached | Vercel deployment patterns                           | `apps/ingestor/**/*.ts`, `vercel.json`                      |
-| `monorepo-workspace.mdc`    | Auto-Attached | Monorepo structure                                   | `package.json`, `pnpm-workspace.yaml`, `turbo.json`         |
-| `testing-evaluation.mdc`    | Auto-Attached | Testing and evaluation                               | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`        |
-| `vector-store.mdc`          | Auto-Attached | OpenAI Vector Store RAG usage for agents             | `packages/agents-runtime/src/**/*.ts`, `apps/agent/**/*.ts` |
+| Rule File                   | Type          | Description                                                        | Applies To                                                          |
+| --------------------------- | ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `core-principles.mdc`       | Always        | Privacy, policy, hybrid strategy, and human-review data flow       | All files                                                           |
+| `agents-sdk.mdc`            | Auto-Attached | OpenAI Agents SDK usage, tool wiring, and safety rails             | `packages/agents-runtime/**/*.ts`, `apps/agent/**/*.ts`             |
+| `openai-patterns.mdc`       | Auto-Attached | OpenAI HTTP patterns, retries, and structured outputs              | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`                    |
+| `email-classification.mdc`  | Auto-Attached | Deterministic cancellation detection & language heuristics         | `apps/agent/src/**/*.ts`, `packages/prompts/**/*.ts`                |
+| `hybrid-architecture.mdc`   | Auto-Attached | Deterministic-first pipeline with AI fallback & metrics            | `apps/agent/src/**/*.ts`, `apps/agent/src/metrics.ts`               |
+| `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns, timestamps, and retry helpers                | `packages/db/**/*.ts`                                               |
+| `observability-logging.mdc` | Auto-Attached | Structured logging, request IDs, and error handling                | `api/**/*.ts`, `apps/**/*.ts`, `packages/core/**/*.ts`              |
+| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow (modals, rejection reasons, retries)           | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`                       |
+| `webhook-patterns.mdc`      | Auto-Attached | Webhook validation, background tasks, and Slack dispatch           | `api/webhook.ts`, `api/**/*.ts`                                     |
+| `vercel-deployment.mdc`     | Auto-Attached | Vercel configuration, regions, cron and waitUntil                  | `vercel.json`, `api/**/*.ts`, `apps/ingestor/**/*.ts`               |
+| `monorepo-workspace.mdc`    | Auto-Attached | pnpm/turbo workspace standards and dependency boundaries           | `package.json`, `pnpm-workspace.yaml`, `turbo.json`                 |
+| `testing-evaluation.mdc`    | Auto-Attached | Unit tests, node:test usage, evaluation scripts, and fixtures      | `ops/scripts/**/*.ts`, `apps/agent/src/tests/**/*.ts`               |
+| `vector-store.mdc`          | Auto-Attached | OpenAI Vector Store tools, context contracts, and embeddings usage | `packages/agents-runtime/src/**/*.ts`, `apps/agent/**/*.ts`         |
 
 ### Nested Rules
 

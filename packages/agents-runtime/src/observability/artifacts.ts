@@ -1,5 +1,3 @@
-import { getFlags } from "@agents/core";
-
 export type ArtifactType =
   | "extraction_result"
   | "drafting_progress"
@@ -17,8 +15,7 @@ export type ArtifactEvent = {
 };
 
 export async function emitArtifact(evt: ArtifactEvent): Promise<void> {
-  try {
-    const { UI_EXPERIMENTAL_OPERATOR } = getFlags();
-    if (UI_EXPERIMENTAL_OPERATOR !== "true") return;
-  } catch {}
+  // Operator UI has been retired; we currently drop observability artifacts.
+  // Keeping the function (and evt param) avoids breaking runtime code paths.
+  void evt;
 }

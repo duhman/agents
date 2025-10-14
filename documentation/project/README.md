@@ -97,7 +97,7 @@ This directory contains core project documentation including requirements, techn
 
 ```
 Email → PII Mask → Agents SDK Orchestration → (if relocation) Vector Store Search → Draft → Slack HITM →
-Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
+Approve/Edit/Reject → Store Human Decision → Export → Fine-tune
 ```
 
 ### Success Metrics
@@ -123,10 +123,13 @@ Approve/Edit → Send Reply → Store Feedback → Export → Fine-tune
 
 1. Post draft to Slack with context (postToSlackTool)
 2. Show: original (masked), extraction, draft, confidence
-3. Agent reviews: Approve / Edit / Reject
-4. Store human decision (createHumanReview)
-5. Send final reply to customer
-6. Log for fine-tuning
+3. Agent reviews: Approve / Edit / Reject (with edit and reject handled via Slack modals)
+4. Store human decision (createHumanReview) including final reply text or rejection rationale
+5. Human agent sends the customer reply manually (automation TBD)
+6. Log decisions for fine-tuning / evaluation
+7. No separate operator UI is shipped—Slack remains the single source of truth for reviewer actions
+
+> **Reviewer experience note:** Clicking **Approve** writes the original draft text to the `human_reviews` table. **Edit** opens a modal where the reviewer enters the final response that will be saved. **Reject** now opens a mandatory feedback modal; the reason captured there is stored as the `finalText` so rejected drafts can be analyzed later.
 
 ### Fine-Tuning Loop
 

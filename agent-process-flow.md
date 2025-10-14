@@ -38,14 +38,14 @@ graph TD
     X -->|No| Z[Queue for Retry]
     Y --> AA{Slack Action}
     Z --> BB[Background Retry Process]
-    AA -->|Approve| CC[Send Email to Customer]
-    AA -->|Edit| DD[Human Edits & Sends]
-    AA -->|Reject| EE[Human Handles Manually]
+    AA -->|Approve| CC[Store approved draft (no auto-send)]
+    AA -->|Edit| DD[Modal collects final reply text]
+    AA -->|Reject| EE[Modal collects rejection reason]
     
-    CC --> FF[Log Human Review]
+    CC --> FF[Persist human review]
     DD --> FF
     EE --> FF
-    FF --> GG[Store Feedback for Training]
+    FF --> GG[Store feedback for training & manual follow-up]
     
     L --> HH[No Action - Email Ignored]
     
@@ -125,9 +125,9 @@ flowchart TD
     L --> N[Generate Norwegian/English Draft]
     N --> O[Post to Slack for Review]
     O --> P{Human Decision}
-    P -->|Approve| Q[Send to Customer]
-    P -->|Edit| R[Human Edits & Sends]
-    P -->|Reject| S[Human Handles]
+    P -->|Approve| Q[Mark approved draft]
+    P -->|Edit| R[Capture edited reply]
+    P -->|Reject| S[Capture rejection rationale]
     
     style D fill:#ffcdd2
     style E fill:#ffcdd2
@@ -218,31 +218,36 @@ erDiagram
 sequenceDiagram
     participant Agent
     participant Slack
-    participant Human
-    participant Customer
+    participant Reviewer
+    participant Database
     participant RetryQueue
     
     Agent->>Agent: Test Slack connectivity
-    alt Slack is reachable
+    alt Slack reachable
         Agent->>Slack: Post draft with buttons
-        Note over Slack: Shows original email + draft
-        Note over Slack: Approve | Edit | Reject buttons
+        Note over Slack: Shows original email + draft + actions
         
-        Human->>Slack: Click Approve
-        Slack->>Agent: Webhook notification
-        Agent->>Customer: Send approved draft
-        Agent->>Agent: Log human review
+        Reviewer->>Slack: Click Approve
+        Slack->>Agent: block_actions (approve)
+        Agent->>Database: createHumanReview(decision=approve, finalText=draft)
+        Agent->>Slack: Update message (approved banner)
         
-        Human->>Slack: Click Edit
-        Slack->>Agent: Webhook notification
-        Human->>Customer: Send edited version
-        Agent->>Agent: Log human review
+        Reviewer->>Slack: Click Edit
+        Slack->>Agent: block_actions (edit)
+        Agent->>Slack: Open edit modal
+        Reviewer->>Slack: Submit edited reply
+        Slack->>Agent: view_submission (edit)
+        Agent->>Database: createHumanReview(decision=edit, finalText=edited reply)
+        Agent->>Slack: Update message (edited banner)
         
-        Human->>Slack: Click Reject
-        Slack->>Agent: Webhook notification
-        Human->>Customer: Handle manually
-        Agent->>Agent: Log human review
-    else Slack is unreachable
+        Reviewer->>Slack: Click Reject
+        Slack->>Agent: block_actions (reject)
+        Agent->>Slack: Open reject modal
+        Reviewer->>Slack: Submit rejection reason
+        Slack->>Agent: view_submission (reject)
+        Agent->>Database: createHumanReview(decision=reject, finalText=rationale)
+        Agent->>Slack: Update message (rejection banner)
+    else Slack unreachable
         Agent->>RetryQueue: Queue for retry
         Note over RetryQueue: Exponential backoff
         RetryQueue->>Agent: Retry posting
@@ -305,4 +310,4 @@ graph TD
     style M fill:#c8e6c9
 ```
 
-This comprehensive flow shows how the Elaway email agent processes customer emails from initial receipt through final response, with multiple validation layers and human oversight to ensure accuracy and prevent misclassification.
+This comprehensive flow shows how the Elaway email agent processes customer emails from initial receipt through human review and hand-off, with multiple validation layers and human oversight to ensure accuracy and prevent misclassification.

@@ -221,13 +221,16 @@ All drafts are posted to `#cancellation-review` with:
 - Original email (subject and body displayed separately)
 - Generated draft with confidence score
 - Extraction details and language detection
-- Interactive actions: Approve / Edit / Reject
+- Interactive actions: Approve / Edit / Reject (reject + edit open modals)
 - **Enhanced reliability features:**
   - Slack connectivity health checks before posting
   - Automatic retry queue for failed posts
   - Exponential backoff retry logic
   - Background task handling with Vercel waitUntil
   - Comprehensive logging for debugging
+- **Reviewer feedback capture:**
+  - Edit modal saves final human-written reply text.
+  - Reject modal requires a rationale that is stored with the review and shown in the updated Slack message.
 
 ## Rollback Plan
 
@@ -307,4 +310,3 @@ If issues arise:
 - **Status**: ✅ Ready for Production Deployment
 - **Test Success Rate**: 100%
 - **Confidence**: High (research-backed, thoroughly tested)
-
