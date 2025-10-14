@@ -251,6 +251,11 @@ type RejectActionValue = {
   draftId: string;
 };
 
+const MAX_REJECTION_REASON_LENGTH = 2000;
+
+const escapeMrkdwn = (text: string): string =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export function buildEditModalView(params: EditModalViewParams): EditModalViewBuildResult {
   const { ticketId, draftId, channelId, messageTs } = params;
   const draftText = params.draftText ?? "";
@@ -290,6 +295,58 @@ export function buildEditModalView(params: EditModalViewParams): EditModalViewBu
       ]
     },
     trimmedDraft,
+    metadataLength: privateMetadata.length
+  };
+}
+
+interface RejectModalViewParams {
+  ticketId: string;
+  draftId: string;
+  channelId?: string;
+  messageTs?: string;
+}
+
+export function buildRejectModalView(params: RejectModalViewParams): { view: Record<string, unknown>; metadataLength: number } {
+  const { ticketId, draftId, channelId, messageTs } = params;
+  const metadataPayload: Record<string, string> = {
+    ticketId,
+    draftId
+  };
+  if (channelId) metadataPayload.channelId = channelId;
+  if (messageTs) metadataPayload.messageTs = messageTs;
+
+  const privateMetadata = JSON.stringify(metadataPayload);
+
+  return {
+    view: {
+      type: "modal",
+      callback_id: "reject_modal",
+      private_metadata: privateMetadata,
+      title: { type: "plain_text", text: "Reject Draft" },
+      submit: { type: "plain_text", text: "Submit" },
+      close: { type: "plain_text", text: "Cancel" },
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "Help us improve future replies by sharing why this draft should be rejected."
+          }
+        },
+        {
+          type: "input",
+          block_id: "rejection_reason_block",
+          element: {
+            type: "plain_text_input",
+            action_id: "rejection_reason",
+            multiline: true,
+            max_length: MAX_REJECTION_REASON_LENGTH,
+            focus_on_load: true
+          },
+          label: { type: "plain_text", text: "Rejection Reason" }
+        }
+      ]
+    },
     metadataLength: privateMetadata.length
   };
 }
@@ -454,61 +511,88 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
 
       if (actionId === "reject") {
-        respondOk();
-        void (async () => {
-          const parsed = safeParseAction(action, requestId, "reject");
-          if (!parsed) return;
-          const { ticketId, draftId } = parsed;
-          try {
-            log("info", "Slack reject handling started", { requestId, ticketId, draftId, userId });
-            await withDbRetry(
-              () =>
-                createHumanReview({
-                  ticketId,
-                  draftId,
-                  decision: "reject",
-                  finalText: "",
-                  reviewerSlackId: userId || "unknown"
-                }),
-              { requestId, actionId }
-            );
-            if (channelId && messageTs) {
-              await slackApi(
-                "chat.update",
-                {
-                  channel: channelId,
-                  ts: messageTs,
-                  text: "Draft rejected",
-                  blocks: [
-                    {
-                      type: "section",
-                      text: {
-                        type: "mrkdwn",
-                        text: `❌ *Rejected* by <@${userId}>\n\nNo automated reply will be sent.`
-                      }
-                    }
-                  ]
-                },
-                requestId
-              );
-            }
-            log("info", "Slack reject handled", { ticketId, draftId, userId, requestId });
-          } catch (error: any) {
-            const errMsg = error?.message || String(error);
-            log("error", "Slack reject failed", { requestId, ticketId, draftId, userId, error: errMsg });
-            if (channelId && messageTs) {
-              await slackApi(
-                "chat.postMessage",
-                {
-                  channel: channelId,
-                  text: `Kunne ikke lagre avslaget for <@${userId}> – prøv igjen om noen sekunder.`,
-                  thread_ts: messageTs
-                },
-                requestId
-              ).catch(() => {});
-            }
+        const parsed = safeParseAction(action, requestId, "reject");
+        if (!parsed) {
+          respondOk();
+          return;
+        }
+
+        const { ticketId, draftId } = parsed;
+        try {
+          const tokenValidationPromise = validateSlackToken(requestId);
+          log("info", "Slack reject modal opening", {
+            requestId,
+            ticketId,
+            draftId,
+            userId,
+            triggerId
+          });
+
+          const { view, metadataLength } = buildRejectModalView({
+            ticketId,
+            draftId,
+            channelId,
+            messageTs
+          });
+
+          if (metadataLength > 2000) {
+            log("warn", "Reject modal metadata approaching size limit", {
+              requestId,
+              ticketId,
+              draftId,
+              metadataLength
+            });
           }
-        })();
+
+          if (!triggerId) {
+            throw new Error("Missing trigger_id in block_actions payload");
+          }
+
+          const result = await slackApi(
+            "views.open",
+            {
+              trigger_id: triggerId,
+              view
+            },
+            requestId
+          );
+
+          log("info", "Slack reject modal opened successfully", {
+            ticketId,
+            draftId,
+            userId,
+            requestId,
+            viewId: result?.view?.id,
+            ok: result?.ok,
+            responseKeys: Object.keys(result || {})
+          });
+
+          await tokenValidationPromise;
+          respondOk();
+        } catch (error: any) {
+          const errMsg = error?.message || String(error);
+          log("error", "Slack reject modal open failed", {
+            requestId,
+            ticketId,
+            draftId,
+            userId,
+            error: errMsg
+          });
+
+          respond({ ok: false, error: "modal_open_failed" }, 200);
+
+          if (channelId && messageTs) {
+            await slackApi(
+              "chat.postMessage",
+              {
+                channel: channelId,
+                text: `Kunne ikke åpne avslagsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
+                thread_ts: messageTs
+              },
+              requestId
+            ).catch(() => {});
+          }
+        }
         return;
       }
 
@@ -667,6 +751,139 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
               channel: md.channelId,
               text: `Kunne ikke lagre redigeringen for <@${userId}> – prøv igjen om noen sekunder.`,
               thread_ts: md.messageTs
+            },
+            requestId
+          ).catch(() => {});
+        }
+      }
+      return;
+    }
+
+    if (type === "view_submission" && payload.view?.callback_id === "reject_modal") {
+      const requestId =
+        payload?.view?.id ||
+        payload?.trigger_id ||
+        String(Date.now());
+
+      let metadata: Record<string, string> = {};
+      try {
+        metadata = JSON.parse(payload.view.private_metadata || "{}");
+      } catch {
+        metadata = {};
+      }
+
+      const userId = payload.user?.id as string | undefined;
+
+      if (typeof metadata.ticketId !== "string" || typeof metadata.draftId !== "string") {
+        log("error", "Slack reject submission missing identifiers", {
+          requestId,
+          metadataKeys: Object.keys(metadata || {})
+        });
+        respond({
+          response_action: "errors",
+          errors: {
+            rejection_reason_block: "Kunne ikke finne utkastet. Lukk vinduet og prøv igjen."
+          }
+        });
+        return;
+      }
+
+      const rawReason =
+        payload.view?.state?.values?.rejection_reason_block?.rejection_reason?.value ?? "";
+      const reason = (rawReason || "").trim();
+
+      if (!reason) {
+        respond({
+          response_action: "errors",
+          errors: {
+            rejection_reason_block: "Please share a short reason so we can improve future drafts."
+          }
+        });
+        return;
+      }
+
+      const trimmedReason =
+        reason.length > MAX_REJECTION_REASON_LENGTH
+          ? reason.slice(0, MAX_REJECTION_REASON_LENGTH)
+          : reason;
+
+      respondOk();
+
+      log("info", "Slack reject submission dispatched", {
+        requestId,
+        ticketId: metadata.ticketId,
+        draftId: metadata.draftId,
+        userId,
+        reasonLength: trimmedReason.length
+      });
+
+      try {
+        await withDbRetry(
+          () =>
+            createHumanReview({
+              ticketId: metadata.ticketId,
+              draftId: metadata.draftId,
+              decision: "reject",
+              finalText: trimmedReason,
+              reviewerSlackId: userId || "unknown"
+            }),
+          { requestId, actionId: "reject" }
+        );
+
+        if (metadata.channelId && metadata.messageTs) {
+          const safeReason = escapeMrkdwn(trimmedReason);
+          const quotedReason = safeReason.replace(/\n/g, "\n>");
+          const fallbackReason = trimmedReason.replace(/\s+/g, " ").slice(0, 120);
+          await slackApi(
+            "chat.update",
+            {
+              channel: metadata.channelId,
+              ts: metadata.messageTs,
+              text: `Draft rejected: ${fallbackReason}`,
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `❌ *Rejected* by <@${userId}> – no automated reply will be sent.`
+                  }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `*Reason provided:*\n>${quotedReason}`
+                  }
+                }
+              ]
+            },
+            requestId
+          );
+        }
+
+        log("info", "Slack reject submission handled", {
+          ticketId: metadata.ticketId,
+          draftId: metadata.draftId,
+          userId,
+          requestId
+        });
+      } catch (error: any) {
+        const errMsg = error?.message || String(error);
+        log("error", "Slack reject submission failed", {
+          requestId,
+          ticketId: metadata.ticketId,
+          draftId: metadata.draftId,
+          userId,
+          error: errMsg
+        });
+
+        if (metadata.channelId && metadata.messageTs) {
+          await slackApi(
+            "chat.postMessage",
+            {
+              channel: metadata.channelId,
+              text: `Kunne ikke lagre avslaget med begrunnelse for <@${userId}> – prøv igjen om noen sekunder.`,
+              thread_ts: metadata.messageTs
             },
             requestId
           ).catch(() => {});
