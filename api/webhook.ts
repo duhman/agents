@@ -18,6 +18,7 @@ interface WebhookPayload {
   customerEmail?: string;
   subject?: string;
   body?: string;
+  content?: string;
 }
 
 interface ProcessEmailResult {
@@ -64,6 +65,42 @@ const log = (
   }
 };
 
+const decodeBasicHtmlEntities = (value: string): string =>
+  value
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#39;/gi, "'")
+    .replace(/&quot;/gi, '"');
+
+const normalizeEmailBody = (raw: string): string => {
+  if (!raw) {
+    return "";
+  }
+
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (!/<[a-z][\s\S]*>/i.test(trimmed)) {
+    return decodeBasicHtmlEntities(trimmed);
+  }
+
+  const withLineBreaks = trimmed
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<li>/gi, "\n• ")
+    .replace(/<\/li>/gi, "")
+    .replace(/<[^>]+>/g, "");
+
+  return decodeBasicHtmlEntities(withLineBreaks)
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
+
 
 export default async function handler(
   req: VercelRequest,
@@ -88,8 +125,8 @@ export default async function handler(
 
   try {
     // Minimal validation (avoid zod/types at edge)
-    const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body ?? {};
-    const body = (rawBody ?? {}) as WebhookPayload;
+    const rawPayload = typeof req.body === "string" ? JSON.parse(req.body) : req.body ?? {};
+    const body = (rawPayload ?? {}) as WebhookPayload;
     const source = typeof body.source === "string" && body.source ? body.source : "hubspot";
     const customerEmail =
       typeof body.customerEmail === "string" && body.customerEmail
@@ -98,7 +135,13 @@ export default async function handler(
 
     // Validate required fields
     const subject = typeof body.subject === "string" ? body.subject : "";
-    const bodyText = typeof body.body === "string" ? body.body : "";
+    const rawEmailBody =
+      typeof body.body === "string" && body.body.trim()
+        ? body.body
+        : typeof body.content === "string"
+          ? body.content
+          : "";
+    const bodyText = normalizeEmailBody(rawEmailBody);
     
     if (!subject && !bodyText) {
       res.status(400).json({ 
@@ -116,6 +159,11 @@ export default async function handler(
       requestId,
       subjectLength: subject.length,
       bodyLength: bodyText.length,
+      bodySource: typeof body.body === "string" && body.body.trim()
+        ? "body"
+        : typeof body.content === "string" && body.content.trim()
+          ? "content"
+          : "none",
       subjectPreview: subject.slice(0, 50),
       bodyPreview: bodyText.slice(0, 50)
     });
