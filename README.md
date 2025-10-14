@@ -35,19 +35,20 @@ Email → Extract (regex) → Generate Draft (templates) → Database → Slack 
 
 See [`SIMPLIFICATION_SUMMARY.md`](SIMPLIFICATION_SUMMARY.md) for complete details on the simplified architecture.
 
-## 🎯 System Overview (Updated October 2025)
+## 🎯 System Overview (Updated January 2025)
 
 This project demonstrates production-ready implementation of:
 
-- ⚡ **Deterministic Processing**: Regex-based extraction + template drafts (no AI needed)
+- ⚡ **Hybrid Processing**: Deterministic + OpenAI fallback for complex cases
 - 🔒 **PII Masking**: GDPR-compliant email/phone/address masking
-- 📊 **Structured Logging**: Request IDs and observability
-- ✅ **Request Validation**: Webhook security
-- 🚀 **Fast Performance**: <500ms response time (80% faster than AI-based)
-- 🎯 **Health Checks**: Monitoring and debugging endpoints
-- 🤝 **Slack HITM**: Human review workflow with approve/edit/reject
+- 📊 **Enhanced Logging**: Request IDs, Slack health checks, and retry monitoring
+- ✅ **Standardized Webhooks**: Consistent subject/body input format
+- 🚀 **Fast Performance**: <500ms deterministic, <3s with OpenAI fallback
+- 🎯 **Health Checks**: Comprehensive monitoring with Slack connectivity tests
+- 🤝 **Reliable Slack HITM**: Enhanced retry logic and background task handling
 - 📋 **Database Persistence**: Tickets, drafts, and human reviews tracked
-- 🌐 **Bilingual Support**: Norwegian and English templates
+- 🌐 **Multi-Language Support**: Norwegian, English, and Swedish templates
+- 🔄 **Retry Queues**: Automatic retry for failed Slack posts with exponential backoff
 
 **Migration Note:** Previous multi-agent AI system has been replaced with deterministic processing for improved reliability. See migration details in `SIMPLIFICATION_SUMMARY.md`.
 

@@ -7,7 +7,7 @@ graph TD
     A[HubSpot Custom Code] -->|POST webhook| B[Vercel Webhook Handler]
     B --> C{Validate Request}
     C -->|Invalid| D[Return 400 Error]
-    C -->|Valid| E[Parse & Mask Email]
+    C -->|Valid| E[Parse Subject & Body]
     
     E --> F[Extract Subject & Body]
     F --> G[Call Agents SDK]
@@ -32,27 +32,32 @@ graph TD
     T --> U[Calculate Confidence Score]
     U --> V[Save Draft to Database]
     
-    V --> W[Post to Slack for Review]
-    W --> X{Slack Action}
-    X -->|Approve| Y[Send Email to Customer]
-    X -->|Edit| Z[Human Edits & Sends]
-    X -->|Reject| AA[Human Handles Manually]
+    V --> W[Test Slack Connectivity]
+    W --> X{Slack Reachable?}
+    X -->|Yes| Y[Post to Slack for Review]
+    X -->|No| Z[Queue for Retry]
+    Y --> AA{Slack Action}
+    Z --> BB[Background Retry Process]
+    AA -->|Approve| CC[Send Email to Customer]
+    AA -->|Edit| DD[Human Edits & Sends]
+    AA -->|Reject| EE[Human Handles Manually]
     
-    Y --> BB[Log Human Review]
-    Z --> BB
-    AA --> BB
-    BB --> CC[Store Feedback for Training]
+    CC --> FF[Log Human Review]
+    DD --> FF
+    EE --> FF
+    FF --> GG[Store Feedback for Training]
     
-    L --> DD[No Action - Email Ignored]
+    L --> HH[No Action - Email Ignored]
     
     style A fill:#e1f5fe
     style B fill:#f3e5f5
     style H fill:#fff3e0
     style K fill:#ffebee
-    style W fill:#e8f5e8
     style Y fill:#e8f5e8
-    style Z fill:#fff8e1
-    style AA fill:#ffebee
+    style CC fill:#e8f5e8
+    style DD fill:#fff8e1
+    style EE fill:#ffebee
+    style Z fill:#fff3e0
 ```
 
 ## Detailed Classification Process
@@ -207,7 +212,7 @@ erDiagram
     DRAFTS ||--o{ HUMAN_REVIEWS : "reviewed"
 ```
 
-## Slack Review Workflow
+## Slack Review Workflow (Enhanced 2025)
 
 ```mermaid
 sequenceDiagram
@@ -215,25 +220,34 @@ sequenceDiagram
     participant Slack
     participant Human
     participant Customer
+    participant RetryQueue
     
-    Agent->>Slack: Post draft with buttons
-    Note over Slack: Shows original email + draft
-    Note over Slack: Approve | Edit | Reject buttons
-    
-    Human->>Slack: Click Approve
-    Slack->>Agent: Webhook notification
-    Agent->>Customer: Send approved draft
-    Agent->>Agent: Log human review
-    
-    Human->>Slack: Click Edit
-    Slack->>Agent: Webhook notification
-    Human->>Customer: Send edited version
-    Agent->>Agent: Log human review
-    
-    Human->>Slack: Click Reject
-    Slack->>Agent: Webhook notification
-    Human->>Customer: Handle manually
-    Agent->>Agent: Log human review
+    Agent->>Agent: Test Slack connectivity
+    alt Slack is reachable
+        Agent->>Slack: Post draft with buttons
+        Note over Slack: Shows original email + draft
+        Note over Slack: Approve | Edit | Reject buttons
+        
+        Human->>Slack: Click Approve
+        Slack->>Agent: Webhook notification
+        Agent->>Customer: Send approved draft
+        Agent->>Agent: Log human review
+        
+        Human->>Slack: Click Edit
+        Slack->>Agent: Webhook notification
+        Human->>Customer: Send edited version
+        Agent->>Agent: Log human review
+        
+        Human->>Slack: Click Reject
+        Slack->>Agent: Webhook notification
+        Human->>Customer: Handle manually
+        Agent->>Agent: Log human review
+    else Slack is unreachable
+        Agent->>RetryQueue: Queue for retry
+        Note over RetryQueue: Exponential backoff
+        RetryQueue->>Agent: Retry posting
+        Agent->>Slack: Post draft (retry)
+    end
 ```
 
 ## Key Components & Technologies
@@ -241,12 +255,14 @@ sequenceDiagram
 ### Frontend (HubSpot)
 - **Custom Code Action**: Triggers webhook with ticket data
 - **Properties**: subject, description, ID, email, threadID
+- **Multi-Format Support**: Legacy rawEmail or new subject/body fields
 
 ### Backend (Vercel)
-- **Webhook Handler**: `/api/webhook` - Receives and validates requests
-- **Hybrid Processor**: Deterministic + OpenAI fallback
+- **Webhook Handler**: `/api/webhook` - Receives and validates multi-format requests
+- **Hybrid Processor**: Deterministic + OpenAI fallback with enhanced reliability
 - **Database**: Neon PostgreSQL with Drizzle ORM
-- **Slack Integration**: Posts drafts for human review
+- **Slack Integration**: Enhanced with connectivity checks and retry queues
+- **Background Tasks**: Vercel waitUntil for non-blocking operations
 
 ### AI/ML Components
 - **Pattern Matching**: Regex-based deterministic classification

@@ -76,6 +76,7 @@ documentation/
 2. [`deployment/ENVIRONMENT_VARIABLES.md`](deployment/ENVIRONMENT_VARIABLES.md) - Environment configuration
 3. [`project/plan.md`](project/plan.md) - Infrastructure requirements
 4. [`project/datasets.md`](project/datasets.md) - Data pipeline contract
+5. [`../SLACK_INTEGRATION_ENHANCEMENTS.md`](../SLACK_INTEGRATION_ENHANCEMENTS.md) - Slack reliability improvements
 
 ## 📝 Documentation Standards
 

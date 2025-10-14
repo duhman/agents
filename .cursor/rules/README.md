@@ -12,7 +12,8 @@ This directory contains project-specific rules for Cursor AI in modern `.mdc` fo
 | `openai-patterns.mdc`       | Auto-Attached | OpenAI v5 API best practices with retry logic        | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`            |
 | `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns with date handling              | `packages/db/**/*.ts`                                       |
 | `observability-logging.mdc` | Auto-Attached | Structured logging and observability patterns        | `apps/**/*.ts`, `packages/core/**/*.ts`                     |
-| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow                                  | `apps/slack-bot/**/*.ts`                                    |
+| `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow with enhanced reliability        | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`               |
+| `webhook-patterns.mdc`      | Auto-Attached | Webhook handling with multi-format support           | `api/webhook.ts`, `api/**/*.ts`                             |
 | `vercel-deployment.mdc`     | Auto-Attached | Vercel deployment patterns                           | `apps/ingestor/**/*.ts`, `vercel.json`                      |
 | `monorepo-workspace.mdc`    | Auto-Attached | Monorepo structure                                   | `package.json`, `pnpm-workspace.yaml`, `turbo.json`         |
 | `testing-evaluation.mdc`    | Auto-Attached | Testing and evaluation                               | `ops/scripts/eval.ts`, `packages/evaluation/**/*.ts`        |

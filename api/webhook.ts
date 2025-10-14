@@ -16,7 +16,6 @@ type LogLevel = "info" | "warn" | "error" | "debug";
 interface WebhookPayload {
   source?: string;
   customerEmail?: string;
-  rawEmail?: string;
   subject?: string;
   body?: string;
 }
@@ -65,20 +64,6 @@ const log = (
   }
 };
 
-// Simple helper to parse subject from rawEmail format
-function parseSubjectBody(text: string): { subject: string; body: string } {
-  const lines = text.split(/\r?\n/);
-  const subjectLine = lines.find(l => /^subject\s*:/i.test(l));
-  
-  if (subjectLine) {
-    const subject = subjectLine.replace(/^subject\s*:\s*/i, "").trim();
-    const bodyStartIdx = lines.indexOf(subjectLine) + 1;
-    const body = lines.slice(bodyStartIdx).join("\n").trim();
-    return { subject, body: body || text };
-  }
-  
-  return { subject: "", body: text };
-}
 
 export default async function handler(
   req: VercelRequest,
@@ -111,43 +96,28 @@ export default async function handler(
         ? body.customerEmail
         : "masked@example.com";
 
-    // Support both formats: rawEmail (legacy) or subject+body (new)
-    let rawEmail = "";
-    let originalSubject = "";
-    let originalBody = "";
+    // Validate required fields
+    const subject = typeof body.subject === "string" ? body.subject : "";
+    const bodyText = typeof body.body === "string" ? body.body : "";
     
-    if (typeof body.rawEmail === "string" && body.rawEmail) {
-      rawEmail = body.rawEmail;
-      // Parse subject/body from legacy format
-      const parsed = parseSubjectBody(rawEmail);
-      originalSubject = parsed.subject;
-      originalBody = parsed.body;
-    } else {
-      originalSubject = typeof body.subject === "string" ? body.subject : "";
-      originalBody = typeof body.body === "string" ? body.body : "";
-      
-      if (!originalSubject && !originalBody) {
-        res.status(400).json({ 
-          error: "validation: Either rawEmail or subject/body must be provided", 
-          request_id: requestId 
-        });
-        return;
-      }
-      
-      // Construct rawEmail format from subject and body for processing
-      rawEmail = originalSubject ? `Subject: ${originalSubject}\n\n${originalBody}` : originalBody;
+    if (!subject && !bodyText) {
+      res.status(400).json({ 
+        error: "validation: subject and body are required",
+        request_id: requestId 
+      });
+      return;
     }
+    
+    // Construct rawEmail format for internal processing only
+    const rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
+    
     log("info", "Request validation successful", { 
       source, 
       requestId,
-      format: body.rawEmail ? "legacy" : "webhook-only",
-      subjectLength: originalSubject.length,
-      bodyLength: originalBody.length,
-      subjectPreview: originalSubject.slice(0, 50),
-      bodyPreview: originalBody.slice(0, 50),
-      subjectEmpty: originalSubject.length === 0,
-      bodyEmpty: originalBody.length === 0,
-      rawBodyKeys: Object.keys(body)
+      subjectLength: subject.length,
+      bodyLength: bodyText.length,
+      subjectPreview: subject.slice(0, 50),
+      bodyPreview: bodyText.slice(0, 50)
     });
 
 
@@ -179,8 +149,8 @@ export default async function handler(
 
         // Use original subject/body values directly for Slack display (no masking needed for display)
         const maskedRawEmail = maskPII(rawEmail);
-        const displaySubject = originalSubject;
-        const displayBody = originalBody;
+        const displaySubject = subject;
+        const displayBody = bodyText;
 
         const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
           ticketId: result.ticket.id,

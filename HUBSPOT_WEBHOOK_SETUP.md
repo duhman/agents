@@ -104,11 +104,11 @@ curl -X POST https://your-app.vercel.app/api/webhook \
 - ✅ **More reliable**: Direct field mapping from HubSpot
 - ✅ **Better error handling**: Clear validation messages
 - ✅ **Easier debugging**: Standard webhook format
-- ✅ **Backward compatible**: Legacy format still supported
+- ✅ **Consistent format**: Single webhook format for all integrations
 
 ## Migration Notes
 
-- The webhook handler supports both new and legacy formats
-- Existing integrations using `rawEmail` will continue to work
-- No breaking changes for current deployments
-- Gradual migration is possible
+- **BREAKING CHANGE**: The webhook handler now requires `subject` and `body` fields
+- Legacy `rawEmail` format is no longer supported
+- Update existing integrations to use the new format
+- See BREAKING_CHANGES.md for migration details

@@ -206,7 +206,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 ```
 
-## Slack Error Handling
+## Slack Error Handling & Health Monitoring
 
 ✅ **DO:** Don't block webhooks on Slack failures
 
@@ -220,6 +220,90 @@ postReview({
   logError("Slack posting failed", logContext, error);
   // Don't fail the webhook if Slack fails
 });
+```
+
+✅ **DO:** Log Slack connectivity health checks
+
+```typescript
+// Test Slack connectivity first with detailed health check
+const slackHealth = await testSlackConnectivity(env.SLACK_BOT_TOKEN);
+
+console.log(JSON.stringify({
+  level: "info",
+  message: "Slack API health check",
+  timestamp: new Date().toISOString(),
+  ticketId,
+  draftId,
+  reachable: slackHealth.reachable,
+  responseTime: slackHealth.responseTime,
+  statusCode: slackHealth.statusCode,
+  error: slackHealth.error
+}));
+
+if (!slackHealth.reachable) {
+  console.error(JSON.stringify({
+    level: "error",
+    message: "Slack API is not reachable - queuing for retry",
+    timestamp: new Date().toISOString(),
+    ticketId,
+    draftId,
+    healthCheck: slackHealth
+  }));
+  
+  // Queue for retry instead of failing immediately
+  await queueSlackRetry(params);
+  return { ok: true, error: "slack_unreachable_queued", ts: Date.now().toString() };
+}
+```
+
+✅ **DO:** Log Slack posting attempts and results
+
+```typescript
+// Log when attempting to post to Slack
+log("info", "Attempting to post draft to Slack", {
+  requestId,
+  channel: slackChannel,
+  ticketId: result.ticket.id,
+  draftId: result.draft.id,
+  confidence: result.confidence
+});
+
+// Log successful Slack posts
+console.log(JSON.stringify({
+  level: "info",
+  message: "Slack postReview successful",
+  timestamp: new Date().toISOString(),
+  ticketId,
+  draftId,
+  channel,
+  messageTs: response.ts,
+  attempt
+}));
+```
+
+✅ **DO:** Log retry queue operations
+
+```typescript
+// Log when queuing for retry
+console.log(JSON.stringify({
+  level: "info",
+  message: "Queued Slack post for retry",
+  timestamp: new Date().toISOString(),
+  ticketId: params.ticketId,
+  draftId: params.draftId,
+  retryCount: retryItem.retryCount,
+  nextRetryAt: new Date(retryItem.nextRetryAt).toISOString()
+}));
+
+// Log retry processing
+console.log(JSON.stringify({
+  level: "info",
+  message: "Processing Slack retry queue item",
+  timestamp: new Date().toISOString(),
+  ticketId: item.ticketId,
+  draftId: item.draftId,
+  retryCount: item.retryCount
+}));
 ```
 
 ## References

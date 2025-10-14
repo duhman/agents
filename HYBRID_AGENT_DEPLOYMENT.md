@@ -216,13 +216,18 @@ With 500-700 tickets/month = ~$0.28/month in OpenAI costs
    - Target: ≥85% immediate approval
    - Target: <15% edits needed
 
-### Slack Integration
+### Slack Integration (Enhanced 2025)
 All drafts are posted to `#cancellation-review` with:
-- Original email (masked)
-- Generated draft
-- Extraction details
-- Confidence score
-- Actions: Approve / Edit / Reject
+- Original email (subject and body displayed separately)
+- Generated draft with confidence score
+- Extraction details and language detection
+- Interactive actions: Approve / Edit / Reject
+- **Enhanced reliability features:**
+  - Slack connectivity health checks before posting
+  - Automatic retry queue for failed posts
+  - Exponential backoff retry logic
+  - Background task handling with Vercel waitUntil
+  - Comprehensive logging for debugging
 
 ## Rollback Plan
 

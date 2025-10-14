@@ -67,22 +67,55 @@ const db = drizzle(postgres(connectionString)); // Outside handler
 
 ⚠️ **Critical:** Keep functions <30s execution time (updated limit)
 
-✅ **DO:** Use fire-and-forget for non-critical operations
+✅ **DO:** Use fire-and-forget for non-critical operations with Vercel waitUntil
 
 ```typescript
+import { waitUntil } from "@vercel/functions";
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Process critical path first
   const result = await processEmail(data);
 
-  // Fire-and-forget non-critical operations
-  postToSlack(result).catch(error => {
+  // Fire-and-forget non-critical operations with proper Vercel handling
+  const slackTask = postToSlack(result).catch(error => {
     logError("Slack posting failed", logContext, error);
     // Don't fail the webhook if Slack fails
   });
 
+  if (typeof waitUntil === "function") {
+    waitUntil(slackTask);
+  } else {
+    void slackTask; // Non-Vercel environments
+  }
+
   // Return immediately
   return res.status(200).json({ success: true });
 }
+```
+
+✅ **DO:** Use standardized webhook input format
+
+```typescript
+// Use consistent subject/body format
+interface WebhookPayload {
+  source?: string;
+  customerEmail?: string;
+  subject?: string;     // Required field
+  body?: string;        // Required field
+}
+
+// Validate required fields
+const subject = typeof body.subject === "string" ? body.subject : "";
+const bodyText = typeof body.body === "string" ? body.body : "";
+
+if (!subject && !bodyText) {
+  return res.status(400).json({ 
+    error: "validation: subject and body are required" 
+  });
+}
+
+// Construct rawEmail format for internal processing only
+const rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
 ```
 
 ✅ **DO:** Use structured logging with request IDs

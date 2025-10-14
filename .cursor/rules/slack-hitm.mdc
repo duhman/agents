@@ -1,6 +1,6 @@
 ---
-description: Slack HITM workflow patterns and interactive components
-globs: apps/slack-bot/**/*.ts
+description: Slack HITM workflow patterns and interactive components with enhanced reliability
+globs: apps/slack-bot/**/*.ts, api/slack/**/*.ts
 alwaysApply: false
 ---
 
@@ -26,6 +26,91 @@ app.action("approve", async ({ ack, body }) => {
   await processApproval(body); // ❌ May timeout
   await ack();
 });
+```
+
+## Enhanced Reliability Patterns (2025)
+
+✅ **DO:** Use Vercel waitUntil for background tasks
+```typescript
+import { waitUntil } from "@vercel/functions";
+
+// Fire and forget with proper Vercel handling
+const slackTask = postReview(slackPayload).catch((error: unknown) => {
+  log("error", "Slack posting failed", { error: parseErrorMessage(error) });
+});
+
+if (typeof waitUntil === "function") {
+  waitUntil(slackTask);
+} else {
+  void slackTask; // Non-Vercel environments
+}
+```
+
+✅ **DO:** Implement Slack connectivity health checks
+```typescript
+async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
+  const startTime = Date.now();
+  
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const res = await fetch("https://slack.com/api/auth.test", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeout);
+    const responseTime = Date.now() - startTime;
+    const result = await res.json();
+    
+    return {
+      reachable: result.ok === true,
+      responseTime,
+      statusCode: res.status,
+      timestamp: Date.now(),
+      error: result.ok ? undefined : result.error
+    };
+  } catch (error: any) {
+    return {
+      reachable: false,
+      responseTime: Date.now() - startTime,
+      timestamp: Date.now(),
+      error: error?.message || String(error)
+    };
+  }
+}
+```
+
+✅ **DO:** Implement retry queue for failed Slack posts
+```typescript
+interface SlackRetryItem {
+  ticketId: string;
+  draftId: string;
+  channel: string;
+  originalEmail: string;
+  draftText: string;
+  confidence: number;
+  extraction: Record<string, any>;
+  retryCount: number;
+  nextRetryAt: number;
+  createdAt: number;
+}
+
+async function queueSlackRetry(params: PostReviewParams): Promise<void> {
+  const retryItem: SlackRetryItem = {
+    ...params,
+    retryCount: 0,
+    nextRetryAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+    createdAt: Date.now()
+  };
+  
+  slackRetryQueue.push(retryItem);
+}
 ```
 
 ## Interactive Components
