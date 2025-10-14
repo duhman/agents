@@ -113,13 +113,20 @@ export default async function handler(
 
     // Support both formats: rawEmail (legacy) or subject+body (new)
     let rawEmail = "";
+    let originalSubject = "";
+    let originalBody = "";
+    
     if (typeof body.rawEmail === "string" && body.rawEmail) {
       rawEmail = body.rawEmail;
+      // Parse subject/body from legacy format
+      const parsed = parseSubjectBody(rawEmail);
+      originalSubject = parsed.subject;
+      originalBody = parsed.body;
     } else {
-      const subject = typeof body.subject === "string" ? body.subject : "";
-      const bodyText = typeof body.body === "string" ? body.body : "";
+      originalSubject = typeof body.subject === "string" ? body.subject : "";
+      originalBody = typeof body.body === "string" ? body.body : "";
       
-      if (!subject && !bodyText) {
+      if (!originalSubject && !originalBody) {
         res.status(400).json({ 
           error: "validation: Either rawEmail or subject/body must be provided", 
           request_id: requestId 
@@ -127,10 +134,18 @@ export default async function handler(
         return;
       }
       
-      // Construct rawEmail format from subject and body
-      rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
+      // Construct rawEmail format from subject and body for processing
+      rawEmail = originalSubject ? `Subject: ${originalSubject}\n\n${originalBody}` : originalBody;
     }
-    log("info", "Request validation successful", { source, requestId });
+    log("info", "Request validation successful", { 
+      source, 
+      requestId,
+      format: body.rawEmail ? "legacy" : "webhook-only",
+      subjectLength: originalSubject.length,
+      bodyLength: originalBody.length,
+      subjectPreview: originalSubject.slice(0, 50),
+      bodyPreview: originalBody.slice(0, 50)
+    });
 
 
     // Process email through Agents SDK
@@ -159,9 +174,10 @@ export default async function handler(
             ? (result.extraction as Record<string, unknown>)
             : {};
 
-        // Direct masking without parsing
+        // Use original subject/body values directly (already masked by PII masking in processing)
         const maskedRawEmail = maskPII(rawEmail);
-        const { subject: maskedSubject, body: maskedBody } = parseSubjectBody(maskedRawEmail);
+        const maskedSubject = maskPII(originalSubject);
+        const maskedBody = maskPII(originalBody);
 
         const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
           ticketId: result.ticket.id,

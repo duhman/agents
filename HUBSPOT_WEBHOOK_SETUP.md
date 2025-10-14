@@ -17,28 +17,33 @@ This guide explains how to configure HubSpot to send ticket data directly to the
 1. Add a new "Send webhook" action to your workflow
 2. Configure the webhook URL: `https://your-app.vercel.app/api/webhook`
 3. Set request method: **POST**
-4. Set content type: **application/json**
+4. ~~Set content type: **application/json**~~ *(HubSpot automatically sets this to `application/json`)*
 
 ### Step 3: Configure Webhook Payload
 
-Use this exact payload configuration:
+1. Select **"Customize request body"** (not "Include all ticket properties")
+2. Add these key-value pairs using the "Add property" button:
 
-```json
-{
-  "source": "hubspot",
-  "customerEmail": "{{email}}",
-  "subject": "{{subject}}",
-  "body": "{{description}}"
-}
-```
+| Key | Value |
+|-----|-------|
+| `source` | `hubspot` |
+| `customerEmail` | `{{email}}` |
+| `subject` | `{{subject}}` |
+| `body` | `{{content}}` |
+
+**Important:** Make sure you're using the **internal property names** (`subject` and `content`), not the display labels. In HubSpot's property picker, you may see labels like "Ticket name" or "Ticket description", but the internal API names are `subject` and `content`.
+
+**Note:** HubSpot automatically sends the data as JSON with `Content-Type: application/json` header - no manual configuration needed.
 
 ### Step 4: Verify Property Mappings
 
 Ensure these HubSpot properties are correctly mapped:
 
-- **`{{email}}`** → Contact's email field (e.g., `email`, `contact_email`)
-- **`{{subject}}`** → Ticket's subject field (e.g., `hs_ticket_subject`, `subject`)
-- **`{{description}}`** → Ticket's description/body field (e.g., `content`, `hs_ticket_description`, `description`)
+- **`{{email}}`** → Contact's email field (standard property: `email`)
+- **`{{subject}}`** → Ticket's subject field (standard property: `subject`)
+- **`{{content}}`** → Ticket's content/body field (standard property: `content`)
+
+**Important:** These property names are based on the [official HubSpot CRM API documentation](https://developers.hubspot.com/docs/api-reference/crm-tickets-v3/guide). The `content` property is the standard field for ticket body/description content, not `description` or `hs_ticket_description`.
 
 ## Testing the Setup
 
@@ -77,6 +82,8 @@ curl -X POST https://your-app.vercel.app/api/webhook \
 1. **Missing subject or body**: Ensure HubSpot properties are correctly mapped
 2. **Webhook timeout**: Check that your webhook URL is accessible
 3. **Validation errors**: Verify the payload format matches exactly
+4. **"URL is invalid" error**: Ensure your webhook URL is accessible and returns a 200 status code
+5. **Content-Type confusion**: Remember that HubSpot automatically sets `Content-Type: application/json` - you don't need to configure this
 
 ### Debug Steps
 
