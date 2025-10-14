@@ -49,12 +49,11 @@ async function searchVectorStoreDirect(query: string, maxResults: number): Promi
         `Return up to ${maxResults} short bullet snippets from the most relevant HubSpot tickets for this query. ` +
         `Each snippet should be concise and directly useful for drafting a reply. Query: ${query}`,
       tools: [{ type: "file_search" }],
-      attachments: [
-        {
-          vector_store_id: vectorStoreId,
-          tools: [{ type: "file_search" }]
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStoreId]
         }
-      ]
+      }
     });
 
     // Extract text output; if structured citations are available, prefer them.
