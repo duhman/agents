@@ -49,18 +49,36 @@ export declare function logWarn(message: string, context: LogContext, data?: any
 /**
  * Webhook request validation schema
  */
-export declare const webhookRequestSchema: z.ZodObject<{
+export declare const webhookRequestSchema: z.ZodEffects<z.ZodObject<{
     source: z.ZodString;
     customerEmail: z.ZodString;
-    rawEmail: z.ZodString;
+    rawEmail: z.ZodOptional<z.ZodString>;
+    subject: z.ZodOptional<z.ZodString>;
+    body: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     source: string;
     customerEmail: string;
-    rawEmail: string;
+    rawEmail?: string | undefined;
+    subject?: string | undefined;
+    body?: string | undefined;
 }, {
     source: string;
     customerEmail: string;
-    rawEmail: string;
+    rawEmail?: string | undefined;
+    subject?: string | undefined;
+    body?: string | undefined;
+}>, {
+    source: string;
+    customerEmail: string;
+    rawEmail?: string | undefined;
+    subject?: string | undefined;
+    body?: string | undefined;
+}, {
+    source: string;
+    customerEmail: string;
+    rawEmail?: string | undefined;
+    subject?: string | undefined;
+    body?: string | undefined;
 }>;
 export type WebhookRequest = z.infer<typeof webhookRequestSchema>;
 /**

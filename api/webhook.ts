@@ -17,6 +17,8 @@ interface WebhookPayload {
   source?: string;
   customerEmail?: string;
   rawEmail?: string;
+  subject?: string;
+  body?: string;
 }
 
 interface ProcessEmailResult {
@@ -63,6 +65,21 @@ const log = (
   }
 };
 
+// Simple helper to parse subject from rawEmail format
+function parseSubjectBody(text: string): { subject: string; body: string } {
+  const lines = text.split(/\r?\n/);
+  const subjectLine = lines.find(l => /^subject\s*:/i.test(l));
+  
+  if (subjectLine) {
+    const subject = subjectLine.replace(/^subject\s*:\s*/i, "").trim();
+    const bodyStartIdx = lines.indexOf(subjectLine) + 1;
+    const body = lines.slice(bodyStartIdx).join("\n").trim();
+    return { subject, body: body || text };
+  }
+  
+  return { subject: "", body: text };
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -93,61 +110,27 @@ export default async function handler(
       typeof body.customerEmail === "string" && body.customerEmail
         ? body.customerEmail
         : "masked@example.com";
-    const rawEmail = typeof body.rawEmail === "string" && body.rawEmail ? body.rawEmail : "";
 
-    if (!rawEmail) {
-      res.status(400).json({ error: "validation: rawEmail is required", request_id: requestId });
-      return;
-    }
-    log("info", "Request validation successful", { source, requestId });
-    const parseAndMaskEmail = (text: string) => {
-      const masked = maskPII(text || "");
-      const lines = masked.split(/\r?\n/);
-      let subject = "";
-      let subjectIdx = -1;
-      let bodyStartIdx = 0;
-      let foundSubjectLine = false;
-
-      // Look for "Subject: " line (case-insensitive)
-      for (let i = 0; i < lines.length; i++) {
-        const l = lines[i] || "";
-        if (!subject && /^subject\s*:/i.test(l)) {
-          subject = l.replace(/^subject\s*:\s*/i, "").trim();
-          foundSubjectLine = true;
-          subjectIdx = i;
-          // Body starts after subject (skip empty lines)
-          bodyStartIdx = i + 1;
-          while (bodyStartIdx < lines.length && (lines[bodyStartIdx] || "").trim() === "") {
-            bodyStartIdx++;
-          }
-          break;
-        }
-      }
-
-      // If no "Subject: " line found, don't guess - use empty subject
-      if (!foundSubjectLine) {
-        subject = "";
-        bodyStartIdx = 0;
-      }
-
-      const body = lines.slice(bodyStartIdx).join("\n").trim();
-      let finalBody = body;
-
-      if (!finalBody && foundSubjectLine && subjectIdx >= 0) {
-        const withoutSubject = lines.filter((_, idx) => idx !== subjectIdx).join("\n").trim();
-        finalBody = withoutSubject;
-      }
-
-      if (!finalBody) {
-        finalBody = masked;
+    // Support both formats: rawEmail (legacy) or subject+body (new)
+    let rawEmail = "";
+    if (typeof body.rawEmail === "string" && body.rawEmail) {
+      rawEmail = body.rawEmail;
+    } else {
+      const subject = typeof body.subject === "string" ? body.subject : "";
+      const bodyText = typeof body.body === "string" ? body.body : "";
+      
+      if (!subject && !bodyText) {
+        res.status(400).json({ 
+          error: "validation: Either rawEmail or subject/body must be provided", 
+          request_id: requestId 
+        });
+        return;
       }
       
-      return { 
-        subject, 
-        body: finalBody,
-        hasSubject: foundSubjectLine
-      };
-    };
+      // Construct rawEmail format from subject and body
+      rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
+    }
+    log("info", "Request validation successful", { source, requestId });
 
 
     // Process email through Agents SDK
@@ -176,12 +159,14 @@ export default async function handler(
             ? (result.extraction as Record<string, unknown>)
             : {};
 
-        const { subject: maskedSubject, body: maskedBody } = parseAndMaskEmail(rawEmail);
+        // Direct masking without parsing
+        const maskedRawEmail = maskPII(rawEmail);
+        const { subject: maskedSubject, body: maskedBody } = parseSubjectBody(maskedRawEmail);
 
         const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
           ticketId: result.ticket.id,
           draftId: result.draft.id,
-          originalEmail: `${maskedSubject}\n\n${maskedBody}`,
+          originalEmail: maskedRawEmail,
           originalEmailSubject: maskedSubject,
           originalEmailBody: maskedBody,
           draftText: result.draft.draftText,

@@ -83,8 +83,11 @@ export function logWarn(message, context, data) {
 export const webhookRequestSchema = z.object({
     source: z.string().min(1),
     customerEmail: z.string().email(),
-    rawEmail: z.string().min(1)
-});
+    // Accept either rawEmail (legacy) OR subject+body (new webhook approach)
+    rawEmail: z.string().min(1).optional(),
+    subject: z.string().optional(),
+    body: z.string().optional()
+}).refine(data => data.rawEmail || (data.subject || data.body), { message: "Either rawEmail or subject/body must be provided" });
 /**
  * Validate webhook request body
  */

@@ -59,12 +59,23 @@ vercel --prod
 
 ### Test Webhook
 ```bash
+# New format (webhook-only approach)
+curl -X POST https://your-app.vercel.app/api/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "hubspot",
+    "customerEmail": "test@example.com",
+    "subject": "Oppsigelse",
+    "body": "Hei, jeg skal flytte og vil si opp."
+  }'
+
+# Legacy format (still supported)
 curl -X POST https://your-app.vercel.app/api/webhook \
   -H "Content-Type: application/json" \
   -d '{
     "source": "test",
     "customerEmail": "test@example.com",
-    "rawEmail": "Hei, jeg skal flytte og vil si opp."
+    "rawEmail": "Subject: Oppsigelse\n\nHei, jeg skal flytte og vil si opp."
   }'
 ```
 
