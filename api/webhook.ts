@@ -144,7 +144,10 @@ export default async function handler(
       subjectLength: originalSubject.length,
       bodyLength: originalBody.length,
       subjectPreview: originalSubject.slice(0, 50),
-      bodyPreview: originalBody.slice(0, 50)
+      bodyPreview: originalBody.slice(0, 50),
+      subjectEmpty: originalSubject.length === 0,
+      bodyEmpty: originalBody.length === 0,
+      rawBodyKeys: Object.keys(body)
     });
 
 
@@ -174,17 +177,17 @@ export default async function handler(
             ? (result.extraction as Record<string, unknown>)
             : {};
 
-        // Use original subject/body values directly (already masked by PII masking in processing)
+        // Use original subject/body values directly for Slack display (no masking needed for display)
         const maskedRawEmail = maskPII(rawEmail);
-        const maskedSubject = maskPII(originalSubject);
-        const maskedBody = maskPII(originalBody);
+        const displaySubject = originalSubject;
+        const displayBody = originalBody;
 
         const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
           ticketId: result.ticket.id,
           draftId: result.draft.id,
           originalEmail: maskedRawEmail,
-          originalEmailSubject: maskedSubject,
-          originalEmailBody: maskedBody,
+          originalEmailSubject: displaySubject,
+          originalEmailBody: displayBody,
           draftText: result.draft.draftText,
           confidence: result.confidence,
           extraction,

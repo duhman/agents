@@ -43,7 +43,13 @@ Ensure these HubSpot properties are correctly mapped:
 - **`{{subject}}`** → Ticket's subject field (standard property: `subject`)
 - **`{{content}}`** → Ticket's content/body field (standard property: `content`)
 
-**Important:** These property names are based on the [official HubSpot CRM API documentation](https://developers.hubspot.com/docs/api-reference/crm-tickets-v3/guide). The `content` property is the standard field for ticket body/description content, not `description` or `hs_ticket_description`.
+**Important:** These property names are based on the [official HubSpot CRM API documentation](https://developers.hubspot.com/docs/api-reference/crm-tickets-v3/guide). 
+
+**Note:** If you're working with email engagements rather than tickets, you might need to use:
+- `hs_email_subject` for email subject
+- `hs_email_text` for email body content
+
+However, for ticket-based workflows, use `subject` and `content` as shown above.
 
 ## Testing the Setup
 
