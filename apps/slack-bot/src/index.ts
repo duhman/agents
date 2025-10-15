@@ -204,6 +204,17 @@ export async function postReview(params: PostReviewParams) {
     channel,
     hubspotTicketUrl
   } = params;
+  
+  console.log(JSON.stringify({
+    level: "debug",
+    message: "postReview: Slack message construction started",
+    timestamp: new Date().toISOString(),
+    ticketId,
+    draftId,
+    channel,
+    hasHubSpotUrl: !!hubspotTicketUrl,
+    hubspotTicketUrl
+  }));
 
   console.log(JSON.stringify({
     level: "info",
@@ -279,7 +290,14 @@ export async function postReview(params: PostReviewParams) {
           }
         },
         ...(hubspotTicketUrl
-          ? [
+          ? (console.log(JSON.stringify({
+              level: "debug",
+              message: "postReview: Including HubSpot ticket link block",
+              timestamp: new Date().toISOString(),
+              ticketId,
+              draftId,
+              url: hubspotTicketUrl
+            })), [
               {
                 type: "section" as const,
                 text: {
@@ -287,8 +305,15 @@ export async function postReview(params: PostReviewParams) {
                   text: `*HubSpot ticket:* <${hubspotTicketUrl}|HubSpot ticket>`
                 }
               }
-            ]
-          : []),
+            ])
+          : (console.log(JSON.stringify({
+              level: "debug",
+              message: "postReview: Skipping HubSpot link - no URL provided",
+              timestamp: new Date().toISOString(),
+              ticketId,
+              draftId,
+              reason: "hubspotTicketUrl is falsy"
+            })), [])),
         // Show payment concerns and customer concerns if they exist
         ...(extraction.payment_concerns && extraction.payment_concerns.length > 0 ? [{
           type: "section" as const,
@@ -392,7 +417,8 @@ export async function postReview(params: PostReviewParams) {
         draftId,
         channel,
         messageTs: response.ts,
-        attempt
+        attempt,
+        includedHubSpotLink: !!hubspotTicketUrl
       }));
 
       return response;

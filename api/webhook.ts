@@ -104,14 +104,35 @@ const normalizeEmailBody = (raw: string): string => {
 };
 
 const buildHubSpotTicketUrl = (ticketId?: string): string | null => {
-  if (!ticketId) return null;
+  if (!ticketId) {
+    log("debug", "buildHubSpotTicketUrl: no ticketId provided");
+    return null;
+  }
+  
   const portalId = process.env.HUBSPOT_PORTAL_ID;
   const baseUrl = process.env.HUBSPOT_PORTAL_BASE_URL;
-  if (!portalId || !baseUrl) return null;
+  
+  if (!portalId || !baseUrl) {
+    log("warn", "buildHubSpotTicketUrl: missing HubSpot config", {
+      hasPortalId: !!portalId,
+      hasBaseUrl: !!baseUrl,
+      ticketId
+    });
+    return null;
+  }
 
   const trimmedBase = baseUrl.replace(/\/+$/, "");
   const encodedTicketId = encodeURIComponent(ticketId);
-  return `${trimmedBase}/contacts/${portalId}/record/0-5/${encodedTicketId}`;
+  const generatedUrl = `${trimmedBase}/contacts/${portalId}/record/0-5/${encodedTicketId}`;
+  
+  log("debug", "buildHubSpotTicketUrl: URL constructed", {
+    ticketId,
+    baseUrl: trimmedBase,
+    portalId,
+    generatedUrl
+  });
+  
+  return generatedUrl;
 };
 
 
@@ -182,7 +203,9 @@ export default async function handler(
           ? "content"
           : "none",
       subjectPreview: subject.slice(0, 50),
-      bodyPreview: bodyText.slice(0, 50)
+      bodyPreview: bodyText.slice(0, 50),
+      hasTicketId: !!hubspotTicketId,
+      ticketId: hubspotTicketId
     });
 
 
@@ -229,6 +252,14 @@ export default async function handler(
           channel: slackChannel,
           hubspotTicketUrl: buildHubSpotTicketUrl(hubspotTicketId) ?? undefined
         };
+
+        log("info", "Slack posting to Slack", {
+          requestId,
+          channel: slackChannel,
+          ticketId: result.ticket.id,
+          draftId: result.draft.id,
+          hubspotTicketUrl: slackPayload.hubspotTicketUrl
+        });
 
         const slackTask = postReview(slackPayload).catch((error: unknown) => {
           log("error", "Slack posting failed", {
