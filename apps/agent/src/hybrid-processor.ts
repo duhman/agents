@@ -195,12 +195,27 @@ export async function processEmailHybrid(
       });
     }
 
+    if (extraction.reason === "unknown" || extraction.confidence_factors.clear_intent === false) {
+      logInfo("Skipping automated draft due to low intent confidence", logContext, {
+        reason: extraction.reason,
+        confidenceFactors: extraction.confidence_factors
+      });
+      return {
+        success: true,
+        ticket: null,
+        draft: null,
+        extraction,
+        extraction_method: extractionMethod,
+        error: undefined
+      };
+    }
+
     // Create ticket
     const ticket = await createTicket({
       source,
       customerEmail: maskedCustomerEmail,
       rawEmailMasked: maskedEmail,
-      reason: extraction.reason !== "unknown" ? extraction.reason : undefined,
+      reason: extraction.reason,
       moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
     });
 
@@ -391,4 +406,3 @@ export async function healthCheckHybrid(): Promise<{
     };
   }
 }
-

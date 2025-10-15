@@ -32,6 +32,7 @@ Email → Extract (regex) → Generate Draft (templates) → Database → Slack 
 - 🛡️ **GDPR compliant** PII masking
 - 🤝 **Human-in-the-middle** Slack approval workflow
 - ✅ **Policy-guaranteed** template-based responses
+- 🛑 **Strict cancellation gating** that requires multi-signal intent before any draft is produced
 
 See [`SIMPLIFICATION_SUMMARY.md`](SIMPLIFICATION_SUMMARY.md) for complete details on the simplified architecture.
 
@@ -49,6 +50,7 @@ This project demonstrates production-ready implementation of:
 - 📋 **Database Persistence**: Tickets, drafts, and human reviews tracked
 - 🌐 **Multi-Language Support**: Norwegian, English, and Swedish templates
 - 🔄 **Retry Queues**: Automatic retry for failed Slack posts with exponential backoff
+- 🧠 **Intent Safeguards**: Strong-phrase and verb+subscription matching plus expanded exclusion lists prevent non-cancellation emails (login issues, charging errors, installer updates) from generating drafts
 
 **Migration Note:** Previous multi-agent AI system has been replaced with deterministic processing for improved reliability. See migration details in `SIMPLIFICATION_SUMMARY.md`.
 

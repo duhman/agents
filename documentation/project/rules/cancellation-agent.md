@@ -8,6 +8,7 @@ alwaysApply: true
   - Redact PII before LLM calls
   - End-of-month cancellation policy; include app self-service
   - Norwegian default; fallback to English
+  - Require multi-signal cancellation intent before drafting; exit early otherwise
 - **Prompting DO**
   - Use `packages/prompts` templates; return JSON per extraction schema
 - **Prompting DON'T**
@@ -16,4 +17,3 @@ alwaysApply: true
   - Store tickets, drafts, human_reviews as specified
 - **References**
   - See @prd.md, @prompts.md, @policies.md
-

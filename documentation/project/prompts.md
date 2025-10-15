@@ -11,6 +11,14 @@ The agent now supports:
 - **Edge case handling**: No app access, corporate accounts, future move dates, sameie concerns
 - **Multi-language support**: Norwegian (default), English, Swedish
 - **Confidence factors**: Clear intent, complete information, standard case detection
+- **Multi-signal intent checks**: Strong cancellation phrases or combinations of verbs + subscription terms + relocation cues
+
+### Cancellation intent heuristics
+
+- Strong phrases (`"cancel my subscription"`, `"si opp abonnementet"`, `"säga upp mitt abonnemang"`, etc.) immediately confirm intent when found in subject or body.
+- Otherwise, the detector requires at least two aligned signals (e.g., cancellation verb + subscription noun, verb + relocation term); relocation alone no longer qualifies.
+- Expanded exclusion lists short-circuit non-cancellation cases such as account/login issues, charging-session control, installer/backend requests, feedback surveys, and generic support questions.
+- When intent remains unclear (`clear_intent === false`) or the reason is still `unknown`, the processor exits without creating a ticket or draft.
 
 ## RAG Context Usage (Vector Store) - IMPLEMENTED
 

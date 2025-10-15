@@ -65,23 +65,28 @@ Webhook → Extract (regex/patterns)
 
 **After**: Pattern matching with regex
 ```typescript
-// Cancellation detection
-const cancellationKeywords = ['cancel', 'oppsigelse', 'terminate', 'si opp'];
-const isCancellation = keywords.some(k => email.toLowerCase().includes(k));
+const signals = analyzeCancellationSignals(email);
+const subjectNonCancellation = isNonCancellation(subject);
+const bodyNonCancellation = isNonCancellation(body);
+const hasStrongPhrase = STRONG_PHRASES.some(p => lower.includes(p));
+const hasAlignedSignals =
+  (signals.hasVerb && signals.hasSubscription) ||
+  (signals.hasVerb && signals.hasRelocation) ||
+  (signals.hasNoun && signals.hasSubscription) ||
+  (signals.hasRelocation && signals.hasSubscription);
 
-// Language detection
-const norwegianIndicators = ['jeg', 'vi', 'du', 'har', 'til'];
-const isNorwegian = indicators.filter(w => email.includes(w)).length >= 2;
-
-// Date extraction
-const datePatterns = [/\d{4}-\d{2}-\d{2}/, /\d{1,2}\.\s*mars/, ...];
+const intentDetected =
+  !subjectNonCancellation &&
+  !bodyNonCancellation &&
+  (hasStrongPhrase || hasAlignedSignals || signals.count >= 3);
 ```
 
 **Benefits**:
 - Instant processing
 - Predictable results
 - No API costs
-- Easy to debug
+- Easy to debug and extend (add new signals/exclusions easily)
+- Robust false-positive guards (login issues, charging control, installers)
 
 ### 2. Template-Based Drafts
 **Before**: AI agent generated responses, required validation, sometimes violated policy
@@ -122,8 +127,10 @@ export async function processEmailSimplified(params) {
   // 2. Extract data (deterministic)
   const extraction = extractEmailData(email);
   
-  // 3. Only process cancellations
-  if (!extraction.is_cancellation) return { success: true };
+  // 3. Only process well-formed cancellations
+  if (!extraction.is_cancellation || !extraction.confidence_factors.clear_intent || extraction.reason === "unknown") {
+    return { success: true };
+  }
   
   // 4. Create ticket
   const ticket = await createTicket({...});
@@ -167,7 +174,7 @@ All core functionality tests **PASSED** ✅
 - ✅ Moving reason identified
 - ✅ Language correctly detected
 - ✅ Dates extracted from text
-- ✅ Non-cancellations filtered
+- ✅ Non-cancellations filtered (login issues, charging session control, installer/backend updates)
 
 ### Test 3: Draft Generation
 - ✅ Norwegian templates work

@@ -72,6 +72,7 @@ This will process a sample Norwegian cancellation email and output:
 - Extracted fields (is_cancellation, reason, move_date, language)
 - Draft reply in Norwegian
 - Confidence score
+- Intent gating logs indicating that only clear cancellations produce drafts (non-cases exit early)
 
 ## Step 6: (Optional) Test Slack Bot
 

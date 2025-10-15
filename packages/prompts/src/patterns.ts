@@ -5,62 +5,108 @@
  * in customer emails across Norwegian, English, and Swedish languages.
  */
 
+const CANCELLATION_VERB_PATTERNS = {
+  norwegian: [
+    'si opp', 'sier opp', 'sagt opp', 'oppsig', 'avslutt', 'avslutter', 'avsluttet',
+    'kanseller', 'kansellere', 'kansellering', 'terminer', 'terminere', 'stopp',
+    'stoppe', 'slutt', 'avbryt', 'opphør', 'oppheve'
+  ],
+  english: [
+    'cancel', 'cancellation', 'terminate', 'termination', 'end subscription',
+    'stop subscription', 'discontinue', 'close account'
+  ],
+  swedish: [
+    'säga upp', 'säger upp', 'sagt upp', 'uppsägning', 'avsluta', 'avslutar',
+    'avslutat', 'avbryta', 'stoppa', 'sluta', 'terminera'
+  ]
+} as const;
+
+const CANCELLATION_NOUN_PATTERNS = {
+  norwegian: ['oppsigelse', 'oppsigelsen', 'oppsigelsestid', 'oppsigelsesbrev'],
+  english: ['cancellation', 'termination', 'cancelling'],
+  swedish: ['uppsägning', 'uppsägningen']
+} as const;
+
+const SUBSCRIPTION_PATTERNS = {
+  norwegian: ['abonnement', 'kundeforhold', 'avtale', 'kontrakt'],
+  english: ['subscription', 'membership', 'service agreement'],
+  swedish: ['abonnemang', 'kundförhållande', 'avtal', 'kontrakt']
+} as const;
+
+const RELOCATION_PATTERNS = {
+  norwegian: ['flytter', 'flytting', 'flyttet', 'flytte', 'relokasjon', 'relokere', 'ny adresse'],
+  english: ['moving', 'move out', 'relocating', 'relocation', 'leaving'],
+  swedish: ['flyttar', 'flyttning', 'flyttat', 'flytta', 'relokation', 'ny adress']
+} as const;
+
+const CANCELLATION_PHRASES = {
+  norwegian: [
+    'si opp abonnementet', 'sier opp abonnementet', 'sier opp mitt abonnement',
+    'avslutte abonnementet', 'avslutter abonnementet', 'ønsker å si opp',
+    'ønsker å avslutte', 'jeg sier opp', 'ønsker oppsigelse'
+  ],
+  english: [
+    'cancel my subscription', 'cancel the subscription', 'terminate my subscription',
+    'end my subscription', 'discontinue my subscription', 'request cancellation',
+    'i am cancelling my subscription'
+  ],
+  swedish: [
+    'säga upp mitt abonnemang', 'säger upp mitt abonnemang', 'säga upp abonnemanget',
+    'avsluta abonnemanget', 'avslutar abonnemanget'
+  ]
+} as const;
+
+// Legacy export maintained for compatibility with existing imports.
 export const CANCELLATION_PATTERNS = {
   norwegian: [
-    // Direct cancellation terms
-    'oppsig', 'si opp', 'avslutt', 'kanseller', 'kansellering',
-    'terminer', 'stopp', 'slutt', 'avbryt',
-    
-    // Moving/relocation terms
-    'flytter', 'flytting', 'flyttet', 'flytte',
-    'relokasjon', 'relokere', 'relokert',
-    
-    // Payment-related cancellations
-    'fortsatt betalt', 'dobbel trekk', 'refunder', 'refusjon',
-    'feil trekk', 'feilaktig betaling', 'kreditert',
-    
-    // Subscription terms
-    'abonnement', 'abonnemang', 'subscription',
-    'kundeforhold', 'avtale', 'kontrakt'
+    ...CANCELLATION_VERB_PATTERNS.norwegian,
+    ...CANCELLATION_NOUN_PATTERNS.norwegian,
+    ...SUBSCRIPTION_PATTERNS.norwegian,
+    ...RELOCATION_PATTERNS.norwegian
   ],
-  
   english: [
-    // Direct cancellation terms
-    'cancel', 'cancellation', 'terminate', 'termination',
-    'end subscription', 'stop subscription', 'discontinue',
-    
-    // Moving/relocation terms
-    'moving', 'relocating', 'relocation', 'moved',
-    'moving out', 'leaving', 'departure',
-    
-    // Payment-related cancellations
-    'charged twice', 'double charge', 'billing issue',
-    'refund', 'refund request', 'payment error',
-    'incorrect charge', 'wrong billing',
-    
-    // Subscription terms
-    'subscription', 'membership', 'service',
-    'account', 'contract', 'agreement'
+    ...CANCELLATION_VERB_PATTERNS.english,
+    ...CANCELLATION_NOUN_PATTERNS.english,
+    ...SUBSCRIPTION_PATTERNS.english,
+    ...RELOCATION_PATTERNS.english
   ],
-  
   swedish: [
-    // Direct cancellation terms
-    'uppsägning', 'säga upp', 'avsluta', 'avbryta',
-    'stoppa', 'sluta', 'terminera',
-    
-    // Moving/relocation terms
-    'flyttar', 'flyttning', 'flyttat', 'flytta',
-    'relokation', 'relokera', 'relokerat',
-    
-    // Payment-related cancellations
-    'fortfarande betalt', 'dubbel dragning', 'återbetalning',
-    'fel dragning', 'felaktig betalning', 'krediterat',
-    
-    // Subscription terms
-    'abonnemang', 'prenumeration', 'subscription',
-    'kundförhållande', 'avtal', 'kontrakt'
+    ...CANCELLATION_VERB_PATTERNS.swedish,
+    ...CANCELLATION_NOUN_PATTERNS.swedish,
+    ...SUBSCRIPTION_PATTERNS.swedish,
+    ...RELOCATION_PATTERNS.swedish
   ]
 };
+
+const ALL_CANCELLATION_VERBS = [
+  ...CANCELLATION_VERB_PATTERNS.norwegian,
+  ...CANCELLATION_VERB_PATTERNS.english,
+  ...CANCELLATION_VERB_PATTERNS.swedish
+];
+
+const ALL_CANCELLATION_NOUNS = [
+  ...CANCELLATION_NOUN_PATTERNS.norwegian,
+  ...CANCELLATION_NOUN_PATTERNS.english,
+  ...CANCELLATION_NOUN_PATTERNS.swedish
+];
+
+const ALL_SUBSCRIPTION_TERMS = [
+  ...SUBSCRIPTION_PATTERNS.norwegian,
+  ...SUBSCRIPTION_PATTERNS.english,
+  ...SUBSCRIPTION_PATTERNS.swedish
+];
+
+const ALL_RELOCATION_TERMS = [
+  ...RELOCATION_PATTERNS.norwegian,
+  ...RELOCATION_PATTERNS.english,
+  ...RELOCATION_PATTERNS.swedish
+];
+
+const ALL_CANCELLATION_PHRASES = [
+  ...CANCELLATION_PHRASES.norwegian,
+  ...CANCELLATION_PHRASES.english,
+  ...CANCELLATION_PHRASES.swedish
+];
 
 export const PAYMENT_ISSUE_PATTERNS = {
   norwegian: [
@@ -95,12 +141,28 @@ export const NON_CANCELLATION_PATTERNS = {
   ],
   questions: [
     'how do i', 'how can i', 'what is', 'where can', 'when will',
-    'spørsmål', 'fråga', 'question'
+    'spørsmål', 'fråga', 'question', 'hvordan', 'hvordan gjør jeg', 'hur gör jag'
   ],
   support_requests: [
     'help with', 'problem with', 'issue with', 'not working',
     'technical support', 'teknisk support', 'app not working',
-    'cannot access', 'access the charging station'
+    'cannot access', 'access the charging station', 'får ikke tilgang',
+    'fungerer ikke', 'does not work', 'virker ikke'
+  ],
+  account_access: [
+    'kan ikke logge inn', 'får ikke logget inn', 'logg inn', 'login',
+    'apple-id', 'apple id', 'skjult e-post', 'hidden email', 'kontoen min',
+    'brukeren min', 'cannot sign in', 'reset password'
+  ],
+  charging_session: [
+    'lading', 'ladeøkten', 'ladeøkt', 'charging session', 'stop charging',
+    'avslutte lading', 'avslutt lading', 'får ikke stoppet', 'kan ikke starte lading',
+    'charger not', 'ladeboks', 'chargebox', 'charging point', 'evlink'
+  ],
+  installer_requests: [
+    'montasje', 'montert', 'installasjon', 'installer', 'service montør',
+    'backend', 'legg inn', 'chargebox id', 'serial number', 'new charger',
+    'installer request'
   ]
 };
 
@@ -142,37 +204,63 @@ export const EDGE_CASE_PATTERNS = {
   }
 };
 
+function matchAny(lower: string, patterns: string[]): boolean {
+  return patterns.some(pattern => lower.includes(pattern));
+}
+
+function analyzeCancellationSignals(text: string) {
+  const lower = text.toLowerCase();
+  return {
+    lower,
+    hasStrongPhrase: matchAny(lower, ALL_CANCELLATION_PHRASES),
+    hasVerb: matchAny(lower, ALL_CANCELLATION_VERBS),
+    hasNoun: matchAny(lower, ALL_CANCELLATION_NOUNS),
+    hasSubscription: matchAny(lower, ALL_SUBSCRIPTION_TERMS),
+    hasRelocation: matchAny(lower, ALL_RELOCATION_TERMS)
+  };
+}
+
+function countSignals(signals: ReturnType<typeof analyzeCancellationSignals>): number {
+  return [
+    signals.hasVerb,
+    signals.hasNoun,
+    signals.hasSubscription,
+    signals.hasRelocation
+  ].filter(Boolean).length;
+}
+
 /**
  * Detect if an email is clearly NOT a cancellation request
  */
 export function isNonCancellationEmail(email: string): boolean {
-  const lower = email.toLowerCase();
-  
-  // Check for feedback/survey patterns
-  const hasFeedbackPattern = NON_CANCELLATION_PATTERNS.feedback_requests.some(
-    pattern => lower.includes(pattern)
-  );
-  
-  if (hasFeedbackPattern) return true;
-  
-  // Check for support request patterns
-  const hasSupportPattern = NON_CANCELLATION_PATTERNS.support_requests.some(
-    pattern => lower.includes(pattern)
-  );
-  
-  if (hasSupportPattern) return true;
-  
-  // Check for question patterns (without cancellation keywords)
-  const hasQuestionPattern = NON_CANCELLATION_PATTERNS.questions.some(
-    pattern => lower.includes(pattern)
-  );
-  
-  const hasCancellationKeyword = Object.values(CANCELLATION_PATTERNS).some(patterns =>
-    patterns.some(pattern => lower.includes(pattern))
-  );
-  
-  if (hasQuestionPattern && !hasCancellationKeyword) return true;
-  
+  const signals = analyzeCancellationSignals(email);
+  const lower = signals.lower;
+
+  if (matchAny(lower, NON_CANCELLATION_PATTERNS.feedback_requests)) {
+    return true;
+  }
+
+  if (matchAny(lower, NON_CANCELLATION_PATTERNS.installer_requests)) {
+    return true;
+  }
+
+  const supportLike =
+    matchAny(lower, NON_CANCELLATION_PATTERNS.support_requests) ||
+    matchAny(lower, NON_CANCELLATION_PATTERNS.charging_session);
+  if (supportLike && !signals.hasStrongPhrase && !signals.hasSubscription && !signals.hasRelocation) {
+    return true;
+  }
+
+  const accountAccess = matchAny(lower, NON_CANCELLATION_PATTERNS.account_access);
+  if (accountAccess && !signals.hasStrongPhrase && !signals.hasVerb) {
+    return true;
+  }
+
+  const hasQuestionPattern = matchAny(lower, NON_CANCELLATION_PATTERNS.questions);
+  if (hasQuestionPattern && countSignals(signals) === 0 && !signals.hasStrongPhrase) {
+    return true;
+  }
+
   return false;
 }
 
@@ -184,12 +272,25 @@ export function detectCancellationIntent(email: string): boolean {
   if (isNonCancellationEmail(email)) {
     return false;
   }
-  
-  const lower = email.toLowerCase();
-  
-  return Object.values(CANCELLATION_PATTERNS).some(patterns => 
-    patterns.some(pattern => lower.includes(pattern))
-  );
+
+  const signals = analyzeCancellationSignals(email);
+
+  if (signals.hasStrongPhrase) {
+    return true;
+  }
+
+  const comboDetected =
+    (signals.hasVerb && signals.hasSubscription) ||
+    (signals.hasVerb && signals.hasRelocation) ||
+    (signals.hasNoun && signals.hasSubscription) ||
+    (signals.hasRelocation && signals.hasSubscription) ||
+    (signals.hasVerb && signals.hasNoun);
+
+  if (comboDetected) {
+    return true;
+  }
+
+  return countSignals(signals) >= 3;
 }
 
 /**
@@ -338,7 +439,7 @@ export function detectCancellationIntentEnhanced(rawEmail: string): boolean {
   
   // If subject clearly indicates non-cancellation (feedback, inquiry), reject
   const subjectIsNonCancellation = isNonCancellationEmail(subject);
-  if (subjectIsNonCancellation) {
+  if (subjectIsNonCancellation && !bodyHasCancellation) {
     return false;
   }
   

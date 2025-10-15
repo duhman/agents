@@ -96,6 +96,12 @@ graph TD
     style J fill:#ffcdd2
 ```
 
+**Intent safeguards**
+- Strong cancellation phrases short-circuit to “cancellation” only when present in subject or body.
+- Otherwise, at least two signals (verb + subscription term, verb + relocation reference, noun + subscription term, etc.) must co-occur; relocation alone no longer qualifies.
+- Expanded exclusion patterns cover login/account access, charging control, installer onboarding, and generic support so these stop at `Return: Not Cancellation`.
+- If the extractor still marks intent as unclear (`clear_intent === false`) or cannot determine a reason, the processor exits without creating a ticket or draft.
+
 ## Email Processing Decision Tree
 
 ```mermaid

@@ -52,7 +52,7 @@ Successfully implemented full hybrid agent with all enhancements from `AGENT_IMP
 - ✅ Standard English relocation
 - ✅ No app access edge case
 - ✅ Swedish language support
-- ✅ Non-cancellation detection
+- ✅ Non-cancellation detection (login/account access, charging session, installer/backend)
 - ✅ Already canceled edge case
 
 ## Key Improvements
@@ -65,6 +65,7 @@ Successfully implemented full hybrid agent with all enhancements from `AGENT_IMP
 | **Confidence Scoring** | 4 factors | 7 factors | More accurate |
 | **Policy Compliance** | ~85% | ≥95% | +10% |
 | **Response Structure** | Variable | 70-100 words | Consistent |
+| **Intent Safeguards** | Keyword-only filter | Strong-phrase + multi-signal gating | Fewer false positives |
 
 ## Deployment Checklist
 

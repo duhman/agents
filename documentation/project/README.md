@@ -96,9 +96,14 @@ This directory contains core project documentation including requirements, techn
 ### Data Flow
 
 ```
-Email → PII Mask → Agents SDK Orchestration → (if relocation) Vector Store Search → Draft → Slack HITM →
+Email → PII Mask → Agents SDK Orchestration → Multi-signal Cancellation Gating → (if edge case) Vector Store Search → Draft → Slack HITM →
 Approve/Edit/Reject → Store Human Decision → Export → Fine-tune
 ```
+
+**Cancellation gating highlights**
+- Strong phrases (`"cancel my subscription"`, `"si opp abonnementet"`, etc.) are required or the email must include multiple supporting signals (verb + subscription term, relocation + subscription term, etc.).
+- Expanded exclusion lists catch login/account access, charging-session control, installer/backend asks, feedback requests, and generic support before any draft work begins.
+- Even after detection, the processor skips ticket/draft creation whenever `clear_intent === false` or the reason remains `unknown`, ensuring only true cancellations reach HITM review.
 
 ### Success Metrics
 
@@ -115,9 +120,10 @@ Approve/Edit/Reject → Store Human Decision → Export → Fine-tune
 2. PII masking (emails, phones, addresses)
 3. Agents SDK orchestration (emailProcessingAgent → triageAgent → cancellationAgent)
 4. Structured extraction with tools (maskPiiTool, vectorStoreSearchTool, createTicketTool)
-5. Draft generation (deterministic templates via generateDraftTool)
-6. Confidence scoring (calculateConfidenceTool)
-7. Store ticket and draft (createDraftTool)
+5. Multi-signal cancellation validation and early exit for non-cases or unclear intent
+6. Draft generation (deterministic templates via generateDraftTool)
+7. Confidence scoring (calculateConfidenceTool)
+8. Store ticket and draft (createDraftTool)
 
 ### HITM Review
 

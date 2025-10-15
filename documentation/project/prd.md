@@ -49,7 +49,7 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
 ### In-Scope (Phase 1–2)
 
 - Email ingestion from HubSpot / shared inbox.
-- LLM agent classification: cancellation vs. other inquiries.
+- LLM agent classification with multi-signal gating so only true cancellations continue.
 - Drafting responses for cancellation due to moving/relocation.
 - Slack integration:
   - Post draft with approve/reject/edit buttons.
@@ -89,6 +89,9 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
 - Detect cancellation intent.
 - Detect reason = “moving/relocating.”
 - Extract key fields: move date, subscription details (if mentioned).
+- Require strong cancellation phrases or aligned signal pairs (verb + subscription, relocation + subscription, etc.) before continuing.
+- Short-circuit login/account access, charging-session, installer/backend, feedback, and general-support requests.
+- Skip ticket/draft creation when intent confidence remains low or the reason is `unknown`.
 
 ### Response Drafting
 

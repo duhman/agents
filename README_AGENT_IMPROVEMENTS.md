@@ -107,6 +107,7 @@ Key changes in `apps/agent/src/simplified-processor.ts`:
 | **Response Length** | Variable | 70-100 words (consistent) |
 | **Confidence Scoring** | 4 factors | 7 factors (granular) |
 | **Policy Compliance** | ~85% | ≥95% (guaranteed) |
+| **Intent Safeguards** | Keyword match only | Multi-signal gating + expanded non-cancellation filters |
 
 ---
 
@@ -212,7 +213,7 @@ THIS FILE → README_AGENT_IMPROVEMENTS.md
 **Test Cases:** 15 comprehensive tests covering:
 - Standard Norwegian/English/Swedish cases
 - Edge cases (sameie, no app access, future dates)
-- Non-cancellation cases (should not trigger)
+- Non-cancellation cases (login/account issues, charging session control, installer/backend requests)
 - Complex multi-concern cases
 
 **Success Criteria:**
@@ -294,4 +295,3 @@ cd apps/agent && node
 **Version:** 1.0  
 **Status:** ✅ Complete, tested, and ready for implementation  
 **Confidence:** High (research-backed, best-practice-aligned)
-

@@ -37,6 +37,24 @@ describe("Email Classification", () => {
       assert.equal(isNonCancellationEmail(email), true);
       assert.equal(detectCancellationIntentEnhanced(email), false);
     });
+
+    it("flags Apple ID login issues as non-cancellation", () => {
+      const email = `Subject: Kontakt - Ladeabonnement.\n\nHei.\n\nJeg har forsøkt å kontakte dere via Support skjema, men har ikke fått bekreftelse på at dere har mottatt min henvendelse;\n\nJeg har en konto hos dere som er laget med skjult e-post adresse fra Apple-ID og jeg får ikke logget inn på brukeren min. Dette ønsker jeg å ha tilgang til.\n\nSiden det ikke er mulig å endre e-post adresse via deres system (i følge deres ChatBot) lurer jeg på om en løsning kan være at dere sletter den brukeren og jeg får opprettet nytt.\n\nHilsen Marian Sundal`;
+      assert.equal(isNonCancellationEmail(email), true);
+      assert.equal(detectCancellationIntentEnhanced(email), false);
+    });
+
+    it("flags charging session issues as non-cancellation", () => {
+      const email = "Subject: Lading\n\nFår ikke avsluttd lading i solheimslien.";
+      assert.equal(isNonCancellationEmail(email), true);
+      assert.equal(detectCancellationIntentEnhanced(email), false);
+    });
+
+    it("flags installer onboarding requests as non-cancellation", () => {
+      const email = `Subject: Montasje av ny EVlink PRO AC på Plass 17 på Marienlyst Garasjer\n\nJeg har montert en EVlink PRO AC på Plass 17 på Marienlyst Garasjer og trenger at dere legger denne inn i deres backend.\n\nChargebox ID: B25216020006`;
+      assert.equal(isNonCancellationEmail(email), true);
+      assert.equal(detectCancellationIntentEnhanced(email), false);
+    });
   });
 
   describe("Cancellation Detection", () => {

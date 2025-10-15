@@ -214,11 +214,25 @@ export async function processEmailSimplified(
       };
     }
 
+    if (!extraction.confidence_factors.clear_intent || extraction.reason === "unknown") {
+      logInfo("Cancellation intent unclear - skipping automated draft", logContext, {
+        confidenceFactors: extraction.confidence_factors,
+        reason: extraction.reason
+      });
+      return {
+        success: true,
+        ticket: null,
+        draft: null,
+        extraction,
+        error: undefined
+      };
+    }
+
     const ticket = await createTicket({
       source,
       customerEmail: maskedCustomerEmail,
       rawEmailMasked: maskedEmail,
-      reason: extraction.reason !== "unknown" ? extraction.reason : undefined,
+      reason: extraction.reason,
       moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
     });
     
