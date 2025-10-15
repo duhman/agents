@@ -1,6 +1,6 @@
 ---
 description: Vercel deployment patterns and serverless constraints (Updated January 2025)
-globs: apps/ingestor/**/*.ts, vercel.json, apps/**/api/**/*.ts
+globs: api/**/*.ts, vercel.json
 alwaysApply: false
 ---
 
@@ -268,13 +268,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 {
   "buildCommand": "pnpm install && pnpm build",
   "functions": {
-    "apps/ingestor/api/webhook.ts": {
+    "api/webhook.ts": {
       "maxDuration": 30
     },
-    "apps/ingestor/api/health.ts": {
+    "api/health.ts": {
       "maxDuration": 10
     },
-    "apps/ingestor/api/cron/export-training-data.ts": {
+    "api/cron/export-training-data.ts": {
       "maxDuration": 300
     }
   },
@@ -312,9 +312,9 @@ const result = await withRetry(
 
 ## References
 
-- @apps/ingestor/api/webhook.ts - Webhook handler with latest patterns
-- @apps/ingestor/api/health.ts - Health check endpoint
-- @apps/ingestor/api/cron/export-training-data.ts - Cron example
+- api/webhook.ts - Webhook handler with latest patterns
+- api/health.ts - Health check endpoint
+- api/cron/export-training-data.ts - Cron example
 - @vercel.json - Deployment configuration
 - @packages/db/src/client.ts - Database connection pooling
 - [Vercel Functions Documentation](https://vercel.com/docs/functions)

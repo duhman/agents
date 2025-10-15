@@ -38,7 +38,7 @@ Mvh,
 Ole
   `;
 
-  console.log("Testing simplified processor...");
+  console.log("Testing hybrid processor...");
 
   processEmail({
     source: "test",

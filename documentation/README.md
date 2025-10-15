@@ -9,11 +9,8 @@ documentation/
 ├── README.md                    # This file
 ├── cursor/                      # Cursor IDE setup and configuration
 │   ├── CURSOR_SETUP.md         # Initial setup guide
-│   ├── CURSOR_OPTIMIZATION.md   # All optimizations applied
-│   ├── CURSOR_LATEST_FEATURES.md # Latest features (Jan 2025)
-│   ├── CURSOR_MIGRATION_SUMMARY.md # Feature migration overview
-│   ├── CURSOR_RULES_MIGRATION.md # Rules migration guide
-│   └── CURSOR_RULES_SUMMARY.md  # Rules quick reference
+│   ├── CURSOR_FEATURES.md      # All features and optimizations
+│   └── CURSOR_RULES_MIGRATION.md # Rules migration guide
 ├── deployment/                  # Deployment and setup guides
 │   ├── QUICKSTART.md           # Local setup (<10 minutes)
 │   ├── DEPLOYMENT.md           # Vercel deployment guide
@@ -21,7 +18,7 @@ documentation/
 │   └── ENVIRONMENT_VARIABLES.md # Environment variables reference
 └── project/                     # Project documentation
     ├── prd.md                  # Product Requirements Document
-    ├── plan.md                 # Technical implementation plan
+    ├── architecture.md         # System architecture and process flows
     ├── policies.md             # Tone, language, cancellation policies
     ├── prompts.md              # Prompt templates overview
     ├── datasets.md             # Dataset contract (external HubSpot)
@@ -38,15 +35,14 @@ documentation/
 
 ### Development
 
-- **Technical architecture:** [`project/plan.md`](project/plan.md)
+- **Technical architecture:** [`project/architecture.md`](project/architecture.md)
 - **Policies & tone:** [`project/policies.md`](project/policies.md)
 - **Prompt engineering:** [`project/prompts.md`](project/prompts.md)
 
 ### Cursor IDE
 
 - **Setup guide:** [`cursor/CURSOR_SETUP.md`](cursor/CURSOR_SETUP.md)
-- **All optimizations:** [`cursor/CURSOR_OPTIMIZATION.md`](cursor/CURSOR_OPTIMIZATION.md)
-- **Latest features:** [`cursor/CURSOR_LATEST_FEATURES.md`](cursor/CURSOR_LATEST_FEATURES.md)
+- **All features & optimizations:** [`cursor/CURSOR_FEATURES.md`](cursor/CURSOR_FEATURES.md)
 - **Rules migration:** [`cursor/CURSOR_RULES_MIGRATION.md`](cursor/CURSOR_RULES_MIGRATION.md)
 
 ### Deployment
@@ -61,7 +57,7 @@ documentation/
 ### For Developers
 
 1. [`deployment/QUICKSTART.md`](deployment/QUICKSTART.md) - Get running locally in <10 min
-2. [`project/plan.md`](project/plan.md) - Understand the architecture
+2. [`project/architecture.md`](project/architecture.md) - Understand the architecture
 3. [`cursor/CURSOR_SETUP.md`](cursor/CURSOR_SETUP.md) - Configure your IDE
 
 ### For Product/Team Leads
@@ -74,7 +70,7 @@ documentation/
 
 1. [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) - Vercel setup
 2. [`deployment/ENVIRONMENT_VARIABLES.md`](deployment/ENVIRONMENT_VARIABLES.md) - Environment configuration
-3. [`project/plan.md`](project/plan.md) - Infrastructure requirements
+3. [`project/architecture.md`](project/architecture.md) - Infrastructure requirements
 4. [`project/datasets.md`](project/datasets.md) - Data pipeline contract
 5. [`../SLACK_INTEGRATION_ENHANCEMENTS.md`](../SLACK_INTEGRATION_ENHANCEMENTS.md) - Slack reliability improvements
 

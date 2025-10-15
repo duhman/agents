@@ -37,7 +37,7 @@ Pin these files in Cursor chat context for easy reference:
    - `@prd.md` - Product requirements
    - `@docs/policies.md` - Tone and policy guidelines
    - `@docs/prompts.md` - Prompt templates overview
-   - `@plan.md` - Implementation plan
+   - `@architecture.md` - System architecture
    - `@README.md` - Quick start guide
 
 **Usage:** When working on agent logic, drafting, or HITM flows, start prompts with:
@@ -207,7 +207,7 @@ tsx ops/scripts/finetune.ts
 ## Questions?
 
 - Check `README.md` for quick start
-- Review `plan.md` for architecture
+- Review `documentation/project/architecture.md` for architecture
 - Reference `docs/policies.md` for tone/policy
 - Ask Cursor with pinned context: `@prd.md What is...`
 

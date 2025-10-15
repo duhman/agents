@@ -249,7 +249,7 @@ To capture training data for rejected drafts, the Slack interaction now launches
 - **Webhook Handler**: `api/webhook.ts`
 - **Health Checks**: `api/health.ts`
 - **Cursor Rules**: `.cursor/rules/slack-hitm.mdc`
-- **Process Flow**: `agent-process-flow.md`
+- **Process Flow**: `documentation/project/architecture.md`
 
 ## Version History
 

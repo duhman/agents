@@ -1,6 +1,6 @@
 # Agents Monorepo
 
-**Simplified, deterministic email processing system with Slack HITM for customer support automation.**
+**Hybrid deterministic/AI email processing system with Slack HITM for customer support automation.**
 
 ## Quick Start
 
@@ -14,27 +14,28 @@ cd infra && docker compose up -d
 cd packages/db && pnpm drizzle-kit push
 cp .env.example .env  # Add your credentials
 pnpm run build
-pnpm exec tsx test-simplified.ts  # Test the system
+pnpm exec tsx apps/agent/src/index.ts  # Test the system
 ```
 
-## Architecture (Simplified - October 2025)
+## Architecture (Hybrid - January 2025)
 
-This system uses a **deterministic, template-based approach** for maximum reliability and speed:
+This system uses a **hybrid deterministic/AI approach** for optimal reliability and accuracy:
 
 ```
-Email → Extract (regex) → Generate Draft (templates) → Database → Slack HITM → Human follow-up
+Email → Deterministic Extract → {Standard Case: Templates | Complex Case: OpenAI} → Database → Slack HITM → Human follow-up
 ```
 
 **Key Features:**
-- ⚡ **<500ms processing** (no AI inference required)
-- 🎯 **100% reliable** deterministic extraction and drafting
-- 💰 **Zero AI costs** for core workflow
+- ⚡ **<500ms processing** for standard cases (deterministic)
+- 🧠 **<3s processing** for complex cases (OpenAI fallback)
+- 🎯 **100% reliable** deterministic extraction for 80-90% of cases
+- 💰 **Minimal AI costs** (only for complex cases)
 - 🛡️ **GDPR compliant** PII masking
 - 🤝 **Human-in-the-middle** Slack approval workflow
 - ✅ **Policy-guaranteed** template-based responses
 - 🛑 **Strict cancellation gating** that requires multi-signal intent before any draft is produced
 
-See [`SIMPLIFICATION_SUMMARY.md`](SIMPLIFICATION_SUMMARY.md) for complete details on the simplified architecture.
+See [`SIMPLIFICATION_SUMMARY.md`](SIMPLIFICATION_SUMMARY.md) for complete details on the hybrid architecture.
 
 ## 🎯 System Overview (Updated January 2025)
 
@@ -52,7 +53,7 @@ This project demonstrates production-ready implementation of:
 - 🔄 **Retry Queues**: Automatic retry for failed Slack posts with exponential backoff
 - 🧠 **Intent Safeguards**: Strong-phrase and verb+subscription matching plus expanded exclusion lists prevent non-cancellation emails (login issues, charging errors, installer updates) from generating drafts
 
-**Migration Note:** Previous multi-agent AI system has been replaced with deterministic processing for improved reliability. See migration details in `SIMPLIFICATION_SUMMARY.md`.
+**Architecture Note:** The system evolved from pure simplification to a hybrid approach that combines the reliability of deterministic processing with the accuracy of AI for complex cases. See details in `SIMPLIFICATION_SUMMARY.md`.
 
 ## Project Structure
 
@@ -82,7 +83,7 @@ All project documentation is organized in the [`documentation/`](documentation/)
 
 - **Getting Started**: [`documentation/deployment/QUICKSTART.md`](documentation/deployment/QUICKSTART.md)
 - **Project Requirements**: [`documentation/project/prd.md`](documentation/project/prd.md)
-- **Technical Plan**: [`documentation/project/plan.md`](documentation/project/plan.md)
+- **Technical Architecture**: [`documentation/project/architecture.md`](documentation/project/architecture.md)
 - **Cursor Setup**: [`documentation/cursor/CURSOR_SETUP.md`](documentation/cursor/CURSOR_SETUP.md)
 - **Deployment Guide**: [`documentation/deployment/DEPLOYMENT.md`](documentation/deployment/DEPLOYMENT.md)
 
@@ -95,17 +96,16 @@ See [`documentation/README.md`](documentation/README.md) for complete documentat
 1. The project uses latest Cursor features (Rules, Memories, Hooks, MCP, Custom Modes)
 2. **Restart Cursor** after cloning to load all configurations
 3. Install recommended extensions (prompted automatically)
-4. See [`documentation/cursor/CURSOR_RULES_MIGRATION.md`](documentation/cursor/CURSOR_RULES_MIGRATION.md) for new rules structure
-5. See [`documentation/cursor/CURSOR_LATEST_FEATURES.md`](documentation/cursor/CURSOR_LATEST_FEATURES.md) for newest features (Jan 2025)
-6. See [`documentation/cursor/CURSOR_OPTIMIZATION.md`](documentation/cursor/CURSOR_OPTIMIZATION.md) for all optimizations
+4. See [`documentation/cursor/CURSOR_SETUP.md`](documentation/cursor/CURSOR_SETUP.md) for initial setup
+5. See [`documentation/cursor/CURSOR_FEATURES.md`](documentation/cursor/CURSOR_FEATURES.md) for all features and optimizations
+6. See [`documentation/cursor/CURSOR_RULES_MIGRATION.md`](documentation/cursor/CURSOR_RULES_MIGRATION.md) for rules structure
 
 **Latest Features**:
 
 - 📋 **Cursor Rules**: Organized `.cursor/rules/` with `.mdc` files (context-aware)
-- 🤖 **Rules Automation**: Auto-sync rules with codebase changes (MCP + file watchers)
 - 🧠 **Cursor Memories**: Auto-loaded project knowledge
 - 🔗 **Agent Hooks**: Pre/post request automation (PII checks, reminders)
-- 🌐 **MCP Servers**: Exa (web search) + Context7 (library docs) + Cursor Rules (automation)
+- 🌐 **MCP Servers**: Exa (web search) + Context7 (library docs)
 - 🎯 **Custom Modes**: Agent Dev, DB Schema, Slack HITM, Eval & FT
 - ⚡ **Auto-context**: `@prd.md`, `@policies.md`, `.cursormemory`
 - 🎨 **Format on save**, ESLint auto-fix

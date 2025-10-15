@@ -120,7 +120,7 @@ logInfo("Request completed", { ...logContext, duration });
 ✅ **DO:** Implement health checks for monitoring
 
 ```typescript
-// apps/ingestor/api/health.ts
+// api/health.ts
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const health = {
     status: "healthy",
@@ -308,7 +308,7 @@ console.log(JSON.stringify({
 
 ## References
 
-- @packages/core/src/index.ts - Logging utilities and retry logic
-- @apps/ingestor/api/webhook.ts - Webhook handler with logging
-- @apps/ingestor/api/health.ts - Health check endpoint
-- @apps/agent/src/index.ts - Email processing with observability
+- packages/core/src/index.ts - Logging utilities and retry logic
+- api/webhook.ts - Webhook handler with logging
+- api/health.ts - Health check endpoint
+- apps/agent/src/index.ts - Email processing with observability

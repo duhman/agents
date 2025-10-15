@@ -18,7 +18,7 @@ This directory contains core project documentation including requirements, techn
   - Risks and mitigations
   - Roadmap and phases
 
-- **[`plan.md`](plan.md)** - Technical Implementation Plan
+- **[`architecture.md`](architecture.md)** - System Architecture and Process Flows
   - Tech stack details
   - Repository layout
   - Data model
@@ -60,11 +60,11 @@ This directory contains core project documentation including requirements, techn
 
 1. [`prd.md`](prd.md) - Understand goals, KPIs, and requirements
 2. [`policies.md`](policies.md) - Review business policies
-3. [`plan.md`](plan.md) - Technical architecture overview
+3. [`architecture.md`](architecture.md) - Technical architecture overview
 
 ### For Developers
 
-1. [`plan.md`](plan.md) - Technical implementation details
+1. [`architecture.md`](architecture.md) - Technical implementation details
 2. [`prompts.md`](prompts.md) - Prompt engineering patterns
 3. [`datasets.md`](datasets.md) - Training data format
 
@@ -85,7 +85,7 @@ This directory contains core project documentation including requirements, techn
 
 ### Tech Stack
 
-- **AI/LLM**: OpenAI Agents SDK (`@openai/agents`) with gpt-4o-2024-08-06, structured outputs, fine-tuning
+- **AI/LLM**: OpenAI API with gpt-4o-2024-08-06, structured outputs, hybrid deterministic/AI processing
 - **RAG**: OpenAI Vector Store for contextual retrieval from HubSpot tickets (`OPENAI_VECTOR_STORE_ID`)
 - **Runtime**: Node.js 20, TypeScript
 - **Database**: PostgreSQL (Drizzle ORM)
@@ -96,7 +96,7 @@ This directory contains core project documentation including requirements, techn
 ### Data Flow
 
 ```
-Email → PII Mask → Agents SDK Orchestration → Multi-signal Cancellation Gating → (if edge case) Vector Store Search → Draft → Slack HITM →
+Email → PII Mask → Hybrid Processor → Multi-signal Cancellation Gating → (if edge case) Vector Store Search → Draft → Slack HITM →
 Approve/Edit/Reject → Store Human Decision → Export → Fine-tune
 ```
 
@@ -118,7 +118,7 @@ Approve/Edit/Reject → Store Human Decision → Export → Fine-tune
 
 1. Inbound email received (webhook or polling)
 2. PII masking (emails, phones, addresses)
-3. Agents SDK orchestration (emailProcessingAgent → triageAgent → cancellationAgent)
+3. Hybrid processor orchestration (deterministic extraction → OpenAI fallback for complex cases)
 4. Structured extraction with tools (maskPiiTool, vectorStoreSearchTool, createTicketTool)
 5. Multi-signal cancellation validation and early exit for non-cases or unclear intent
 6. Draft generation (deterministic templates via generateDraftTool)

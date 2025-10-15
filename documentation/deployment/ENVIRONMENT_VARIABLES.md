@@ -85,17 +85,15 @@ NODE_ENV=development
 - **Description**: Node.js environment
 - **Values**: `development`, `production`
 
-### Agents SDK Configuration
+### Hybrid Processing Configuration
 
 ```bash
-USE_AGENTS_SDK=1
+# No specific configuration needed - hybrid processing is always enabled
 ```
 
-- **Description**: Enable OpenAI Agents SDK (now default)
-- **Required**: Yes, Agents SDK is now the primary implementation
-- **Values**: `1` to enable (recommended), `0` to disable (legacy mode)
-- **Default**: `1` (Agents SDK enabled)
-- **Status**: ✅ Migration completed, Agents SDK is primary implementation
+- **Description**: Hybrid deterministic/AI processing is the default and only mode
+- **Required**: No, automatically enabled
+- **Status**: ✅ Hybrid processing is the primary implementation
 
 ### Agent Performance Tuning
 

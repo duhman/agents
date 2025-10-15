@@ -163,7 +163,7 @@ tsx ops/scripts/finetune.ts
 ## Help
 
 - **Requirements:** `docs/prd.md`
-- **Architecture:** `plan.md`
+- **Architecture:** `documentation/project/architecture.md`
 - **Deployment:** `DEPLOYMENT.md`
 - **Cursor Setup:** `CURSOR_SETUP.md`
 - **Policies:** `docs/policies.md`

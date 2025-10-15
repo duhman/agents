@@ -209,8 +209,8 @@ export default async function handler(
     });
 
 
-    // Process email through Agents SDK
-    log("info", "Processing email through Agents SDK", { requestId });
+    // Process email through hybrid processor
+    log("info", "Processing email through hybrid processor", { requestId });
     const result: ProcessEmailResult = await processEmail({
       source,
       customerEmail,

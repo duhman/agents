@@ -13,39 +13,17 @@ This directory contains all documentation related to Cursor AI IDE setup, config
   - Privacy settings
   - Workflow best practices
 
-### Optimizations
-- **[`CURSOR_OPTIMIZATION.md`](CURSOR_OPTIMIZATION.md)** - All applied optimizations
+### Features & Optimizations
+- **[`CURSOR_FEATURES.md`](CURSOR_FEATURES.md)** - All features and optimizations
   - Modern `.cursor/rules/` structure
-  - Settings configuration
-  - VSCode extensions
-  - Workspace settings
-  - Monorepo tooling
-  - Code quality tools
-  - Usage patterns and commands
-
-### Latest Features
-- **[`CURSOR_LATEST_FEATURES.md`](CURSOR_LATEST_FEATURES.md)** - Newest features (January 2025)
   - Cursor Memories (`.cursormemory`)
   - Agent Hooks (`.cursor/hooks.json`)
   - MCP Servers (`.cursor/mcp.json`)
   - Custom Modes (`.cursor/modes.json`)
-  - Performance impact and usage
-
-- **[`CURSOR_AUTOMATION.md`](CURSOR_AUTOMATION.md)** - Automated rules synchronization
-  - MCP-powered automation
-  - File watchers for real-time updates
-  - Git hooks integration
-  - CI/CD validation
-  - Zero-maintenance rule updates
+  - Settings configuration and usage patterns
+  - Performance impact and best practices
 
 ### Migration Guides
-- **[`CURSOR_MIGRATION_SUMMARY.md`](CURSOR_MIGRATION_SUMMARY.md)** - Feature migration overview
-  - What changed
-  - New files created
-  - Performance comparison
-  - Migration checklist
-  - Success criteria
-
 - **[`CURSOR_RULES_MIGRATION.md`](CURSOR_RULES_MIGRATION.md)** - Detailed rules migration guide
   - Legacy `.cursorrules` → modern `.cursor/rules/`
   - Rule types and structure
@@ -53,24 +31,17 @@ This directory contains all documentation related to Cursor AI IDE setup, config
   - Creating new rules
   - Testing and verification
 
-- **[`CURSOR_RULES_SUMMARY.md`](CURSOR_RULES_SUMMARY.md)** - Quick rules reference
-  - New structure overview
-  - Rule types breakdown
-  - Token usage reduction
-  - Configuration changes
-  - Verification steps
-
 ## 🚀 Quick Start
 
 **New to Cursor with this project?**
 
 1. Start with [`CURSOR_SETUP.md`](CURSOR_SETUP.md)
-2. Review [`CURSOR_LATEST_FEATURES.md`](CURSOR_LATEST_FEATURES.md)
-3. Check [`CURSOR_RULES_SUMMARY.md`](CURSOR_RULES_SUMMARY.md) for rules overview
+2. Review [`CURSOR_FEATURES.md`](CURSOR_FEATURES.md) for all features and optimizations
+3. Check [`CURSOR_RULES_MIGRATION.md`](CURSOR_RULES_MIGRATION.md) for rules details
 
 **Already using Cursor?**
 
-- See [`CURSOR_OPTIMIZATION.md`](CURSOR_OPTIMIZATION.md) for all optimizations
+- See [`CURSOR_FEATURES.md`](CURSOR_FEATURES.md) for all features and optimizations
 - Review [`CURSOR_RULES_MIGRATION.md`](CURSOR_RULES_MIGRATION.md) if you need details on the new rules system
 
 ## 📊 Feature Summary
@@ -80,7 +51,6 @@ This directory contains all documentation related to Cursor AI IDE setup, config
 | Feature | File | Status |
 |---------|------|--------|
 | Project Rules (.mdc format) | `.cursor/rules/*.mdc` | ✅ Active |
-| Nested Rules | `apps/*/packages/*/.cursor/rules/` | ✅ Active |
 | Cursor Memories | `.cursormemory` | ✅ Active |
 | Agent Hooks | `.cursor/hooks.json` | ✅ Active |
 | MCP Servers | `.cursor/mcp.json` | ✅ Active |

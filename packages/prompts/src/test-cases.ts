@@ -1,7 +1,7 @@
 /**
  * Test Cases from Research
  * 
- * Based on real ticket patterns from elaway_relocation_cancellation_research.md
+ * Based on real ticket patterns from research analysis
  */
 
 export interface TestCase {

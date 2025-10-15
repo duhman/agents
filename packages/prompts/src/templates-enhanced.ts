@@ -7,7 +7,7 @@
  * - 85% Norwegian, 10% English, 5% Swedish
  * - Clear edge cases require specific handling
  * 
- * @see @documentation/project/research/elaway_relocation_cancellation_research.md
+ * Based on research analysis of high-volume relocation cancellation tickets
  */
 
 import { z } from "zod";

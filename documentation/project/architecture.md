@@ -1,4 +1,4 @@
-# Elaway Email Agent Process Flow
+# Elaway Email Agent Architecture
 
 ## Complete Agent Process from HubSpot Webhook to Customer Reply
 
@@ -10,8 +10,7 @@ graph TD
     C -->|Valid| E[Parse Subject & Body]
     
     E --> F[Extract Subject & Body]
-    F --> G[Call Agents SDK]
-    G --> H[Hybrid Email Processor]
+    F --> G[Hybrid Email Processor]
     
     H --> I[PII Masking]
     I --> J[Deterministic Extraction]
@@ -97,7 +96,7 @@ graph TD
 ```
 
 **Intent safeguards**
-- Strong cancellation phrases short-circuit to “cancellation” only when present in subject or body.
+- Strong cancellation phrases short-circuit to "cancellation" only when present in subject or body.
 - Otherwise, at least two signals (verb + subscription term, verb + relocation reference, noun + subscription term, etc.) must co-occur; relocation alone no longer qualifies.
 - Expanded exclusion patterns cover login/account access, charging control, installer onboarding, and generic support so these stop at `Return: Not Cancellation`.
 - If the extractor still marks intent as unclear (`clear_intent === false`) or cannot determine a reason, the processor exits without creating a ticket or draft.

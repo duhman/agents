@@ -9,18 +9,14 @@ This directory contains project-specific rules for Cursor AI in modern `.mdc` fo
 | Rule File                   | Type          | Description                                                        | Applies To                                                          |
 | --------------------------- | ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | `core-principles.mdc`       | Always        | Privacy, policy, hybrid strategy, and human-review data flow       | All files                                                           |
-| `agents-sdk.mdc`            | Auto-Attached | OpenAI Agents SDK usage, tool wiring, and safety rails             | `packages/agents-runtime/**/*.ts`, `apps/agent/**/*.ts`             |
-| `openai-patterns.mdc`       | Auto-Attached | OpenAI HTTP patterns, retries, and structured outputs              | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`                    |
+| `core-architecture.mdc`     | Auto-Attached | Hybrid deterministic/AI processing with OpenAI best practices      | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`, `apps/agent/src/metrics.ts` |
 | `email-classification.mdc`  | Auto-Attached | Deterministic cancellation detection & language heuristics         | `apps/agent/src/**/*.ts`, `packages/prompts/**/*.ts`                |
-| `hybrid-architecture.mdc`   | Auto-Attached | Deterministic-first pipeline with AI fallback & metrics            | `apps/agent/src/**/*.ts`, `apps/agent/src/metrics.ts`               |
 | `database-patterns.mdc`     | Auto-Attached | Drizzle ORM patterns, timestamps, and retry helpers                | `packages/db/**/*.ts`                                               |
 | `observability-logging.mdc` | Auto-Attached | Structured logging, request IDs, and error handling                | `api/**/*.ts`, `apps/**/*.ts`, `packages/core/**/*.ts`              |
 | `slack-hitm.mdc`            | Auto-Attached | Slack HITM workflow (modals, rejection reasons, retries)           | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`                       |
 | `webhook-patterns.mdc`      | Auto-Attached | Webhook validation, background tasks, and Slack dispatch           | `api/webhook.ts`, `api/**/*.ts`                                     |
-| `vercel-deployment.mdc`     | Auto-Attached | Vercel configuration, regions, cron and waitUntil                  | `vercel.json`, `api/**/*.ts`, `apps/ingestor/**/*.ts`               |
+| `vercel-deployment.mdc`     | Auto-Attached | Vercel configuration, regions, cron and waitUntil                  | `vercel.json`, `api/**/*.ts`               |
 | `monorepo-workspace.mdc`    | Auto-Attached | pnpm/turbo workspace standards and dependency boundaries           | `package.json`, `pnpm-workspace.yaml`, `turbo.json`                 |
-| `testing-evaluation.mdc`    | Auto-Attached | Unit tests, node:test usage, evaluation scripts, and fixtures      | `ops/scripts/**/*.ts`, `apps/agent/src/tests/**/*.ts`               |
-| `vector-store.mdc`          | Auto-Attached | OpenAI Vector Store tools, context contracts, and embeddings usage | `packages/agents-runtime/src/**/*.ts`, `apps/agent/**/*.ts`         |
 
 ### Nested Rules
 
@@ -105,4 +101,4 @@ See `CURSOR_RULES_MIGRATION.md` for full migration details.
 - `@documentation/deployment/ENVIRONMENT_VARIABLES.md` - `OPENAI_VECTOR_STORE_ID` env var
 - [Cursor Rules Documentation](https://cursor.com/docs/context/rules)
 - [MDC Format](https://github.com/nuxt-contrib/mdc)
-- Migration guide: `CURSOR_RULES_MIGRATION.md`
+- Migration guide: `documentation/cursor/CURSOR_RULES_MIGRATION.md`

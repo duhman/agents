@@ -134,7 +134,7 @@ Elaway receives a high volume of customer emails requesting to **cancel subscrip
 **Flow:**
 
 1. **Email Inbound** →
-2. **OpenAI Agents SDK Orchestration (emailProcessingAgent → triageAgent → cancellationAgent)** →
+2. **Hybrid Processor Orchestration (deterministic → OpenAI fallback)** →
 3. **Slack HITM review** →
    - Approve/Edit/Reject → Store reviewer decision + final text/rationale.
    - Human sends follow-up manually today (mailer integration optional).

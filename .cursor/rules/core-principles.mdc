@@ -59,7 +59,7 @@ This project automates customer email responses using **hybrid deterministic/AI 
 - `@documentation/project/prd.md` - Requirements & KPIs
 - `@documentation/project/policies.md` - Tone/policy
 - `@documentation/project/prompts.md` - Prompt templates
-- `@packages/prompts/src/templates.ts` - Enhanced extraction schemas + drafting
+- `packages/prompts/src/templates-enhanced.ts` - Enhanced extraction schemas + drafting
 - `@packages/core/src/index.ts` - PII masking
 - `@packages/db/src/schema.ts` - Database schema
 - `@apps/agent/src/hybrid-processor.ts` - Main hybrid processor
