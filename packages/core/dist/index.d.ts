@@ -6,6 +6,8 @@ export declare const envSchema: z.ZodObject<{
     SLACK_BOT_TOKEN: z.ZodOptional<z.ZodString>;
     SLACK_SIGNING_SECRET: z.ZodOptional<z.ZodString>;
     HUBSPOT_ACCESS_TOKEN: z.ZodOptional<z.ZodString>;
+    HUBSPOT_PORTAL_ID: z.ZodOptional<z.ZodString>;
+    HUBSPOT_PORTAL_BASE_URL: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     DATABASE_URL: string;
     OPENAI_API_KEY: string;
@@ -13,6 +15,8 @@ export declare const envSchema: z.ZodObject<{
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;
     HUBSPOT_ACCESS_TOKEN?: string | undefined;
+    HUBSPOT_PORTAL_ID?: string | undefined;
+    HUBSPOT_PORTAL_BASE_URL?: string | undefined;
 }, {
     DATABASE_URL: string;
     OPENAI_API_KEY: string;
@@ -20,6 +24,8 @@ export declare const envSchema: z.ZodObject<{
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;
     HUBSPOT_ACCESS_TOKEN?: string | undefined;
+    HUBSPOT_PORTAL_ID?: string | undefined;
+    HUBSPOT_PORTAL_BASE_URL?: string | undefined;
 }>;
 export declare function maskPII(input: string): string;
 /**

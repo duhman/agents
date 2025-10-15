@@ -136,7 +136,7 @@ async function processRetryQueue() {
     }
 }
 export async function postReview(params) {
-    const { ticketId, draftId, originalEmail, originalEmailSubject, originalEmailBody, draftText, confidence, extraction, channel } = params;
+    const { ticketId, draftId, originalEmail, originalEmailSubject, originalEmailBody, draftText, confidence, extraction, channel, hubspotTicketUrl } = params;
     console.log(JSON.stringify({
         level: "info",
         message: "postReview called",
@@ -200,6 +200,17 @@ export async function postReview(params) {
                                 text: "🤖 Draft Review Required"
                             }
                         },
+                        ...(hubspotTicketUrl
+                            ? [
+                                {
+                                    type: "section",
+                                    text: {
+                                        type: "mrkdwn",
+                                        text: `*HubSpot ticket:* <${hubspotTicketUrl}|HubSpot ticket>`
+                                    }
+                                }
+                            ]
+                            : []),
                         // Show payment concerns and customer concerns if they exist
                         ...(extraction.payment_concerns && extraction.payment_concerns.length > 0 ? [{
                                 type: "section",

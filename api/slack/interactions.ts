@@ -56,25 +56,23 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
     } catch (e: any) {
       const msg = e?.message || String(e);
       const authTimeout = /Authentication timed out/i.test(msg);
-      if (authTimeout) {
-        log("warn", "DB authentication timeout encountered, resetting client", {
-          requestId: ctx.requestId,
-          actionId: ctx.actionId,
-          attempt
-        });
-        await resetDbClient("authentication_timeout");
-      }
-
       const transient = isTransientDbError(msg) || authTimeout;
-      if (transient && attempt < maxAttempts) {
-        const delay = baseDelayMs * Math.pow(2, attempt - 1);
-        log("warn", "DB transient error, retrying", {
+
+      if (transient) {
+        const reason = authTimeout ? "authentication_timeout" : "transient_error";
+        log("warn", "DB transient error encountered, resetting client", {
           requestId: ctx.requestId,
           actionId: ctx.actionId,
           attempt,
           error: msg,
-          authTimeout
+          authTimeout,
+          willRetry: attempt < maxAttempts
         });
+        await resetDbClient(`${reason}_attempt_${attempt}`);
+      }
+
+      if (transient && attempt < maxAttempts) {
+        const delay = baseDelayMs * Math.pow(2, attempt - 1);
         await new Promise((r) => setTimeout(r, delay));
         continue;
       }

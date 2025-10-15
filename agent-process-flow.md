@@ -259,14 +259,14 @@ sequenceDiagram
 
 ### Frontend (HubSpot)
 - **Custom Code Action**: Triggers webhook with ticket data
-- **Properties**: subject, description, ID, email, threadID
+- **Properties**: `subject`, `content`, `ticketID` (`hs_ticket_id`), `customerEmail`, optional `threadID`
 - **Multi-Format Support**: Legacy rawEmail or new subject/body fields
 
 ### Backend (Vercel)
 - **Webhook Handler**: `/api/webhook` - Receives and validates multi-format requests
 - **Hybrid Processor**: Deterministic + OpenAI fallback with enhanced reliability
 - **Database**: Neon PostgreSQL with Drizzle ORM
-- **Slack Integration**: Enhanced with connectivity checks and retry queues
+- **Slack Integration**: Connectivity checks, retry queues, and direct HubSpot ticket link when env/config provided
 - **Background Tasks**: Vercel waitUntil for non-blocking operations
 
 ### AI/ML Components
