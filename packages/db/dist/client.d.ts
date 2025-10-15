@@ -4,5 +4,6 @@ export declare const migrationClient: postgres.Sql<{}>;
 declare global {
     var __agentsDbQueryClient: ReturnType<typeof postgres> | undefined;
 }
-export declare const db: import("drizzle-orm/postgres-js").PostgresJsDatabase<typeof schema>;
+export declare let db: import("drizzle-orm/postgres-js").PostgresJsDatabase<typeof schema>;
+export declare function resetDbClient(reason?: string): Promise<void>;
 //# sourceMappingURL=client.d.ts.map

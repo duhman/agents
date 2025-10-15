@@ -38,7 +38,7 @@ graph TD
     X -->|No| Z[Queue for Retry]
     Y --> AA{Slack Action}
     Z --> BB[Background Retry Process]
-    AA -->|Approve| CC[Store approved draft (no auto-send)]
+    AA -->|Approve| CC["Store approved draft (no auto-send)"]
     AA -->|Edit| DD[Modal collects final reply text]
     AA -->|Reject| EE[Modal collects rejection reason]
     
@@ -278,7 +278,10 @@ sequenceDiagram
 ### Human-in-the-Loop
 - **Slack Review**: Interactive buttons for approve/edit/reject
 - **Feedback Loop**: Stores approved pairs for fine-tuning
+- **Reject Modal**: Collects reviewer rationale, updates Slack message, and saves text to `human_reviews.final_text`
 - **Metrics**: Tracks accuracy and performance
+- **Manual Follow-Up**: Approved or edited drafts still require a human to send the customer reply outside the agent
+- **Single Surface**: No separate operator dashboard—Slack is the canonical reviewer interface
 
 ## Error Handling & Monitoring
 

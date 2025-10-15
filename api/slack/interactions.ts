@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createHumanReview } from "@agents/db";
+import { createHumanReview, resetDbClient } from "@agents/db";
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
@@ -42,7 +42,7 @@ function parseSlackPayload(req: VercelRequest): any | null {
 }
 
 function isTransientDbError(message: string): boolean {
-  return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|ECONNABORTED|EAI_AGAIN|ENOTFOUND|Too many connections|connection timed out/i.test(
+  return /CONNECT_TIMEOUT|ETIMEDOUT|ECONNRESET|ECONNABORTED|EAI_AGAIN|ENOTFOUND|Too many connections|connection timed out|Authentication timed out/i.test(
     message || ""
   );
 }
@@ -55,10 +55,26 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
       return await op();
     } catch (e: any) {
       const msg = e?.message || String(e);
-      const transient = isTransientDbError(msg);
+      const authTimeout = /Authentication timed out/i.test(msg);
+      if (authTimeout) {
+        log("warn", "DB authentication timeout encountered, resetting client", {
+          requestId: ctx.requestId,
+          actionId: ctx.actionId,
+          attempt
+        });
+        await resetDbClient("authentication_timeout");
+      }
+
+      const transient = isTransientDbError(msg) || authTimeout;
       if (transient && attempt < maxAttempts) {
         const delay = baseDelayMs * Math.pow(2, attempt - 1);
-        log("warn", "DB transient error, retrying", { requestId: ctx.requestId, actionId: ctx.actionId, attempt, error: msg });
+        log("warn", "DB transient error, retrying", {
+          requestId: ctx.requestId,
+          actionId: ctx.actionId,
+          attempt,
+          error: msg,
+          authTimeout
+        });
         await new Promise((r) => setTimeout(r, delay));
         continue;
       }

@@ -50,28 +50,78 @@ declare global {
   var __agentsDbQueryClient: ReturnType<typeof postgres> | undefined;
 }
 
-if (!globalThis.__agentsDbQueryClient) {
+const createQueryClient = (context: "init" | "reset") => {
   const connectTimeoutSeconds = isServerless ? 30 : 10;
-  globalThis.__agentsDbQueryClient = postgres(connectionString, {
-    // Disable prepared statements for serverless/pooled connections
+  const client = postgres(connectionString, {
     prepare: isServerless ? false : undefined,
-    // Connection pooling configuration for Vercel
     max: isServerless ? 1 : 10,
     idle_timeout: isServerless ? 20 : undefined,
     connect_timeout: connectTimeoutSeconds,
-    // Additional Vercel optimizations
     transform: {
-      undefined: null // Transform undefined to null for PostgreSQL
+      undefined: null
     }
   });
 
   logStructured("info", "Postgres query client initialised", {
     requestId: "db-init",
     isServerless,
-    connectTimeoutSeconds
+    connectTimeoutSeconds,
+    context
   });
+
+  return client;
+};
+
+if (!globalThis.__agentsDbQueryClient) {
+  globalThis.__agentsDbQueryClient = createQueryClient("init");
 }
 
-const queryClient = globalThis.__agentsDbQueryClient;
+let queryClient = globalThis.__agentsDbQueryClient!;
+let drizzleClient = drizzle(queryClient, { schema });
 
-export const db = drizzle(queryClient, { schema });
+export let db = drizzleClient;
+
+let resetPromise: Promise<void> | null = null;
+
+export async function resetDbClient(reason: string = "unspecified"): Promise<void> {
+  if (resetPromise) {
+    await resetPromise;
+    return;
+  }
+
+  resetPromise = (async () => {
+    const existing = globalThis.__agentsDbQueryClient;
+    if (existing) {
+      try {
+        logStructured("warn", "Postgres query client reset requested", {
+          requestId: "db-reset",
+          reason
+        });
+        await existing.end({ timeout: 5 });
+      } catch (error: any) {
+        logStructured("error", "Postgres query client reset failed", {
+          requestId: "db-reset",
+          reason,
+          error: error?.message || String(error)
+        });
+      }
+    }
+
+    const newClient = createQueryClient("reset");
+    globalThis.__agentsDbQueryClient = newClient;
+    queryClient = newClient;
+    drizzleClient = drizzle(queryClient, { schema });
+    db = drizzleClient;
+
+    logStructured("info", "Postgres query client reset completed", {
+      requestId: "db-reset",
+      reason
+    });
+  })();
+
+  try {
+    await resetPromise;
+  } finally {
+    resetPromise = null;
+  }
+}
