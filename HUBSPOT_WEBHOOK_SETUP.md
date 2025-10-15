@@ -30,8 +30,11 @@ This guide explains how to configure HubSpot to send ticket data directly to the
 | `customerEmail` | `{{email}}` |
 | `subject` | `{{subject}}` |
 | `body` | `{{content}}` |
+| `ticketID` | `{{hs_ticket_id}}` |
 
 **Important:** Make sure you're using the **internal property names** (`subject` and `content`), not the display labels. In HubSpot's property picker, you may see labels like "Ticket name" or "Ticket description", but the internal API names are `subject` and `content`.
+
+**New (2025):** Adding `ticketID` → `hs_ticket_id` lets downstream systems link Slack notifications directly back to the original HubSpot ticket.
 
 **Note:** HubSpot automatically sends the data as JSON with `Content-Type: application/json` header - no manual configuration needed.
 
@@ -63,7 +66,8 @@ curl -X POST https://your-app.vercel.app/api/webhook \
     "source": "hubspot",
     "customerEmail": "test@example.com",
     "subject": "Oppsigelse",
-    "body": "Hei, jeg skal flytte og vil si opp."
+    "body": "Hei, jeg skal flytte og vil si opp.",
+    "ticketID": "123456789"
   }'
 ```
 

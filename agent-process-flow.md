@@ -225,7 +225,7 @@ sequenceDiagram
     Agent->>Agent: Test Slack connectivity
     alt Slack reachable
         Agent->>Slack: Post draft with buttons
-        Note over Slack: Shows original email + draft + actions
+        Note over Slack: Shows HubSpot ticket link (if provided) + original email + draft + actions
         
         Reviewer->>Slack: Click Approve
         Slack->>Agent: block_actions (approve)

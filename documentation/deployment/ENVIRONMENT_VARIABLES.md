@@ -44,10 +44,14 @@ SLACK_REVIEW_CHANNEL=C...
 
 ```bash
 HUBSPOT_ACCESS_TOKEN=
+HUBSPOT_PORTAL_ID=
+HUBSPOT_PORTAL_BASE_URL=
 ```
 
 - **Description**: HubSpot API token for CRM integration
 - **Required**: No, only if using HubSpot webhooks
+- **Notes**:
+  - `HUBSPOT_PORTAL_ID` and `HUBSPOT_PORTAL_BASE_URL` are optional but recommended when webhooks include the HubSpot ticket ID. When present, Slack review messages will render a direct link back to the ticket (e.g. `https://app-eu1.hubspot.com/contacts/<portal>/record/0-5/<id>`).
 
 ### SMTP (Optional)
 

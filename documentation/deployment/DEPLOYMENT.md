@@ -25,6 +25,7 @@ Add these in Vercel Dashboard (Settings → Environment Variables):
 
 **Optional:**
 - `HUBSPOT_ACCESS_TOKEN` - For HubSpot Conversations replies
+- `HUBSPOT_PORTAL_ID`, `HUBSPOT_PORTAL_BASE_URL` - Enables Slack notifications to deep-link back to HubSpot tickets
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` - For SMTP fallback
 
 ### 4. Connect Vercel Postgres
@@ -66,7 +67,8 @@ curl -X POST https://your-app.vercel.app/api/webhook \
     "source": "hubspot",
     "customerEmail": "test@example.com",
     "subject": "Oppsigelse",
-    "body": "Hei, jeg skal flytte og vil si opp."
+    "body": "Hei, jeg skal flytte og vil si opp.",
+    "ticketID": "123456789"
   }'
 
 # Legacy format (still supported)
@@ -92,4 +94,3 @@ Run monthly (or via GitHub Actions):
 tsx ops/scripts/export-jsonl.ts
 tsx ops/scripts/finetune.ts
 ```
-

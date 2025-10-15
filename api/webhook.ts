@@ -19,6 +19,7 @@ interface WebhookPayload {
   subject?: string;
   body?: string;
   content?: string;
+  ticketID?: string;
 }
 
 interface ProcessEmailResult {
@@ -39,6 +40,7 @@ interface PostReviewParams {
   confidence: number;
   extraction: Record<string, unknown>;
   channel: string;
+  hubspotTicketUrl?: string;
 }
 
 const parseErrorMessage = (error: unknown): string =>
@@ -101,6 +103,17 @@ const normalizeEmailBody = (raw: string): string => {
     .trim();
 };
 
+const buildHubSpotTicketUrl = (ticketId?: string): string | null => {
+  if (!ticketId) return null;
+  const portalId = process.env.HUBSPOT_PORTAL_ID;
+  const baseUrl = process.env.HUBSPOT_PORTAL_BASE_URL;
+  if (!portalId || !baseUrl) return null;
+
+  const trimmedBase = baseUrl.replace(/\/+$/, "");
+  const encodedTicketId = encodeURIComponent(ticketId);
+  return `${trimmedBase}/contacts/${portalId}/record/0-5/${encodedTicketId}`;
+};
+
 
 export default async function handler(
   req: VercelRequest,
@@ -141,6 +154,10 @@ export default async function handler(
         : typeof body.content === "string"
           ? body.content
           : "";
+    const hubspotTicketId =
+      typeof body.ticketID === "string" && body.ticketID.trim().length > 0
+        ? body.ticketID.trim()
+        : undefined;
     const bodyText = normalizeEmailBody(rawEmailBody);
     
     if (!subject && !bodyText) {
@@ -209,7 +226,8 @@ export default async function handler(
           draftText: result.draft.draftText,
           confidence: result.confidence,
           extraction,
-          channel: slackChannel
+          channel: slackChannel,
+          hubspotTicketUrl: buildHubSpotTicketUrl(hubspotTicketId) ?? undefined
         };
 
         const slackTask = postReview(slackPayload).catch((error: unknown) => {

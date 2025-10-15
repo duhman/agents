@@ -18,6 +18,7 @@ export interface PostReviewParams {
   confidence: number;
   extraction: Record<string, any>;
   channel: string;
+  hubspotTicketUrl?: string;
 }
 
 interface SlackHealthCheck {
@@ -38,6 +39,7 @@ interface SlackRetryItem {
   draftText: string;
   confidence: number;
   extraction: Record<string, any>;
+  hubspotTicketUrl?: string;
   retryCount: number;
   nextRetryAt: number;
   createdAt: number;
@@ -199,7 +201,8 @@ export async function postReview(params: PostReviewParams) {
     draftText,
     confidence,
     extraction,
-    channel
+    channel,
+    hubspotTicketUrl
   } = params;
 
   console.log(JSON.stringify({
@@ -275,6 +278,17 @@ export async function postReview(params: PostReviewParams) {
             text: "🤖 Draft Review Required"
           }
         },
+        ...(hubspotTicketUrl
+          ? [
+              {
+                type: "section" as const,
+                text: {
+                  type: "mrkdwn" as const,
+                  text: `*HubSpot ticket:* <${hubspotTicketUrl}|HubSpot ticket>`
+                }
+              }
+            ]
+          : []),
         // Show payment concerns and customer concerns if they exist
         ...(extraction.payment_concerns && extraction.payment_concerns.length > 0 ? [{
           type: "section" as const,
@@ -459,4 +473,3 @@ export function getSlackRetryQueueStatus(): { count: number; items: Array<{ tick
     }))
   };
 }
-

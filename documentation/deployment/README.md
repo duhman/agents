@@ -79,6 +79,7 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed instructions.
 
 ### Optional
 - `HUBSPOT_ACCESS_TOKEN` - For HubSpot Conversations replies
+- `HUBSPOT_PORTAL_ID`, `HUBSPOT_PORTAL_BASE_URL` - Enables Slack links back to the originating HubSpot ticket
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` - For SMTP fallback
 
 ## 📊 Deployment Checklist
@@ -153,4 +154,3 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for detailed instructions.
 
 **Last Updated:** January 2025  
 **Maintained by:** Development Team
-

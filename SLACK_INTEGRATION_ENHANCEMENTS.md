@@ -192,6 +192,9 @@ To capture training data for rejected drafts, the Slack interaction now launches
 - ✅ **Status Endpoints**: Health check improvements
 - ✅ **Documentation**: Updated patterns and examples
 
+### UX Enhancements (2025)
+- ✅ **Direct HubSpot Link**: When the webhook payload includes `ticketID` (`hs_ticket_id`) and the environment provides `HUBSPOT_PORTAL_ID` / `HUBSPOT_PORTAL_BASE_URL`, the Slack message now renders a `HubSpot ticket` hyperlink for faster context switching.
+
 ## Testing Results
 
 ### Before Enhancements
