@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHumanReview, resetDbClient } from "@agents/db";
 
-export const config = { runtime: "nodejs", regions: ["iad1"] };
+export const config = { runtime: "nodejs", regions: ["fra1"] };
 
 type LogLevel = "info" | "warn" | "error";
 
