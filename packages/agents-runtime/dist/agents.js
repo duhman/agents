@@ -146,7 +146,8 @@ POLICY COMPLIANCE:
  * This is now a regular function that coordinates the processing
  */
 export async function cancellationAgent(params) {
-    throw new Error("cancellationAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+    throw new Error("cancellationAgent has been replaced. Import processEmailHybrid from './hybrid-processor' and use that instead. " +
+        "Example: import { processEmailHybrid } from './hybrid-processor'; await processEmailHybrid(params);");
 }
 /**
  * Triage agent - classifies emails and routes them
@@ -188,6 +189,7 @@ ROUTING DECISIONS:
  * This is now handled by the hybrid processor
  */
 export async function emailProcessingAgent(params) {
-    throw new Error("emailProcessingAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+    throw new Error("emailProcessingAgent has been replaced. Import processEmailHybrid from '@agents/runtime/hybrid-processor' instead. " +
+        "Example: import { processEmailHybrid } from '@agents/runtime/hybrid-processor'; await processEmailHybrid(params);");
 }
 //# sourceMappingURL=agents.js.map

@@ -19,17 +19,32 @@ type ConfidenceFactors = {
 };
 
 /**
- * All tool functions have been simplified to regular async functions
- * These are no longer used by the Vercel AI SDK-based agents
+ * DEPRECATED: These tool definitions are no longer used with Vercel AI SDK.
+ * The hybrid processor uses direct database calls and OpenAI API instead.
+ * 
+ * If you're seeing errors importing these tools, please migrate to:
+ * - Import processEmailHybrid from '@agents/runtime/hybrid-processor' instead
+ * - Use direct function calls from '@agents/db' and '@agents/prompts' packages
  */
 
-// Export empty placeholder functions for backward compatibility
-export const maskPiiTool = {};
-export const createTicketTool = {};
-export const createDraftTool = {};
-export const calculateConfidenceTool = {};
-export const generateDraftTool = {};
-export const postToSlackTool = {};
-export const extractEmailDataTool = {};
-export const validatePolicyComplianceTool = {};
-export const vectorStoreSearchTool = {};
+function createDeprecatedTool(toolName: string) {
+  return new Proxy({}, {
+    get() {
+      throw new Error(
+        `${toolName} has been deprecated. The agents have been migrated to Vercel AI SDK. ` +
+        `Please use processEmailHybrid() from '@agents/runtime/hybrid-processor' instead. ` +
+        `See documentation for migration guide.`
+      );
+    }
+  });
+}
+
+export const maskPiiTool = createDeprecatedTool('maskPiiTool');
+export const createTicketTool = createDeprecatedTool('createTicketTool');
+export const createDraftTool = createDeprecatedTool('createDraftTool');
+export const calculateConfidenceTool = createDeprecatedTool('calculateConfidenceTool');
+export const generateDraftTool = createDeprecatedTool('generateDraftTool');
+export const postToSlackTool = createDeprecatedTool('postToSlackTool');
+export const extractEmailDataTool = createDeprecatedTool('extractEmailDataTool');
+export const validatePolicyComplianceTool = createDeprecatedTool('validatePolicyComplianceTool');
+export const vectorStoreSearchTool = createDeprecatedTool('vectorStoreSearchTool');

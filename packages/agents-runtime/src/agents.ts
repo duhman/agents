@@ -177,7 +177,10 @@ export async function cancellationAgent(params: {
   rawEmail: string;
 }) {
   
-  throw new Error("cancellationAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+  throw new Error(
+    "cancellationAgent has been replaced. Import processEmailHybrid from './hybrid-processor' and use that instead. " +
+    "Example: import { processEmailHybrid } from './hybrid-processor'; await processEmailHybrid(params);"
+  );
 }
 
 /**
@@ -228,5 +231,8 @@ export async function emailProcessingAgent(params: {
   rawEmail: string;
 }) {
   
-  throw new Error("emailProcessingAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+  throw new Error(
+    "emailProcessingAgent has been replaced. Import processEmailHybrid from '@agents/runtime/hybrid-processor' instead. " +
+    "Example: import { processEmailHybrid } from '@agents/runtime/hybrid-processor'; await processEmailHybrid(params);"
+  );
 }

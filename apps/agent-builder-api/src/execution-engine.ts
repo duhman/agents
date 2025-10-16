@@ -171,6 +171,17 @@ export class WorkflowExecutionEngine {
     const model = openai(agentConfig?.model || 'gpt-4o-2024-08-06');
     
     if (outputSchema) {
+      const isZodRawShape = (obj: unknown): obj is z.ZodRawShape =>
+        !!obj &&
+        typeof obj === 'object' &&
+        Object.values(obj as Record<string, unknown>).every(
+          (v) => v && typeof (v as any)._def === 'object'
+        );
+
+      if (!isZodRawShape(outputSchema)) {
+        throw new Error('Invalid outputSchema: expected a ZodRawShape (an object whose values are Zod schemas)');
+      }
+
       const result = await generateObject({
         model,
         schema: z.object(outputSchema) as any,
