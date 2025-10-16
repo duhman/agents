@@ -1,5 +1,6 @@
 import { getWorkflowById, updateExecution, createApproval } from '@agents/db';
-import { Agent } from '@openai/agents';
+import { openai } from '@ai-sdk/openai';
+import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
 export interface WorkflowNode {
@@ -165,41 +166,67 @@ export class WorkflowExecutionEngine {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const agentTools = tools?.map((t: any) => ({
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters ? z.object(t.parameters) : z.object({}),
-      execute: async (params: any) => {
-        return { result: `Tool ${t.name} executed with params: ${JSON.stringify(params)}` };
-      }
-    })) || [];
-
-    const agent = new Agent({
-      name: agentConfig?.name || 'Agent',
-      instructions: agentConfig?.instructions || prompt || 'You are a helpful assistant',
-      model: agentConfig?.model || 'gpt-4o-2024-08-06',
-      modelSettings: {
-        temperature: agentConfig?.temperature ?? 0,
-        maxTokens: agentConfig?.maxTokens,
-        topP: agentConfig?.topP
-      },
-      tools: agentTools.length > 0 ? agentTools : undefined,
-      outputType: outputSchema ? z.object(outputSchema) : undefined
-    });
-
     const input = this.resolveVariables(prompt || agentConfig?.defaultInput || '', context.variables);
+    const instructions = agentConfig?.instructions || 'You are a helpful assistant';
+    const model = openai(agentConfig?.model || 'gpt-4o-2024-08-06');
+    
+    if (outputSchema) {
+      const isZodRawShape = (obj: unknown): obj is z.ZodRawShape =>
+        !!obj &&
+        typeof obj === 'object' &&
+        Object.values(obj as Record<string, unknown>).every(
+          (v) => v && typeof (v as any)._def === 'object'
+        );
+
+      if (!isZodRawShape(outputSchema)) {
+        throw new Error('Invalid outputSchema: expected a ZodRawShape (an object whose values are Zod schemas)');
+      }
+
+      const result = await generateObject({
+        model,
+        schema: z.object(outputSchema) as any,
+        temperature: agentConfig?.temperature ?? 0,
+        topP: agentConfig?.topP,
+        system: instructions,
+        prompt: input,
+      });
+      
+      return {
+        agent: agentConfig?.name || 'Agent',
+        input,
+        output: result.object,
+        model: agentConfig?.model || 'gpt-4o-2024-08-06',
+        timestamp: new Date().toISOString(),
+        usage: result.usage,
+        configuration: {
+          name: agentConfig?.name || 'Agent',
+          instructions,
+          temperature: agentConfig?.temperature ?? 0,
+          hasOutputSchema: true
+        }
+      };
+    }
+    
+    const result = await generateText({
+      model,
+      temperature: agentConfig?.temperature ?? 0,
+      topP: agentConfig?.topP,
+      system: instructions,
+      prompt: input,
+    });
     
     return {
       agent: agentConfig?.name || 'Agent',
       input,
-      output: 'Agent execution completed (full SDK integration in progress)',
+      output: result.text,
       model: agentConfig?.model || 'gpt-4o-2024-08-06',
       timestamp: new Date().toISOString(),
+      usage: result.usage,
       configuration: {
-        name: agent.name,
-        instructions: agentConfig?.instructions || prompt || 'You are a helpful assistant',
+        name: agentConfig?.name || 'Agent',
+        instructions,
         temperature: agentConfig?.temperature ?? 0,
-        tools: agentTools.length
+        hasOutputSchema: false
       }
     };
   }
