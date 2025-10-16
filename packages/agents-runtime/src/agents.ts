@@ -1,4 +1,5 @@
-import { Agent } from "@openai/agents";
+import { openai } from "@ai-sdk/openai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import {
   extractionSchemaEnhanced,
@@ -69,10 +70,12 @@ Always return a JSON object:
 {  "intent": "relocation_cancellation" | "not_cancellation",  "language": "no" | "en",  "response": "[Final support reply text]"}
 ---`;
 
-// Enhanced extraction agent with comprehensive instructions
-export const extractionAgent = new Agent({
-  name: "Email Extractor",
-  instructions: `${systemPolicyEN_Enhanced}
+/**
+ * Enhanced extraction agent with comprehensive instructions
+ * Uses Vercel AI SDK's generateObject for structured output
+ */
+export async function extractionAgent(emailText: string) {
+  const instructions = `${systemPolicyEN_Enhanced}
 
 You are an expert email classifier for Elaway's customer service automation system.
 
@@ -99,19 +102,28 @@ ANALYSIS GUIDELINES:
 CONTEXT AWARENESS:
 - Consider Norwegian business culture and communication patterns
 - Be aware of common customer concerns and edge cases
-- Maintain high accuracy for policy-critical decisions`,
-  outputType: extractionSchemaEnhanced,
-  model: "gpt-4o-2024-08-06",
-  modelSettings: {
-    temperature: 0
-  },
-  tools: [maskPiiTool]
-});
+- Maintain high accuracy for policy-critical decisions`;
 
-// Enhanced drafting agent with proper schema and tools
-export const draftingAgent = new Agent({
-  name: "Draft Generator",
-  instructions: `${systemPolicyEN_Enhanced}
+  const result = await generateObject({
+    model: openai("gpt-4o-2024-08-06"),
+    schema: extractionSchemaEnhanced,
+    temperature: 0,
+    system: instructions,
+    prompt: emailText,
+  });
+
+  return result.object;
+}
+
+/**
+ * Enhanced drafting agent with proper schema
+ * Uses Vercel AI SDK's generateObject for structured output
+ */
+export async function draftingAgent(context: {
+  extractionResult: any;
+  language: "no" | "en" | "sv";
+}) {
+  const instructions = `${systemPolicyEN_Enhanced}
 
 You are an expert customer service response generator for Elaway.
 
@@ -137,84 +149,48 @@ POLICY COMPLIANCE:
 - Self-service app instructions must be included
 - Norwegian language preferred, English as fallback
 - Avoid legal guarantees beyond policy
-- Flag any policy risks or ambiguities`,
-  outputType: z.object({
-    draft: z.string().describe("The generated email response"),
-    confidence: z.number().min(0).max(1).describe("Confidence score for the draft"),
-    language: z.enum(["no", "en", "sv"]).describe("Language of the generated response"),
-    policy_compliant: z.boolean().describe("Whether the draft includes required policy statements")
-  }),
-  model: "gpt-4o-2024-08-06",
-  modelSettings: {
-    temperature: 0
-  },
-  tools: [generateDraftTool, calculateConfidenceTool]
-});
+- Flag any policy risks or ambiguities`;
 
-// Comprehensive cancellation handler agent
-export const cancellationAgent = new Agent({
-  name: "Cancellation Handler",
-  instructions: `${agentInstructions}
+  const result = await generateObject({
+    model: openai("gpt-4o-2024-08-06"),
+    schema: z.object({
+      draft: z.string().describe("The generated email response"),
+      confidence: z.number().min(0).max(1).describe("Confidence score for the draft"),
+      language: z.enum(["no", "en", "sv"]).describe("Language of the generated response"),
+      policy_compliant: z.boolean().describe("Whether the draft includes required policy statements")
+    }),
+    temperature: 0,
+    system: instructions,
+    prompt: `Generate a response based on this extraction: ${JSON.stringify(context.extractionResult, null, 2)}`,
+  });
 
-You are Elaway's automated cancellation request handler specializing in relocation-related subscription cancellations. You process customer emails requesting subscription cancellations and generate appropriate responses.
+  return result.object;
+}
 
-WORKFLOW:
-1. Extract structured information from customer emails
-2. Search the OpenAI Vector Store for similar relocation cancellation cases to gather context
-3. Create database records for tracking
-4. Generate policy-compliant draft responses (use context when available)
-5. Calculate confidence scores for human review
-6. Post to Slack for HITM review
+/**
+ * Cancellation handler agent - orchestrates the full workflow
+ * This is now a regular function that coordinates the processing
+ */
+export async function cancellationAgent(params: {
+  source: string;
+  customerEmail: string;
+  rawEmail: string;
+}) {
+  
+  throw new Error("cancellationAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+}
 
-You have access to all necessary tools to complete the full cancellation workflow. Use them in the correct sequence to ensure proper data persistence and response generation.
-
-CRITICAL REQUIREMENTS:
-- Always mask PII before processing
-- When relocation/moving is indicated, search the vector store for context before drafting
-- Create ticket record for audit trail
-- Generate draft only for cancellation requests
-- Calculate confidence score based on extraction quality
-- Post to Slack for human review`,
-  outputType: z.object({
-    ticket_id: z.string().describe("Database ID of created ticket"),
-    draft_id: z.string().optional().nullable().describe("Database ID of created draft"),
-    confidence: z.number().min(0).max(1).describe("Overall confidence score"),
-    extraction: extractionSchemaEnhanced.describe("Extracted email information"),
-    draft_text: z.string().optional().nullable().describe("Generated response text"),
-    context_used: z
-      .array(z.string())
-      .optional()
-      .nullable()
-      .describe("Context snippets from vector store used in drafting"),
-    success: z.boolean().describe("Whether processing completed successfully"),
-    error: z.string().optional().nullable().describe("Error message if processing failed")
-  }),
-  model: "gpt-4o-2024-08-06",
-  modelSettings: {
-    temperature: 0
-  },
-  tools: [
-    maskPiiTool,
-    vectorStoreSearchTool,
-    createTicketTool,
-    createDraftTool,
-    calculateConfidenceTool,
-    generateDraftTool,
-    postToSlackTool
-  ]
-});
-
-// Enhanced triage agent with proper routing logic
-export const triageAgent = new Agent({
-  name: "Email Triage",
-  instructions: `You are Elaway's email triage system. Your job is to route incoming customer emails to the appropriate handler.
+/**
+ * Triage agent - classifies emails and routes them
+ * Uses Vercel AI SDK's generateObject for structured output
+ */
+export async function triageAgent(emailText: string) {
+  const instructions = `You are Elaway's email triage system. Your job is to classify incoming customer emails.
 
 ROUTING LOGIC:
-- If email contains cancellation requests → Route to cancellation handler
-- If email is general inquiry → Route to general support
-- If email is unclear → Route to human review
-
-For cancellation requests, hand off to the cancellation handler with all necessary context.
+- If email contains cancellation requests → Classify as cancellation
+- If email is general inquiry → Classify as general
+- If email is unclear → Classify as human_review
 
 CANCELLATION INDICATORS:
 - Keywords: "cancel", "oppsigelse", "terminate", "stop"
@@ -224,53 +200,33 @@ CANCELLATION INDICATORS:
 ROUTING DECISIONS:
 - cancellation: Clear cancellation request
 - general: General inquiry or support request
-- human_review: Unclear intent or complex situation`,
-  outputType: z.object({
-    route: z.enum(["cancellation", "general", "human_review"]).describe("Routing decision"),
-    reason: z.string().describe("Reason for routing decision"),
-    confidence: z.number().min(0).max(1).describe("Confidence in routing decision"),
-    keywords_found: z.array(z.string()).describe("Keywords that influenced the decision")
-  }),
-  model: "gpt-4o-2024-08-06",
-  modelSettings: {
-    temperature: 0
-  },
-  handoffs: [cancellationAgent]
-});
+- human_review: Unclear intent or complex situation`;
 
-// Main orchestrator agent for the complete workflow
-export const emailProcessingAgent = new Agent({
-  name: "Email Processing Orchestrator",
-  instructions: `You are the main orchestrator for Elaway's email processing system. You coordinate the entire workflow from email ingestion to response generation.
+  const result = await generateObject({
+    model: openai("gpt-4o-2024-08-06"),
+    schema: z.object({
+      route: z.enum(["cancellation", "general", "human_review"]).describe("Routing decision"),
+      reason: z.string().describe("Reason for routing decision"),
+      confidence: z.number().min(0).max(1).describe("Confidence in routing decision"),
+      keywords_found: z.array(z.string()).describe("Keywords that influenced the decision")
+    }),
+    temperature: 0,
+    system: instructions,
+    prompt: emailText,
+  });
 
-ORCHESTRATION WORKFLOW:
-1. Receive customer email with metadata
-2. Route to appropriate handler (triage)
-3. Process cancellation requests through full pipeline
-4. Return structured results for Slack HITM review
+  return result.object;
+}
 
-You ensure proper data flow, error handling, and maintain audit trails for all processing steps.
-
-CRITICAL SUCCESS FACTORS:
-- Maintain data integrity throughout the workflow
-- Provide clear error messages for debugging
-- Ensure all required fields are populated
-- Handle edge cases gracefully
-- Maintain performance under load`,
-  outputType: z.object({
-    success: z.boolean().describe("Whether processing completed successfully"),
-    ticket_id: z.string().optional().nullable().describe("Created ticket ID if applicable"),
-    draft_id: z.string().optional().nullable().describe("Created draft ID if applicable"),
-    confidence: z.number().min(0).max(1).describe("Overall confidence score"),
-    route: z.string().describe("How the email was routed"),
-    extraction: extractionSchemaEnhanced.optional().nullable().describe("Extracted email information"),
-    draft_text: z.string().optional().nullable().describe("Generated response text"),
-    error: z.string().optional().nullable().describe("Error message if processing failed"),
-    processing_time_ms: z.number().optional().nullable().describe("Time taken to process")
-  }),
-  model: "gpt-4o-2024-08-06",
-  modelSettings: {
-    temperature: 0
-  },
-  handoffs: [triageAgent, cancellationAgent]
-});
+/**
+ * Email processing orchestrator
+ * This is now handled by the hybrid processor
+ */
+export async function emailProcessingAgent(params: {
+  source: string;
+  customerEmail: string;
+  rawEmail: string;
+}) {
+  
+  throw new Error("emailProcessingAgent has been replaced by hybrid-processor.ts - use processEmailHybrid instead");
+}
