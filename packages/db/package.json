@@ -6,9 +6,9 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "generate": "drizzle-kit generate",
+    "generate": "drizzle-kit generate:pg",
     "migrate": "drizzle-kit migrate",
-    "push": "drizzle-kit push",
+    "push": "drizzle-kit push:pg",
     "studio": "drizzle-kit studio"
   },
   "dependencies": {

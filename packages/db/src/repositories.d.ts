@@ -286,4 +286,3 @@ export declare function listPendingApprovals(): Promise<{
     decisionData: unknown;
     resolvedAt: Date | null;
 }[]>;
-//# sourceMappingURL=repositories.d.ts.map
