@@ -9,30 +9,33 @@ A visual, node-based agent builder that leverages OpenAI Agent SDK, MCP servers,
 ### Core Components
 
 1. **Frontend (React + React Flow)**
-   - Visual flow editor with drag-and-drop nodes
-   - Real-time agent execution monitoring
-   - Configuration panels for nodes
-   - Agent template library
+   - Visual flow editor with drag-and-drop nodes (✅ Implemented)
+   - Langflow-inspired UI with gradient node styling (✅ Implemented)
+   - Real-time agent execution monitoring (✅ Implemented)
+   - Comprehensive configuration panels for nodes (✅ Implemented)
+   - Node palette with categories and search (✅ Implemented)
+   - Execution panel with expandable traces (✅ Implemented)
+   - Agent template library (📋 Planned)
 
-2. **Backend (Express/Fastify)**
-   - Agent CRUD operations
-   - Flow execution engine
-   - MCP server integration
-   - Webhook management
-   - Continuous execution scheduler
+2. **Backend (Fastify)**
+   - Agent CRUD operations (✅ Implemented)
+   - Flow execution engine (✅ Implemented)
+   - MCP server integration (🔄 Framework ready, real connections pending)
+   - Webhook management (📋 Planned)
+   - Continuous execution scheduler (📋 Planned)
 
 3. **Database (PostgreSQL via Drizzle)**
-   - Agent definitions
-   - Flow configurations
-   - Execution history
-   - Trigger configurations
+   - Agent definitions (✅ Implemented)
+   - Flow configurations (✅ Implemented)
+   - Execution history (✅ Implemented)
+   - Trigger configurations (✅ Implemented)
 
 4. **Execution Engine**
-   - Node-based workflow execution
-   - OpenAI Agent SDK integration
-   - MCP tool calling
-   - Slack approval workflows
-   - Error handling and retry logic
+   - Node-based workflow execution (✅ Implemented)
+   - OpenAI Agent SDK integration (🔄 Basic implementation, full execution pending)
+   - MCP tool calling (🔄 Framework ready, real connections pending)
+   - Slack approval workflows (✅ Implemented)
+   - Error handling and retry logic (✅ Implemented)
 
 ## Node Types
 
@@ -111,6 +114,50 @@ A visual, node-based agent builder that leverages OpenAI Agent SDK, MCP servers,
 - approver_slack_id (text)
 - decision_data (jsonb)
 - created_at, resolved_at
+
+## UI Components
+
+### Node Palette
+Categorized library of available node types with:
+- **Categories**: Triggers, Actions, AI, Integrations, Control Flow, Human Review, Data
+- **Search functionality**: Filter nodes by name or description
+- **Node previews**: Icons, names, and descriptions for each type
+- **Drag-and-drop**: Drag nodes from palette to canvas
+
+### Node Configuration Panel
+Comprehensive sidebar for editing selected nodes:
+- **Dynamic fields**: Adapts based on node type
+- **OpenAI Agent settings**: Name, model selection, instructions, temperature, maxTokens, topP
+- **MCP integration**: Server dropdown, tool selection, parameter configuration
+- **Condition editing**: JavaScript expression support with variable syntax hints
+- **Slack configuration**: Channel selection for approval nodes
+- **Validation**: Real-time input validation with error messages
+
+### Execution Panel
+Real-time workflow execution monitoring with:
+- **Execution status**: Running, Completed, Failed indicators
+- **Expandable trace**: Step-by-step execution details
+- **Node status badges**: Success/Error/Pending indicators for each step
+- **Input/Output display**: JSON view of data flowing through nodes
+- **Error details**: Stack traces and error messages for debugging
+- **Timestamps**: Duration tracking for performance analysis
+
+### Workflow Toolbar
+Top navigation and controls:
+- **Branding**: "Agent Builder" title with gradient styling
+- **Workflow naming**: Inline editable workflow name
+- **Action buttons**: Save, Execute, Clear Canvas
+- **Status indicators**: Save state, execution state
+
+### Custom Node Types
+Visually distinct nodes with gradient styling:
+- **TriggerNode**: Green gradient (bg-gradient-to-br from-green-50 to-green-100)
+- **OpenAIAgentNode**: Cyan gradient with bot icon
+- **MCPToolNode**: Pink gradient with plugin icon
+- **ActionNode**: Blue gradient with zap icon
+- **ConditionNode**: Amber gradient with dual outputs (true/false paths)
+- **ApprovalNode**: Purple gradient with user-check icon
+- All nodes feature: shadow effects, rounded borders, handle indicators, selected state highlighting
 
 ## Features
 
