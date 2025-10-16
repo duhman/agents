@@ -14,16 +14,22 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { NodePalette } from './components/NodePalette';
 import { WorkflowToolbar } from './components/WorkflowToolbar';
-import { TriggerNode } from './components/nodes/TriggerNode';
-import { ActionNode } from './components/nodes/ActionNode';
-import { ConditionNode } from './components/nodes/ConditionNode';
-import { ApprovalNode } from './components/nodes/ApprovalNode';
+import { NodeConfigPanel } from './components/NodeConfigPanel';
+import { ExecutionPanel } from './components/ExecutionPanel';
+import TriggerNode from './components/nodes/TriggerNode';
+import ActionNode from './components/nodes/ActionNode';
+import ConditionNode from './components/nodes/ConditionNode';
+import ApprovalNode from './components/nodes/ApprovalNode';
+import OpenAIAgentNode from './components/nodes/OpenAIAgentNode';
+import MCPToolNode from './components/nodes/MCPToolNode';
 
 const nodeTypes: NodeTypes = {
   trigger: TriggerNode,
   action: ActionNode,
   condition: ConditionNode,
-  approval: ApprovalNode
+  approval: ApprovalNode,
+  'openai-agent': OpenAIAgentNode,
+  'mcp-tool': MCPToolNode
 };
 
 const initialNodes: Node[] = [];
@@ -33,6 +39,8 @@ function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [activeExecutionId, setActiveExecutionId] = useState<string | null>(null);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -122,6 +130,7 @@ function App() {
 
       const execution = await executeResponse.json();
       console.log('Execution started:', execution);
+      setActiveExecutionId(execution.id);
       alert(`Workflow execution started! ID: ${execution.id}`);
     } catch (error) {
       console.error('Error executing workflow:', error);
@@ -129,8 +138,20 @@ function App() {
     }
   };
 
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const handleNodeUpdate = useCallback((nodeId: string, data: any) => {
+    setNodes((nds) => 
+      nds.map((node) => 
+        node.id === nodeId ? { ...node, data } : node
+      )
+    );
+  }, [setNodes]);
+
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="w-screen h-screen flex flex-col bg-gray-50">
       <WorkflowToolbar
         workflowName={workflowName}
         onWorkflowNameChange={setWorkflowName}
@@ -138,10 +159,10 @@ function App() {
         onExecute={executeWorkflow}
       />
       
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div className="flex flex-1 overflow-hidden">
         <NodePalette />
         
-        <div style={{ flex: 1 }}>
+        <div className="flex-1 relative">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -150,16 +171,25 @@ function App() {
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
+            onNodeClick={handleNodeClick}
             nodeTypes={nodeTypes}
             fitView
+            className="bg-gray-50"
           >
-            <Controls />
-            <MiniMap />
-            <Background gap={12} size={1} />
+            <Controls className="shadow-lg" />
+            <MiniMap className="shadow-lg" />
+            <Background gap={16} size={1} color="#e5e7eb" />
           </ReactFlow>
         </div>
 
+        <NodeConfigPanel
+          selectedNode={selectedNode}
+          onClose={() => setSelectedNode(null)}
+          onUpdate={handleNodeUpdate}
+        />
       </div>
+
+      <ExecutionPanel executionId={activeExecutionId} />
     </div>
   );
 }

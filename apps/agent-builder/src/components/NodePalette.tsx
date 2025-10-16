@@ -1,3 +1,5 @@
+import { Zap, Bot, Plug, GitBranch, UserCheck, Globe, Code } from 'lucide-react';
+
 export function NodePalette() {
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -7,84 +9,116 @@ export function NodePalette() {
   const nodeCategories = [
     {
       name: 'Triggers',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
       nodes: [
-        { type: 'trigger', label: 'Webhook Trigger', icon: '🔗' },
-        { type: 'trigger', label: 'Schedule Trigger', icon: '⏰' },
-        { type: 'trigger', label: 'Manual Trigger', icon: '👆' }
+        { type: 'trigger', label: 'Webhook', icon: Zap, description: 'Start on HTTP request' },
+        { type: 'trigger', label: 'Cron Schedule', icon: Zap, description: 'Run on schedule' },
+        { type: 'trigger', label: 'Manual', icon: Zap, description: 'Run manually' }
+      ]
+    },
+    {
+      name: 'AI Agents',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
+      borderColor: 'border-cyan-200',
+      nodes: [
+        { type: 'openai-agent', label: 'OpenAI Agent', icon: Bot, description: 'Run AI agent' },
+      ]
+    },
+    {
+      name: 'MCP Tools',
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      borderColor: 'border-pink-200',
+      nodes: [
+        { type: 'mcp-tool', label: 'MCP Tool', icon: Plug, description: 'Call MCP server' },
       ]
     },
     {
       name: 'Actions',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       nodes: [
-        { type: 'action', label: 'OpenAI Agent', icon: '🤖' },
-        { type: 'action', label: 'MCP Tool', icon: '🔧' },
-        { type: 'action', label: 'HTTP Request', icon: '🌐' },
-        { type: 'action', label: 'Transform Data', icon: '⚙️' }
+        { type: 'action', label: 'HTTP Request', icon: Globe, description: 'Make HTTP call' },
+        { type: 'action', label: 'Transform', icon: Code, description: 'Transform data' }
       ]
     },
     {
       name: 'Control Flow',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-200',
       nodes: [
-        { type: 'condition', label: 'Condition', icon: '🔀' },
-        { type: 'condition', label: 'Loop', icon: '🔁' },
-        { type: 'condition', label: 'Switch', icon: '🔂' }
+        { type: 'condition', label: 'Condition', icon: GitBranch, description: 'Branch logic' },
       ]
     },
     {
       name: 'Human-in-the-Loop',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200',
       nodes: [
-        { type: 'approval', label: 'Slack Approval', icon: '✅' },
-        { type: 'approval', label: 'Form Input', icon: '📝' }
+        { type: 'approval', label: 'Slack Approval', icon: UserCheck, description: 'Get approval' },
       ]
     }
   ];
 
   return (
-    <div style={{
-      width: '250px',
-      borderRight: '1px solid #ddd',
-      padding: '20px',
-      overflowY: 'auto',
-      background: '#f9fafb'
-    }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>
-        Node Library
-      </h2>
+    <div className="w-72 border-r border-gray-200 bg-white overflow-y-auto">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-bold text-gray-900">
+          Component Library
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Drag and drop to build workflows
+        </p>
+      </div>
       
-      {nodeCategories.map((category) => (
-        <div key={category.name} style={{ marginBottom: '30px' }}>
-          <h3 style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            marginBottom: '10px',
-            color: '#6b7280'
-          }}>
-            {category.name}
-          </h3>
-          
-          {category.nodes.map((node, index) => (
-            <div
-              key={`${node.type}-${index}`}
-              draggable
-              onDragStart={(e) => onDragStart(e, node.type)}
-              style={{
-                padding: '10px',
-                marginBottom: '8px',
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-                cursor: 'grab',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <span style={{ fontSize: '20px' }}>{node.icon}</span>
-              <span style={{ fontSize: '13px' }}>{node.label}</span>
+      <div className="p-4 space-y-6">
+        {nodeCategories.map((category) => (
+          <div key={category.name}>
+            <h3 className={`text-xs font-semibold uppercase tracking-wider mb-3 ${category.color}`}>
+              {category.name}
+            </h3>
+            
+            <div className="space-y-2">
+              {category.nodes.map((node, index) => {
+                const Icon = node.icon;
+                return (
+                  <div
+                    key={`${node.type}-${index}`}
+                    draggable
+                    onDragStart={(e) => onDragStart(e, node.type)}
+                    className={`
+                      p-3 rounded-lg border cursor-grab
+                      bg-white hover:shadow-md transition-all
+                      ${category.borderColor} hover:border-gray-300
+                      group
+                    `}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-md ${category.bgColor}`}>
+                        <Icon className={`w-4 h-4 ${category.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-gray-900 truncate">
+                          {node.label}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {node.description}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
