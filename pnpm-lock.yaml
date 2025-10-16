@@ -97,8 +97,8 @@ importers:
         specifier: ^16.3.0
         version: 16.6.1
       openai:
-        specifier: ^5.0.0
-        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
+        specifier: ^6.2.0
+        version: 6.2.0(ws@8.18.3)(zod@3.25.76)
       zod:
         specifier: ^3.22.0
         version: 3.25.76
@@ -322,8 +322,8 @@ importers:
         specifier: ^5.0.72
         version: 5.0.72(zod@3.25.76)
       openai:
-        specifier: ^5.23.2
-        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
+        specifier: ^6.2.0
+        version: 6.2.0(ws@8.18.3)(zod@3.25.76)
       zod:
         specifier: ^3.22.0
         version: 3.25.76

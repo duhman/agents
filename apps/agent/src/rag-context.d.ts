@@ -4,8 +4,7 @@
  * Provides contextual information from vector store for edge cases and payment issues
  * to improve draft quality using real customer support conversations.
  */
-import "dotenv/config";
-import { type LogContext } from "@agents/core";
+import type { LogContext } from "@agents/core";
 import type { ExtractionResultEnhanced } from "@agents/prompts";
 /**
  * Get vector store context for enhanced draft generation

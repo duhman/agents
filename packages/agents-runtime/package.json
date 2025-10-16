@@ -14,7 +14,7 @@
     "@ai-sdk/openai": "^2.0.52",
     "@openai/agents": "^0.1.9",
     "ai": "^5.0.72",
-    "openai": "^5.23.2",
+    "openai": "^6.2.0",
     "zod": "^3.22.0",
     "zod-to-json-schema": "^3.24.6"
   },

@@ -11,8 +11,7 @@
  * 4. Save to database
  * 5. Post to Slack for human review
  */
-import "dotenv/config";
-import { type ExtractionResultEnhanced } from "@agents/prompts";
+import type { ExtractionResultEnhanced } from "@agents/prompts";
 export interface ProcessEmailParams {
     source: string;
     customerEmail: string;
@@ -29,6 +28,7 @@ export interface ProcessEmailResult {
     } | null;
     extraction?: ExtractionResultEnhanced;
     confidence?: number;
+    extraction_method?: "deterministic" | "openai" | "ai-sdk";
     error?: string;
 }
 /**
