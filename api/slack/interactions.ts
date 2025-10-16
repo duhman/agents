@@ -430,7 +430,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     res.status(status).json(body);
   };
 
-  const respondOk = () => respond({ ok: true });
+  const respondOk = () => respond({});
 
   try {
     const type = payload.type as string;
