@@ -44,86 +44,160 @@ The UI will be available at http://localhost:5173
 ### 4. Create Your First Workflow
 
 1. Open http://localhost:5173 in your browser
-2. Enter a workflow name (e.g., "Email Response Agent")
-3. Drag nodes from the left palette onto the canvas:
-   - Start with a **Trigger** node
-   - Add an **OpenAI Agent** action node
-   - Connect them by dragging from the bottom of trigger to top of action
-4. Click **Save** to persist your workflow
-5. Click **Execute** to run it
+2. Enter a workflow name (e.g., "Email Response Agent") in the toolbar
+3. **Add nodes** from the Node Palette on the left:
+   - Browse categories: Triggers, Actions, AI, Integrations, Control Flow, Human Review, Data
+   - Use the search box to filter nodes by name or description
+   - Drag a **Trigger** node onto the canvas
+   - Drag an **OpenAI Agent** node onto the canvas
+4. **Connect nodes** by dragging from the bottom handle of the trigger to the top handle of the agent
+5. **Configure nodes** by clicking on them to open the Node Configuration Panel:
+   - For the Agent node: Set name, model (gpt-4o-2024-08-06), instructions, and temperature
+   - For the Trigger node: Configure trigger type and settings
+6. Click **Save** to persist your workflow
+7. Click **Execute** to run it
+8. **Monitor execution** in the Execution Panel on the right:
+   - View real-time status updates
+   - Expand execution trace to see node-by-node results
+   - Inspect input/output data for each step
 
 ## Node Types
 
+### Visual Design
+All nodes feature Langflow-inspired gradient styling with:
+- **Color-coded categories**: Easy visual identification
+- **Icons**: Lucide React icons for quick recognition
+- **Gradient backgrounds**: Beautiful, modern aesthetics
+- **Shadow effects**: Depth and hierarchy
+- **Handles**: Connection points at top (input) and bottom (output)
+- **Selected state**: Border highlighting when clicked
+
 ### Trigger Nodes 🚀
+**Green gradient styling (from-green-50 to-green-100)**
 
-**Webhook Trigger**
-- Exposes an HTTP endpoint
-- Receives JSON data from external services
-- Perfect for integrations (HubSpot, Stripe, etc.)
+**Trigger Node** (play icon)
+- Manual execution triggers
+- Webhook endpoints (planned)
+- Schedule/cron triggers (planned)
+- Event-based triggers (planned)
 
-**Schedule Trigger**
-- Runs on a cron schedule
-- Examples: daily reports, weekly cleanups
-- Supports standard cron expressions
+### AI Nodes 🤖
+**Cyan gradient styling (from-cyan-50 to-cyan-100)**
 
-**Manual Trigger**
-- Start workflows on-demand
-- Great for testing and ad-hoc tasks
-
-### Action Nodes ⚡
-
-**OpenAI Agent**
-- Configure agent name, model, temperature
+**OpenAI Agent** (bot icon)
+- Configure agent name, model (gpt-4o-2024-08-06, gpt-3.5-turbo, gpt-4, etc.)
+- Set instructions/system prompt
+- Adjust temperature (0-1)
+- Configure maxTokens and topP
 - Add tools and capabilities
-- Set up agent handoffs
+- Set up agent handoffs (coming soon)
 - Structured outputs with Zod schemas
 
-**MCP Tool**
-- Connect to any MCP server
-- Browse available tools
+### Integration Nodes 🔌
+**Pink gradient styling (from-pink-50 to-pink-100)**
+
+**MCP Tool** (plug icon)
+- Connect to any MCP server (select from dropdown)
+- Browse available tools from selected server
 - Configure tool parameters
 - Execute tools within workflows
+- Servers include: context7, hubspot, slack, linear, neon, notion, figma, supabase, vercel, deepwiki
 
-**HTTP Request**
-- Make external API calls
-- Support for GET, POST, PUT, DELETE
+### Action Nodes ⚡
+**Blue gradient styling (from-blue-50 to-blue-100)**
+
+**Action Node** (zap icon)
+- HTTP Request: Make external API calls (GET, POST, PUT, DELETE)
 - Custom headers and authentication
-- Response parsing
+- Response parsing and error handling
+
+### Control Flow Nodes 🔀
+**Amber gradient styling (from-amber-50 to-amber-100)**
+
+**Condition** (git-branch icon)
+- If/else branching with dual outputs
+- JavaScript expression support
+- Access variables with `{{variable_name}}` syntax
+- True path (right handle) and False path (bottom handle)
+
+### Human Review Nodes ✅
+**Purple gradient styling (from-purple-50 to-purple-100)**
+
+**Approval Node** (user-check icon)
+- Post to Slack channel for human review
+- Interactive buttons (Approve/Reject/Edit)
+- Configure channel selection
+- Timeout handling
+- Approval history tracking
+
+### Data Nodes 📊
 
 **Transform Data**
 - Map, filter, reduce operations
 - Custom JavaScript transformations
 - Data validation with Zod
+- Variable substitution
 
-### Control Flow Nodes 🔀
+## UI Components
 
-**Condition**
-- If/else branching
-- JavaScript expressions
-- Multiple outputs (true/false)
+### Node Palette
+The left sidebar contains the **Node Palette** with:
+- **Categories**: Organized by type (Triggers, Actions, AI, Integrations, Control Flow, Human Review, Data)
+- **Search**: Filter nodes by name or description
+- **Drag-and-Drop**: Click and drag nodes onto the canvas
+- **Visual previews**: Each node shows an icon, name, and description
 
-**Loop**
-- Iterate over arrays
-- Execute nodes repeatedly
-- Collect results
+### Node Configuration Panel
+The right sidebar shows the **Node Configuration Panel** when you click on a node:
+- **Dynamic fields**: Changes based on node type
+- **OpenAI Agent fields**:
+  - Agent Name (text input)
+  - Model (dropdown: gpt-4o-2024-08-06, gpt-3.5-turbo, gpt-4, etc.)
+  - Instructions (textarea for system prompt)
+  - Temperature (number input, 0-1)
+  - Max Tokens (optional number input)
+  - Top P (optional number input, 0-1)
+- **MCP Tool fields**:
+  - Server (dropdown with available MCP servers)
+  - Tool (dropdown populated based on selected server)
+  - Parameters (JSON editor for tool inputs)
+- **Condition fields**:
+  - Condition expression (text input with variable syntax hints)
+  - Use `{{variable_name}}` to reference data from previous nodes
+- **Approval fields**:
+  - Slack channel (text input)
+  - Message template (textarea)
+- **Close button**: Click ✕ to close the panel
 
-**Switch**
-- Multiple conditional branches
-- Pattern matching
-- Default case handling
+### Execution Panel
+The right panel (when not configuring a node) shows the **Execution Panel**:
+- **Status indicator**: Running, Completed, or Failed
+- **Execution trace**: Expandable list of execution steps
+- **Node-level details**: For each step:
+  - Node ID and type
+  - Status badge (✓ Success, ✗ Error, ⏱ Pending)
+  - Timestamp
+  - Input data (expandable JSON)
+  - Output data (expandable JSON)
+  - Error messages (if failed)
+- **Refresh**: Automatically updates during execution
 
-### Human-in-the-Loop Nodes ✅
+### Workflow Toolbar
+The top toolbar provides:
+- **Agent Builder** branding with gradient logo
+- **Workflow name** (editable inline text input)
+- **Save** button (saves workflow to database)
+- **Execute** button (runs the workflow)
+- **Clear Canvas** button (removes all nodes - use with caution!)
 
-**Slack Approval**
-- Post to Slack channel
-- Interactive buttons (Approve/Reject/Edit)
-- Timeout handling
-- Approval history
-
-**Form Input**
-- Custom input forms
-- Field validation
-- Rich text support
+### Canvas
+The main canvas area uses React Flow:
+- **Zoom controls**: Mouse wheel or pinch to zoom
+- **Pan**: Click and drag on empty space to move around
+- **Select nodes**: Click on a node to select and configure it
+- **Connect nodes**: Drag from bottom handle of one node to top handle of another
+- **Multi-select**: Hold Shift and click multiple nodes (coming soon)
+- **Delete nodes**: Select a node and press Delete/Backspace key
 
 ## Building Workflows
 
