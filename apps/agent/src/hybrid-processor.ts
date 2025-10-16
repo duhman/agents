@@ -54,7 +54,7 @@ export interface ProcessEmailResult {
   draft?: { id: string; draftText: string } | null;
   extraction?: ExtractionResultEnhanced;
   confidence?: number;
-  extraction_method?: "deterministic" | "openai";
+  extraction_method?: "deterministic" | "openai" | "ai-sdk";
   error?: string;
 }
 

@@ -1,0 +1,537 @@
+/**
+ * AI SDK Workflow Implementation
+ * 
+ * Email processing workflow using Vercel's AI SDK
+ * Replaces OpenAI Agents SDK with AI SDK workflow pattern
+ */
+
+import { generateObject, generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+import {
+  maskPII,
+  generateRequestId,
+  logInfo,
+  logError,
+  logWarn,
+  type LogContext
+} from "@agents/core";
+import { createTicket, createDraft } from "@agents/db";
+import {
+  extractionSchemaEnhanced,
+  generateDraftEnhanced,
+  calculateConfidenceEnhanced,
+  validatePolicyCompliance,
+  isNonCancellationEmail,
+  type ExtractionResultEnhanced
+} from "@agents/prompts";
+import { detectEdgeCase } from "@agents/prompts";
+import { emitArtifact } from "./observability/artifacts.js";
+
+const AI_SDK_ENABLED = process.env.AI_SDK_ENABLED === "1" || process.env.AI_SDK_ENABLED === "true";
+
+export interface WorkflowParams {
+  source: string;
+  customerEmail: string;
+  rawEmail: string;
+  requestId?: string;
+}
+
+export interface WorkflowResult {
+  success: boolean;
+  ticket?: { id: string } | null;
+  draft?: { id: string; draftText: string } | null;
+  extraction?: ExtractionResultEnhanced;
+  confidence?: number;
+  extraction_method?: "deterministic" | "ai-sdk";
+  error?: string;
+}
+
+/**
+ * Wrapper function to extract email data deterministically
+ * Note: Import dynamically to avoid circular dependencies
+ */
+async function extractEmailDataDeterministic(rawEmail: string): Promise<ExtractionResultEnhanced> {
+  const { extractEmailData } = await import("../../../apps/agent/src/simplified-processor.js");
+  return extractEmailData(rawEmail);
+}
+
+/**
+ * Wrapper function to get RAG context from vector store
+ * Note: Import dynamically to avoid circular dependencies
+ */
+async function getVectorStoreContextWrapper(
+  extraction: ExtractionResultEnhanced,
+  logContext: LogContext
+): Promise<string[]> {
+  const { getVectorStoreContext } = await import("../../../apps/agent/src/rag-context.js");
+  return getVectorStoreContext(extraction, logContext);
+}
+
+/**
+ * Step 1: Extract email data using AI SDK
+ */
+async function extractEmailWithAiSdk(
+  maskedEmail: string,
+  logContext: LogContext
+): Promise<ExtractionResultEnhanced> {
+  logInfo("Extracting email data with AI SDK", logContext);
+
+  try {
+    const result = await generateObject({
+      model: openai("gpt-4o-2024-08-06"),
+      schema: extractionSchemaEnhanced,
+      prompt: `You are an expert email classifier for Elaway's customer service automation system.
+
+TASK: Analyze customer emails and extract structured information for automated response generation.
+
+EXTRACTION REQUIREMENTS:
+- is_cancellation: Determine if the customer is requesting subscription cancellation
+- reason: Classify as "moving", "payment_issue", "other", or "unknown"
+- move_date: Extract mentioned dates (convert to ISO YYYY-MM-DD when possible)
+- language: Detect primary language ("no", "en", "sv")
+- edge_case: Identify edge cases (no_app_access, corporate_account, future_move_date, already_canceled, sameie_concern, payment_dispute)
+- has_payment_issue & payment_concerns: Capture billing-related issues
+- urgency: Determine if cancellation is immediate or in the future
+- customer_concerns & policy_risks: Capture customer worries and compliance risks
+- confidence_factors: Assess clear_intent, complete_information, standard_case
+
+Analyze this customer email:
+${maskedEmail}`,
+      temperature: 0
+    });
+
+    logInfo("AI SDK extraction completed", logContext, {
+      isCancellation: result.object.is_cancellation,
+      reason: result.object.reason,
+      language: result.object.language
+    });
+
+    return result.object;
+  } catch (error: any) {
+    logError("AI SDK extraction failed", logContext, error);
+    throw error;
+  }
+}
+
+
+/**
+ * Main AI SDK Workflow
+ * 
+ * Orchestrates the entire email processing pipeline using AI SDK
+ */
+export async function processEmailWithAiSdk(
+  params: WorkflowParams
+): Promise<WorkflowResult> {
+  const { source, customerEmail, rawEmail, requestId: providedRequestId } = params;
+  const requestId = providedRequestId || generateRequestId();
+  const startTime = Date.now();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting AI SDK workflow", logContext, {
+      source,
+      customerEmail: maskPII(customerEmail),
+      aiSdkEnabled: AI_SDK_ENABLED
+    });
+
+    const maskedEmail = maskPII(rawEmail);
+    const maskedCustomerEmail = maskPII(customerEmail);
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "pii_masking",
+          status: "completed",
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    let extraction = await extractEmailDataDeterministic(rawEmail);
+    let extractionMethod: "deterministic" | "ai-sdk" = "deterministic";
+
+    const needsAiSdk = 
+      !extraction.confidence_factors.standard_case ||
+      extraction.confidence_factors.clear_intent === false ||
+      extraction.policy_risks.length > 1 ||
+      (extraction.edge_case !== "none" && 
+       extraction.edge_case !== "sameie_concern" && 
+       extraction.edge_case !== "no_app_access");
+
+    if (needsAiSdk && AI_SDK_ENABLED) {
+      try {
+        logInfo("Complex case detected, using AI SDK", logContext, {
+          reasons: {
+            non_standard: !extraction.confidence_factors.standard_case,
+            unclear_intent: !extraction.confidence_factors.clear_intent,
+            multiple_risks: extraction.policy_risks.length > 1,
+            edge_case: extraction.edge_case
+          }
+        });
+
+        extraction = await extractEmailWithAiSdk(maskedEmail, logContext);
+        extractionMethod = "ai-sdk";
+
+        if (extraction.edge_case === "none") {
+          const detectedEdgeCase = detectEdgeCase(rawEmail, extraction);
+          if (detectedEdgeCase !== "none") {
+            extraction.edge_case = detectedEdgeCase as typeof extraction.edge_case;
+            logInfo("Edge case detected post-extraction", logContext, {
+              edge_case: detectedEdgeCase
+            });
+          }
+        }
+
+        try {
+          await emitArtifact({
+            requestId,
+            type: "workflow_step",
+            data: {
+              step: "ai_extraction",
+              status: "completed",
+              method: "ai-sdk",
+              timestamp: Date.now()
+            }
+          });
+        } catch {}
+      } catch (error: any) {
+        logWarn("AI SDK extraction failed, falling back to deterministic", logContext, {
+          error: error.message
+        });
+        // Fall back to deterministic result
+        extraction = await extractEmailDataDeterministic(rawEmail);
+        extractionMethod = "deterministic";
+
+        try {
+          await emitArtifact({
+            requestId,
+            type: "workflow_step",
+            data: {
+              step: "ai_extraction",
+              status: "failed_fallback",
+              method: "deterministic",
+              timestamp: Date.now()
+            }
+          });
+        } catch {}
+      }
+    }
+
+    logInfo("Email data extracted", logContext, {
+      method: extractionMethod,
+      isCancellation: extraction.is_cancellation,
+      reason: extraction.reason,
+      language: extraction.language,
+      edgeCase: extraction.edge_case
+    });
+
+    if (!extraction.is_cancellation) {
+      logInfo("Not a cancellation request - no action taken", logContext, {
+        detected_type: isNonCancellationEmail(rawEmail) ? "non_cancellation_pattern" : "no_cancellation_intent"
+      });
+      return {
+        success: true,
+        ticket: null,
+        draft: null,
+        extraction,
+        extraction_method: extractionMethod,
+        error: undefined
+      };
+    }
+
+    // Additional validation: Check confidence factors
+    if (extraction.confidence_factors.clear_intent === false) {
+      logWarn("Unclear cancellation intent - flagging for review", logContext, {
+        extraction
+      });
+    }
+
+    if (extraction.reason === "unknown" || extraction.confidence_factors.clear_intent === false) {
+      logInfo("Skipping automated draft due to low intent confidence", logContext, {
+        reason: extraction.reason,
+        confidenceFactors: extraction.confidence_factors
+      });
+      return {
+        success: true,
+        ticket: null,
+        draft: null,
+        extraction,
+        extraction_method: extractionMethod,
+        error: undefined
+      };
+    }
+
+    const ticket = await createTicket({
+      source,
+      customerEmail: maskedCustomerEmail,
+      rawEmailMasked: maskedEmail,
+      reason: extraction.reason,
+      moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
+    });
+
+    logInfo("Ticket created", logContext, { ticketId: ticket.id });
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "ticket_creation",
+          status: "completed",
+          ticketId: ticket.id,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    const ragContext = await getVectorStoreContextWrapper(extraction, logContext);
+
+    logInfo("RAG context retrieved", logContext, {
+      contextCount: ragContext.length,
+      hasContext: ragContext.length > 0
+    });
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "rag_context",
+          status: "completed",
+          contextCount: ragContext.length,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    const draftText = generateDraftEnhanced({
+      language: extraction.language,
+      reason: extraction.reason,
+      moveDate: extraction.move_date,
+      edgeCase: extraction.edge_case,
+      customerConcerns: extraction.customer_concerns,
+      hasPaymentIssue: extraction.has_payment_issue,
+      paymentConcerns: extraction.payment_concerns,
+      ragContext: ragContext
+    });
+
+    const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "draft_generation",
+          status: "completed",
+          wordCount,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    const validation = validatePolicyCompliance(draftText, extraction.language, extraction.edge_case);
+
+    if (!validation.compliant) {
+      logError("Draft failed policy compliance", logContext, {
+        errors: validation.errors,
+        warnings: validation.warnings
+      });
+      // Still save but log the issue
+    }
+
+    if (validation.warnings.length > 0) {
+      logWarn("Draft has policy warnings", logContext, {
+        warnings: validation.warnings
+      });
+    }
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "policy_validation",
+          status: validation.compliant ? "passed" : "failed",
+          errors: validation.errors,
+          warnings: validation.warnings,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    logInfo("Draft generated from enhanced template", logContext, {
+      language: extraction.language,
+      edgeCase: extraction.edge_case,
+      wordCount,
+      policyCompliant: validation.compliant
+    });
+
+    const confidence = calculateConfidenceEnhanced(extraction);
+
+    const draft = await createDraft({
+      ticketId: ticket.id,
+      language: extraction.language,
+      draftText,
+      confidence: String(confidence),
+      model: extractionMethod === "ai-sdk" ? "ai-sdk-gpt-4o-v1" : "template-enhanced-v1"
+    });
+
+    logInfo("Draft saved", logContext, { 
+      draftId: draft.id,
+      confidence
+    });
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_step",
+        data: {
+          step: "draft_save",
+          status: "completed",
+          draftId: draft.id,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    const duration = Date.now() - startTime;
+
+    logInfo("AI SDK workflow completed successfully", {
+      ...logContext,
+      duration,
+      extraction_method: extractionMethod
+    });
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_complete",
+        data: {
+          success: true,
+          ticketId: ticket.id,
+          draftId: draft.id,
+          confidence,
+          duration,
+          extractionMethod,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    return {
+      success: true,
+      ticket: { id: ticket.id },
+      draft: { id: draft.id, draftText },
+      extraction,
+      confidence,
+      extraction_method: extractionMethod,
+      error: undefined
+    };
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    logError("AI SDK workflow failed", { ...logContext, duration }, error);
+
+    try {
+      await emitArtifact({
+        requestId,
+        type: "workflow_complete",
+        data: {
+          success: false,
+          error: error.message,
+          duration,
+          timestamp: Date.now()
+        }
+      });
+    } catch {}
+
+    return {
+      success: false,
+      ticket: null,
+      draft: null,
+      extraction: undefined,
+      error: error.message || "Unknown error occurred"
+    };
+  }
+}
+
+/**
+ * Health check for AI SDK workflow
+ */
+export async function healthCheckAiSdk(): Promise<{
+  status: "healthy" | "unhealthy";
+  version: string;
+  timestamp: string;
+  ai_sdk_available: boolean;
+  ai_sdk_enabled: boolean;
+  error?: string;
+}> {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
+  try {
+    logInfo("Starting AI SDK health check", logContext);
+
+    // Test deterministic extraction
+    const testExtraction = await extractEmailDataDeterministic(
+      "Hei, jeg skal flytte og vil si opp abonnementet mitt."
+    );
+
+    if (!testExtraction.is_cancellation) {
+      throw new Error("Test extraction failed - cancellation not detected");
+    }
+
+    // Test enhanced draft generation
+    const testDraft = generateDraftEnhanced({
+      language: testExtraction.language,
+      reason: testExtraction.reason,
+      moveDate: testExtraction.move_date,
+      edgeCase: testExtraction.edge_case,
+      customerConcerns: testExtraction.customer_concerns
+    });
+
+    if (!testDraft || testDraft.length < 50) {
+      throw new Error("Test draft generation failed");
+    }
+
+    let aiSdkAvailable = false;
+    if (AI_SDK_ENABLED) {
+      try {
+        const testResult = await generateText({
+          model: openai("gpt-4o-2024-08-06"),
+          prompt: "test",
+          maxCompletionTokens: 5
+        });
+        aiSdkAvailable = !!testResult.text;
+      } catch (error: any) {
+        logWarn("AI SDK health check failed (non-critical)", logContext, {
+          error: error.message
+        });
+      }
+    }
+
+    logInfo("AI SDK health check completed successfully", logContext);
+
+    return {
+      status: "healthy",
+      version: "ai-sdk-v1",
+      timestamp: new Date().toISOString(),
+      ai_sdk_available: aiSdkAvailable,
+      ai_sdk_enabled: AI_SDK_ENABLED
+    };
+  } catch (error: any) {
+    logError("AI SDK health check failed", logContext, error);
+
+    return {
+      status: "unhealthy",
+      version: "ai-sdk-v1",
+      timestamp: new Date().toISOString(),
+      ai_sdk_available: false,
+      ai_sdk_enabled: AI_SDK_ENABLED,
+      error: error.message
+    };
+  }
+}

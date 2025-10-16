@@ -54,10 +54,14 @@
   "dependencies": {
     "@agents/core": "workspace:*",
     "@agents/db": "workspace:*",
+    "@ai-sdk/openai": "^2.0.52",
+    "@ai-sdk/ui-utils": "^1.2.11",
     "@openai/agents": "^0.1.9",
     "@openai/agents-core": "^0.1.8",
     "@vercel/functions": "^3.1.3",
-    "openai": "^6.2.0"
+    "ai": "^5.0.72",
+    "openai": "^6.2.0",
+    "zod-to-json-schema": "^3.24.6"
   },
   "packageManager": "pnpm@10.18.3"
 }

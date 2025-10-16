@@ -10,18 +10,20 @@
     "lint": "eslint src --ext ts,tsx"
   },
   "dependencies": {
-    "@agents/db": "workspace:*",
     "@agents/core": "workspace:*",
+    "@agents/db": "workspace:*",
+    "@ai-sdk/ui-utils": "^1.2.11",
     "@openai/agents": "^0.1.9",
+    "@tanstack/react-query": "^5.0.0",
+    "ai": "^5.0.72",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.366.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.11.3",
-    "@tanstack/react-query": "^5.0.0",
-    "zustand": "^4.5.0",
+    "tailwind-merge": "^2.2.0",
     "zod": "^3.22.0",
-    "lucide-react": "^0.366.0",
-    "clsx": "^2.1.0",
-    "tailwind-merge": "^2.2.0"
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
