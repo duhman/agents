@@ -22,6 +22,7 @@ import ConditionNode from './components/nodes/ConditionNode';
 import ApprovalNode from './components/nodes/ApprovalNode';
 import OpenAIAgentNode from './components/nodes/OpenAIAgentNode';
 import MCPToolNode from './components/nodes/MCPToolNode';
+import { aiSdkEmailWorkflowTemplate } from './templates/ai-sdk-email-workflow';
 
 const nodeTypes: NodeTypes = {
   trigger: TriggerNode,
@@ -150,6 +151,12 @@ function App() {
     );
   }, [setNodes]);
 
+  const loadAiSdkWorkflow = useCallback(() => {
+    setWorkflowName(aiSdkEmailWorkflowTemplate.name);
+    setNodes(aiSdkEmailWorkflowTemplate.nodes);
+    setEdges(aiSdkEmailWorkflowTemplate.edges);
+  }, [setNodes, setEdges]);
+
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50">
       <WorkflowToolbar
@@ -157,6 +164,7 @@ function App() {
         onWorkflowNameChange={setWorkflowName}
         onSave={saveWorkflow}
         onExecute={executeWorkflow}
+        onLoadTemplate={loadAiSdkWorkflow}
       />
       
       <div className="flex flex-1 overflow-hidden">

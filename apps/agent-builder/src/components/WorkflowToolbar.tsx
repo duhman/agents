@@ -1,13 +1,14 @@
-import { Play, Save, Layers } from 'lucide-react';
+import { Play, Save, Layers, FileCode } from 'lucide-react';
 
 interface WorkflowToolbarProps {
   workflowName: string;
   onWorkflowNameChange: (name: string) => void;
   onSave: () => void;
   onExecute: () => void;
+  onLoadTemplate?: () => void;
 }
 
-export function WorkflowToolbar({ workflowName, onWorkflowNameChange, onSave, onExecute }: WorkflowToolbarProps) {
+export function WorkflowToolbar({ workflowName, onWorkflowNameChange, onSave, onExecute, onLoadTemplate }: WorkflowToolbarProps) {
   return (
     <div className="h-16 border-b border-gray-200 px-6 flex items-center justify-between bg-white shadow-sm">
       <div className="flex items-center gap-6">
@@ -35,6 +36,16 @@ export function WorkflowToolbar({ workflowName, onWorkflowNameChange, onSave, on
       </div>
 
       <div className="flex items-center gap-3">
+        {onLoadTemplate && (
+          <button
+            onClick={onLoadTemplate}
+            className="px-4 py-2 bg-blue-500 border border-blue-600 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm font-medium shadow-sm"
+          >
+            <FileCode size={16} />
+            Load AI SDK Workflow
+          </button>
+        )}
+        
         <button
           onClick={onSave}
           className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm font-medium shadow-sm"
