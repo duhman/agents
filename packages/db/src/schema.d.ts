@@ -743,4 +743,3 @@ export declare const agentApprovals: import("drizzle-orm/pg-core").PgTableWithCo
     };
     dialect: "pg";
 }>;
-//# sourceMappingURL=schema.d.ts.map

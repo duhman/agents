@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+.react-flow__node {
+  border-radius: 8px;
+  padding: 10px;
+  border: 2px solid #1a192b;
+  background: white;
+  font-size: 12px;
+}
+
+.react-flow__node-trigger {
+  background: #10b981;
+  color: white;
+}
+
+.react-flow__node-action {
+  background: #3b82f6;
+  color: white;
+}
+
+.react-flow__node-condition {
+  background: #f59e0b;
+  color: white;
+}
+
+.react-flow__node-approval {
+  background: #8b5cf6;
+  color: white;
+}
