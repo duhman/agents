@@ -20,6 +20,17 @@ import {
   type ExtractionResultEnhanced
 } from '@agents/prompts';
 
+/**
+ * Type adapter to convert AI SDK's PartialObject to our expected Partial type
+ * 
+ * The AI SDK's streamObject returns PartialObject which has slightly different
+ * array types (e.g., (string | undefined)[] vs string[]). This adapter handles
+ * the conversion explicitly and documents the type safety trade-off.
+ */
+function adaptPartialObject<T>(partialObject: Record<string, unknown>): Partial<T> {
+  return partialObject as Partial<T>;
+}
+
 export interface StreamingProcessOptions {
   source: string;
   customerEmail: string;
@@ -56,14 +67,14 @@ export async function* processEmailStreaming(
     });
     
     for await (const partialObject of partialObjectStream) {
-      const partial = partialObject as unknown as Partial<ExtractionResultEnhanced>;
+      const partial = adaptPartialObject<ExtractionResultEnhanced>(partialObject);
       if (onProgress) {
         onProgress(partial);
       }
       yield partial;
     }
     
-    const extraction = (await finalObject) as ExtractionResultEnhanced;
+    const extraction = adaptPartialObject<ExtractionResultEnhanced>(await finalObject) as ExtractionResultEnhanced;
     
     if (onComplete) {
       onComplete(extraction);
@@ -94,11 +105,6 @@ export async function* processEmailStreaming(
 export async function processEmailStreamingSimple(
   params: Pick<StreamingProcessOptions, 'source' | 'customerEmail' | 'rawEmail'>
 ): Promise<ExtractionResultEnhanced> {
-  let finalResult: ExtractionResultEnhanced | undefined;
-  
-  for await (const partial of processEmailStreaming(params)) {
-  }
-  
   const generator = processEmailStreaming(params);
   let current = await generator.next();
   

@@ -128,7 +128,7 @@ export function useStreamingExtraction(options: UseStreamingExtractionOptions = 
               continue;
             }
             
-            const totalFields = 9; // Number of fields in extractionSchemaEnhanced
+            const totalFields = 11; // Number of fields in ExtractionResultEnhanced (9 required + 2 optional)
             const populatedFields = Object.keys(parsed).length;
             const progress = Math.min(95, (populatedFields / totalFields) * 100);
             
