@@ -6,7 +6,7 @@ export async function createTicket(data) {
         .insert(tickets)
         .values({
         ...data,
-        moveDate: data.moveDate?.toISOString().split("T")[0] // Convert Date to YYYY-MM-DD string
+        moveDate: data.moveDate?.toISOString().split("T")[0]
     })
         .returning();
     return ticket;
@@ -29,30 +29,31 @@ export async function getDraftById(id) {
         where: eq(drafts.id, id)
     });
 }
-// Slack Retry Queue Management
 export async function createSlackRetryQueueItem(data) {
     const [item] = await db
         .insert(slackRetryQueue)
         .values({
         ...data,
-        retryCount: data.retryCount || '0',
-        status: 'pending'
+        retryCount: data.retryCount || "0",
+        status: "pending"
     })
         .returning();
     return item;
 }
 export async function getSlackRetryQueueItemsToProcess(maxRetries = 3) {
     const now = new Date();
-    return db.query.slackRetryQueue.findMany({
-        where: and(eq(slackRetryQueue.status, 'pending'), lte(slackRetryQueue.nextRetryAt, now)),
+    return db.query.slackRetryQueue
+        .findMany({
+        where: and(eq(slackRetryQueue.status, "pending"), lte(slackRetryQueue.nextRetryAt, now)),
         orderBy: [slackRetryQueue.nextRetryAt]
-    }).then(items => items.filter(item => parseInt(item.retryCount.toString()) < maxRetries));
+    })
+        .then(items => items.filter(item => parseInt(item.retryCount.toString()) < maxRetries));
 }
 export async function claimSlackRetryQueueItem(id) {
     const [item] = await db
         .update(slackRetryQueue)
-        .set({ status: 'processing', updatedAt: new Date() })
-        .where(and(eq(slackRetryQueue.id, id), eq(slackRetryQueue.status, 'pending')))
+        .set({ status: "processing", updatedAt: new Date() })
+        .where(and(eq(slackRetryQueue.id, id), eq(slackRetryQueue.status, "pending")))
         .returning();
     return item ?? null;
 }
@@ -71,10 +72,10 @@ export async function getSlackRetryQueueStats() {
     const items = await db.query.slackRetryQueue.findMany();
     const stats = {
         count: items.length,
-        pending: items.filter(i => i.status === 'pending').length,
-        processing: items.filter(i => i.status === 'processing').length,
-        succeeded: items.filter(i => i.status === 'succeeded').length,
-        failed: items.filter(i => i.status === 'failed').length,
+        pending: items.filter(i => i.status === "pending").length,
+        processing: items.filter(i => i.status === "processing").length,
+        succeeded: items.filter(i => i.status === "succeeded").length,
+        failed: items.filter(i => i.status === "failed").length,
         byRetryCount: {}
     };
     items.forEach(item => {

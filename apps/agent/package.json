@@ -12,6 +12,7 @@
     "@agents/core": "workspace:*",
     "@agents/prompts": "workspace:*",
     "@agents/db": "workspace:*",
+    "@agents/agents-runtime": "workspace:*",
     "openai": "^6.2.0",
     "zod": "^3.22.0",
     "dotenv": "^16.3.0"
