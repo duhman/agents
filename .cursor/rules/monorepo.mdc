@@ -1,5 +1,5 @@
 ---
-description: Monorepo structure and workspace management with pnpm
+description: Monorepo structure and workspace management with pnpm and Turbo
 globs: package.json, pnpm-workspace.yaml, turbo.json, packages/*/package.json, apps/*/package.json
 alwaysApply: false
 ---
@@ -9,6 +9,7 @@ alwaysApply: false
 ## Workspace Protocol
 
 ✅ **DO:** Use workspace protocol for internal dependencies
+
 ```json
 {
   "name": "@agents/agent",
@@ -21,6 +22,7 @@ alwaysApply: false
 ```
 
 ❌ **DON'T:** Use version numbers or relative paths
+
 ```json
 {
   "dependencies": {
@@ -38,6 +40,7 @@ alwaysApply: false
 /ops             - Scripts (export, eval, finetune)
 /infra           - Infrastructure (docker-compose)
 /docs            - Documentation
+/api             - Vercel serverless functions
 ```
 
 ## Build Order
@@ -50,6 +53,14 @@ Turborepo handles build dependencies automatically:
     "build": {
       "dependsOn": ["^build"],  // ✅ Wait for dependencies first
       "outputs": ["dist/**", ".next/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }
@@ -59,14 +70,26 @@ Build order: `core` → `prompts` → `db` → `apps`
 
 ## Running Commands
 
-✅ **DO:** Use workspace filters
+✅ **DO:** Use workspace filters for specific packages
+
 ```bash
 # Run specific package
 pnpm --filter @agents/agent dev
 
-# Run from root with Turbo
+# Run from root with Turbo (parallel execution)
 pnpm build  # Builds all packages in dependency order
 pnpm dev    # Runs all dev servers in parallel
+
+# Run commands in specific directory
+cd packages/db && pnpm drizzle-kit push
+```
+
+✅ **DO:** Use Turbo for parallel execution
+
+```bash
+# Turbo automatically parallelizes independent tasks
+pnpm turbo build  # Builds all packages efficiently
+pnpm turbo test   # Runs all tests in parallel
 ```
 
 ## Shared Configuration
@@ -74,6 +97,7 @@ pnpm dev    # Runs all dev servers in parallel
 - Root `tsconfig.json` - Base TypeScript config
 - Each package extends root: `"extends": "../../tsconfig.json"`
 - Shared `.prettierrc`, `.eslintrc.json` at root
+- Shared `@agents/tsconfig` for consistent settings
 
 ## Package Naming
 
@@ -81,7 +105,9 @@ Use scoped names with `@agents/` prefix:
 
 ```json
 {
-  "name": "@agents/package-name"
+  "name": "@agents/package-name",
+  "version": "0.1.0",
+  "type": "module"
 }
 ```
 
@@ -103,17 +129,58 @@ Each package has its own tsconfig.json:
 ## Common Commands
 
 ```bash
+# Development
 pnpm agent:dev       # Test agent locally
 pnpm slack:dev       # Test Slack bot
+pnpm ingestor:dev    # Test email ingestor
+
+# Database
 pnpm db:push         # Push schema (dev)
+pnpm db:generate     # Generate migration
+pnpm db:migrate      # Apply migrations
 pnpm db:studio       # Open Drizzle Studio
+
+# Evaluation & Training
 pnpm eval            # Run evaluation
 pnpm export-jsonl    # Export training data
 pnpm finetune        # Launch fine-tuning job
+
+# Building
+pnpm build           # Build all packages
+pnpm clean           # Clean all build outputs
+```
+
+## Adding New Packages
+
+When creating a new package:
+
+1. Create directory in `packages/` or `apps/`
+2. Add `package.json` with `@agents/` scope
+3. Add to `pnpm-workspace.yaml` (usually covered by glob)
+4. Use `workspace:*` for internal dependencies
+5. Run `pnpm install` to link
+
+```json
+{
+  "name": "@agents/new-package",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@agents/core": "workspace:*"
+  }
+}
 ```
 
 ## References
 
-- @package.json - Root package configuration
-- @pnpm-workspace.yaml - Workspace definition
-- @turbo.json - Build pipeline
+- package.json - Root package configuration
+- pnpm-workspace.yaml - Workspace definition
+- turbo.json - Build pipeline
+- [pnpm Workspaces Documentation](https://pnpm.io/workspaces)
+- [Turborepo Documentation](https://turbo.build/repo/docs)

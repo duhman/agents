@@ -1,6 +1,6 @@
 import { db } from "./client.js";
-import { tickets, drafts, humanReviews, agentWorkflows, agentExecutions, agentTriggers, agentApprovals } from "./schema.js";
-import { eq, desc } from "drizzle-orm";
+import { tickets, drafts, humanReviews, agentWorkflows, agentExecutions, agentTriggers, agentApprovals, slackRetryQueue } from "./schema.js";
+import { eq, desc, and, lte } from "drizzle-orm";
 
 export async function createTicket(data: {
   source: string;
@@ -240,4 +240,88 @@ export async function listPendingApprovals() {
     where: eq(agentApprovals.status, 'pending'),
     orderBy: [desc(agentApprovals.createdAt)]
   });
+}
+
+// Slack Retry Queue Management
+export async function createSlackRetryQueueItem(data: {
+  ticketId: string;
+  draftId: string;
+  channel: string;
+  originalEmail: string;
+  originalEmailSubject?: string;
+  originalEmailBody?: string;
+  draftText: string;
+  confidence: string;
+  extraction: Record<string, any>;
+  hubspotTicketUrl?: string;
+  retryCount?: string;
+  nextRetryAt: Date;
+}) {
+  const [item] = await db
+    .insert(slackRetryQueue)
+    .values({
+      ...data,
+      retryCount: data.retryCount || '0',
+      status: 'pending'
+    })
+    .returning();
+  return item;
+}
+
+export async function getSlackRetryQueueItemsToProcess(maxRetries: number = 3) {
+  const now = new Date();
+  return db.query.slackRetryQueue.findMany({
+    where: and(
+      eq(slackRetryQueue.status, 'pending'),
+      lte(slackRetryQueue.nextRetryAt, now)
+    ),
+    orderBy: [slackRetryQueue.nextRetryAt]
+  }).then(items => items.filter(item => parseInt(item.retryCount.toString()) < maxRetries));
+}
+
+export async function claimSlackRetryQueueItem(id: string) {
+  const [item] = await db
+    .update(slackRetryQueue)
+    .set({ status: 'processing', updatedAt: new Date() })
+    .where(and(eq(slackRetryQueue.id, id), eq(slackRetryQueue.status, 'pending')))
+    .returning();
+  return item ?? null;
+}
+
+export async function updateSlackRetryQueueItem(id: string, data: {
+  retryCount?: string;
+  nextRetryAt?: Date;
+  lastError?: string;
+  status?: string;
+}) {
+  const [item] = await db
+    .update(slackRetryQueue)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(slackRetryQueue.id, id))
+    .returning();
+  return item;
+}
+
+export async function deleteSlackRetryQueueItem(id: string) {
+  await db.delete(slackRetryQueue).where(eq(slackRetryQueue.id, id));
+}
+
+export async function getSlackRetryQueueStats() {
+  const items = await db.query.slackRetryQueue.findMany();
+
+  const stats = {
+    count: items.length,
+    pending: items.filter(i => i.status === 'pending').length,
+    processing: items.filter(i => i.status === 'processing').length,
+    succeeded: items.filter(i => i.status === 'succeeded').length,
+    failed: items.filter(i => i.status === 'failed').length,
+    byRetryCount: {} as Record<number, number>
+  };
+
+  items.forEach(item => {
+    const count = parseInt(item.retryCount.toString());
+    stats.byRetryCount[count] = (stats.byRetryCount[count] || 0) + 1;
+  });
+
+  return stats;
 }

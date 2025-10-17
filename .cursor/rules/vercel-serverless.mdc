@@ -1,10 +1,12 @@
 ---
-description: Vercel deployment patterns and serverless constraints (Updated January 2025)
+description: Vercel serverless patterns, webhooks, logging, and deployment best practices (January 2025)
 globs: api/**/*.ts, vercel.json
 alwaysApply: false
 ---
 
-# Vercel Deployment Best Practices (2025)
+# Vercel Serverless & API Patterns
+
+This rule consolidates Vercel deployment patterns, webhook handling, structured logging, and serverless best practices.
 
 ## Function Runtime Configuration
 
@@ -63,21 +65,24 @@ export const db = drizzle(queryClient, { schema });
 const db = drizzle(postgres(connectionString)); // Outside handler
 ```
 
-## Function Constraints & Performance
+## Fire-and-Forget Background Tasks
 
 ⚠️ **Critical:** Keep functions <30s execution time (updated limit)
 
-✅ **DO:** Use fire-and-forget for non-critical operations with Vercel waitUntil
+✅ **DO:** Use Vercel waitUntil for background tasks
 
 ```typescript
 import { waitUntil } from "@vercel/functions";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const requestId = generateRequestId();
+  const logContext: LogContext = { requestId };
+
   // Process critical path first
   const result = await processEmail(data);
 
   // Fire-and-forget non-critical operations with proper Vercel handling
-  const slackTask = postToSlack(result).catch(error => {
+  const slackTask = postToSlack(result).catch((error: unknown) => {
     logError("Slack posting failed", logContext, error);
     // Don't fail the webhook if Slack fails
   });
@@ -89,14 +94,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Return immediately
-  return res.status(200).json({ success: true });
+  return res.status(200).json({ success: true, request_id: requestId });
 }
 ```
 
-✅ **DO:** Use standardized webhook input format
+## Webhook Input Validation
+
+✅ **DO:** Validate required subject and body fields
 
 ```typescript
-// Use consistent subject/body format
 interface WebhookPayload {
   source?: string;
   customerEmail?: string;
@@ -109,8 +115,9 @@ const subject = typeof body.subject === "string" ? body.subject : "";
 const bodyText = typeof body.body === "string" ? body.body : "";
 
 if (!subject && !bodyText) {
-  return res.status(400).json({ 
-    error: "validation: subject and body are required" 
+  return res.status(400).json({
+    error: "validation: subject and body are required",
+    request_id: requestId
   });
 }
 
@@ -118,13 +125,27 @@ if (!subject && !bodyText) {
 const rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
 ```
 
+✅ **DO:** Log webhook validation details
+
+```typescript
+logInfo("Request validation successful", logContext, {
+  source,
+  subjectLength: subject.length,
+  bodyLength: bodyText.length,
+  subjectPreview: subject.slice(0, 50),
+  bodyPreview: bodyText.slice(0, 50)
+});
+```
+
+## Structured Logging (Production-Grade)
+
 ✅ **DO:** Use structured logging with request IDs
 
 ```typescript
-import { generateRequestId, logInfo, logError, type LogContext } from "@agents/core";
+import { logInfo, logError, logWarn, generateRequestId, type LogContext } from "@agents/core";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const requestId = generateRequestId();
+  const requestId = generateRequestId(); // crypto.randomUUID()
   const logContext: LogContext = { requestId };
   const startTime = Date.now();
 
@@ -139,15 +160,109 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const duration = Date.now() - startTime;
     logInfo("Request completed", { ...logContext, duration });
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({
+      success: true,
+      request_id: requestId,
+      processing_time_ms: duration
+    });
   } catch (error: any) {
     const duration = Date.now() - startTime;
     logError("Request failed", { ...logContext, duration }, error);
 
-    return res.status(500).json({ error: error.message });
+    const statusCode = getErrorStatusCode(error);
+    return res.status(statusCode).json({
+      error: error.message || "Internal server error",
+      request_id: requestId,
+      processing_time_ms: duration
+    });
   }
 }
 ```
+
+## Log Context Interface
+
+✅ **DO:** Use consistent LogContext structure
+
+```typescript
+export interface LogContext {
+  requestId: string;
+  userId?: string;
+  ticketId?: string;
+  duration?: number;
+  [key: string]: any;
+}
+```
+
+## Error Handling & Status Codes
+
+✅ **DO:** Return appropriate HTTP status codes
+
+```typescript
+function getErrorStatusCode(error: any): number {
+  const message = error.message?.toLowerCase() || "";
+
+  if (message.includes("quota")) return 402;
+  if (message.includes("rate limit")) return 429;
+  if (message.includes("timeout")) return 504;
+  if (message.includes("validation")) return 400;
+  if (message.includes("unauthorized")) return 401;
+  if (message.includes("forbidden")) return 403;
+
+  return 500;
+}
+```
+
+✅ **DO:** Log errors with context and stack traces
+
+```typescript
+try {
+  // API call...
+} catch (error: any) {
+  logError("OpenAI API error", logContext, error);
+  // Error object includes: message, stack, code, etc.
+}
+```
+
+❌ **DON'T:** Log raw customer data
+
+```typescript
+// ❌ NEVER log PII
+logInfo("Processing email", logContext, {
+  email: "customer@example.com" // ❌ Contains PII
+});
+
+// ✅ DO mask PII
+logInfo("Processing email", logContext, {
+  email: maskPII("customer@example.com") // ✅ Masked
+});
+```
+
+## Retry Logic with Exponential Backoff
+
+✅ **DO:** Implement retry logic for API calls
+
+```typescript
+import { withRetry } from "@agents/core";
+
+const result = await withRetry(
+  async () => {
+    return await openai.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [/* ... */],
+      response_format: zodResponseFormat(extractionSchema, "extraction"),
+      temperature: 0,
+      timeout: 30000
+    });
+  },
+  3, // maxRetries
+  1000 // baseDelay (exponential: 1s, 2s, 4s)
+);
+```
+
+**Retry Strategy:**
+- Only retry on `rate_limit_exceeded` and `timeout` errors
+- Exponential backoff: 1s, 2s, 4s delays
+- Don't retry on quota/auth errors
 
 ## Environment Variables & Security
 
@@ -160,27 +275,62 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   OPENAI_API_KEY: z.string().min(1),
   SLACK_BOT_TOKEN: z.string().min(1).optional(),
-  SLACK_SIGNING_SECRET: z.string().min(1).optional()
+  SLACK_SIGNING_SECRET: z.string().min(1).optional(),
+  CRON_SECRET: z.string().min(1).optional()
 });
 
 const env = envSchema.parse(process.env);
 ```
 
-✅ **DO:** Use proper HTTP status codes
+## Request Validation
+
+✅ **DO:** Validate webhook requests thoroughly
 
 ```typescript
-// Return appropriate status codes based on error type
-const statusCode = error.message?.includes("quota")
-  ? 402
-  : error.message?.includes("rate limit")
-    ? 429
-    : error.message?.includes("timeout")
-      ? 504
-      : 500;
+// Minimal validation (avoid zod/types at edge)
+const rawBody = typeof req.body === "string" ? JSON.parse(req.body) : req.body ?? {};
+const body = (rawBody ?? {}) as WebhookPayload;
+const source = typeof body.source === "string" && body.source ? body.source : "hubspot";
+const customerEmail = typeof body.customerEmail === "string" && body.customerEmail
+  ? body.customerEmail
+  : "masked@example.com";
 
-return res.status(statusCode).json({
-  error: error.message || "Internal server error",
-  request_id: requestId
+if (req.method !== "POST") {
+  logWarn("Invalid HTTP method", { method: req.method, requestId }, logContext);
+  res.status(405).json({ error: "Method not allowed" });
+  return;
+}
+```
+
+## Performance Monitoring
+
+✅ **DO:** Track processing duration and log performance
+
+```typescript
+const startTime = Date.now();
+const requestId = randomUUID();
+
+// ... process request ...
+
+const duration = Date.now() - startTime;
+logInfo("Webhook processing completed successfully", {
+  duration,
+  success: result.success,
+  ticketId: result.ticket?.id,
+  draftId: result.draft?.id,
+  confidence: result.confidence,
+  route: result.route,
+  requestId
+});
+
+res.status(200).json({
+  success: result.success,
+  ticket_id: result.ticket?.id,
+  draft_id: result.draft?.id,
+  confidence: result.confidence,
+  route: result.route,
+  request_id: requestId,
+  processing_time_ms: duration
 });
 ```
 
@@ -208,6 +358,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     {
       "path": "/api/cron/export-training-data",
       "schedule": "0 0 1 * *" // Monthly on 1st at midnight
+    },
+    {
+      "path": "/api/cron/process-slack-retry",
+      "schedule": "*/5 * * * *" // Every 5 minutes
     }
   ]
 }
@@ -276,46 +430,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
     "api/cron/export-training-data.ts": {
       "maxDuration": 300
+    },
+    "api/cron/process-slack-retry.ts": {
+      "maxDuration": 60
     }
   },
   "regions": ["iad1"],
   "framework": null,
   "env": {
     "NODE_ENV": "production"
-  }
-}
-```
-
-## Error Handling & Observability
-
-✅ **DO:** Implement retry logic with exponential backoff
-
-```typescript
-import { withRetry } from "@agents/core";
-
-const result = await withRetry(
-  async () => {
-    return await openai.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
-      messages: [
-        /* ... */
-      ],
-      response_format: zodResponseFormat(extractionSchema, "extraction"),
-      temperature: 0,
-      timeout: 30000
-    });
   },
-  3, // maxRetries
-  1000 // baseDelay
-);
+  "crons": [
+    {
+      "path": "/api/cron/export-training-data",
+      "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/cron/process-slack-retry",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}
 ```
 
 ## References
 
-- api/webhook.ts - Webhook handler with latest patterns
+- api/webhook.ts - Main webhook handler with latest patterns
 - api/health.ts - Health check endpoint
 - api/cron/export-training-data.ts - Cron example
-- @vercel.json - Deployment configuration
-- @packages/db/src/client.ts - Database connection pooling
+- api/cron/process-slack-retry.ts - Retry queue processor
+- packages/core/src/index.ts - Logging and validation utilities
+- packages/db/src/client.ts - Database connection pooling
+- vercel.json - Deployment configuration
 - [Vercel Functions Documentation](https://vercel.com/docs/functions)
 - [Vercel Connection Pooling Guide](https://vercel.com/guides/connection-pooling-with-functions)

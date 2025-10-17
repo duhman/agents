@@ -743,4 +743,215 @@ export declare const agentApprovals: import("drizzle-orm/pg-core").PgTableWithCo
     };
     dialect: "pg";
 }>;
+export declare const slackRetryQueue: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "slack_retry_queue";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "id";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        ticketId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "ticket_id";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        draftId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "draft_id";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        channel: import("drizzle-orm/pg-core").PgColumn<{
+            name: "channel";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        originalEmail: import("drizzle-orm/pg-core").PgColumn<{
+            name: "original_email";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        originalEmailSubject: import("drizzle-orm/pg-core").PgColumn<{
+            name: "original_email_subject";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        originalEmailBody: import("drizzle-orm/pg-core").PgColumn<{
+            name: "original_email_body";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        draftText: import("drizzle-orm/pg-core").PgColumn<{
+            name: "draft_text";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        confidence: import("drizzle-orm/pg-core").PgColumn<{
+            name: "confidence";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgNumeric";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        extraction: import("drizzle-orm/pg-core").PgColumn<{
+            name: "extraction";
+            tableName: "slack_retry_queue";
+            dataType: "json";
+            columnType: "PgJsonb";
+            data: unknown;
+            driverParam: unknown;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        hubspotTicketUrl: import("drizzle-orm/pg-core").PgColumn<{
+            name: "hubspot_ticket_url";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        retryCount: import("drizzle-orm/pg-core").PgColumn<{
+            name: "retry_count";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgNumeric";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        nextRetryAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "next_retry_at";
+            tableName: "slack_retry_queue";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        lastError: import("drizzle-orm/pg-core").PgColumn<{
+            name: "last_error";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        status: import("drizzle-orm/pg-core").PgColumn<{
+            name: "status";
+            tableName: "slack_retry_queue";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "created_at";
+            tableName: "slack_retry_queue";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        updatedAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "updated_at";
+            tableName: "slack_retry_queue";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+    };
+    dialect: "pg";
+}>;
 //# sourceMappingURL=schema.d.ts.map

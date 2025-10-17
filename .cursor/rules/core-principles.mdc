@@ -16,6 +16,15 @@ This project automates customer email responses using **hybrid deterministic/AI 
 - Never log raw customer data
 - Always use `maskPII()` from `@agents/core` before LLM calls
 
+```typescript
+// ✅ DO: Mask before LLM call
+const masked = maskPII(rawEmail);
+const extraction = await extractWithOpenAI(masked);
+
+// ❌ DON'T: Send raw PII to LLM
+const extraction = await extractWithOpenAI(rawEmail);
+```
+
 ## 2. Policy Compliance
 
 - Norwegian default; English fallback; Swedish support
@@ -25,10 +34,34 @@ This project automates customer email responses using **hybrid deterministic/AI 
 
 ## 3. Schema-Driven Development
 
-- Use Zod schemas for validation
-- OpenAI structured outputs with `zodResponseFormat()`
-- Always use `.nullable()` with `.optional()` for optional fields
-- Validate all inputs/outputs with `safeParse`
+Use Zod schemas for all validation and OpenAI structured outputs.
+
+✅ **DO:** Always use `.nullable()` with `.optional()` for optional fields
+
+```typescript
+import { z } from "zod";
+
+const ExtractionSchema = z.object({
+  reason: z.string().nullable().optional(), // ✅ Both nullable and optional
+  moveDate: z.string().nullable().optional(),
+  language: z.enum(["no", "en", "sv"]).default("no")
+});
+
+// OpenAI structured outputs
+const extraction = await openai.beta.chat.completions.parse({
+  model: "gpt-4o-2024-08-06",
+  messages: [{ role: "user", content: prompt }],
+  response_format: zodResponseFormat(ExtractionSchema, "extraction")
+});
+```
+
+❌ **DON'T:** Use optional without nullable (causes parsing errors)
+
+```typescript
+const BadSchema = z.object({
+  reason: z.string().optional() // ❌ Missing nullable()
+});
+```
 
 ## 4. Hybrid Architecture
 
@@ -37,6 +70,19 @@ This project automates customer email responses using **hybrid deterministic/AI 
 - **Metrics collection**: Track processing methods and performance
 - **Edge case detection**: Handle special scenarios (corporate accounts, future dates)
 
+```typescript
+// Try deterministic first
+const deterministicResult = detectCancellationDeterministic(email);
+if (deterministicResult.isCancellation) {
+  metrics.processingMethod = "deterministic";
+  return deterministicResult;
+}
+
+// Fall back to AI for complex cases
+metrics.processingMethod = "ai";
+return await extractWithOpenAI(maskedEmail);
+```
+
 ## 5. Data Flow
 
 - tickets → drafts → human_reviews (one row per reviewer action)
@@ -44,6 +90,17 @@ This project automates customer email responses using **hybrid deterministic/AI 
 - Humans still send customer replies manually today—automation can hook into the stored decisions later
 - Export approved (and optionally edited) examples for fine-tuning when volume ≥500
 - Slack is the only reviewer surface; the experimental operator UI has been retired
+
+```typescript
+// Always log review decisions
+await createHumanReview({
+  ticketId,
+  draftId,
+  decision: "approve" | "edit" | "reject",
+  finalText: draftTextOrReason,
+  reviewerSlackId: userId
+});
+```
 
 ## 6. Code Quality
 

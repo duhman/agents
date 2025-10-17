@@ -1,12 +1,12 @@
 ---
-description: Core architecture patterns for hybrid deterministic/AI processing with OpenAI best practices
-globs: apps/agent/**/*.ts, packages/prompts/**/*.ts, apps/agent/src/metrics.ts
+description: Hybrid deterministic/AI processing with OpenAI best practices and email classification patterns
+globs: apps/agent/**/*.ts, packages/prompts/**/*.ts
 alwaysApply: false
 ---
 
-# Core Architecture & OpenAI Patterns
+# AI Processing & Email Classification
 
-This rule consolidates the hybrid deterministic/AI processing architecture with OpenAI best practices.
+This rule consolidates the hybrid deterministic/AI processing architecture with OpenAI best practices and email classification patterns.
 
 ## Architecture Overview
 
@@ -17,6 +17,35 @@ The system uses a **deterministic-first, AI-fallback** strategy:
 3. **Metrics Collection**: Track processing methods and performance
 4. **Edge Case Detection**: Handle special scenarios with enhanced logic
 
+## Email Classification Principles
+
+**CRITICAL: Always check exclusion patterns BEFORE inclusion patterns**
+
+### Non-Cancellation Patterns (Must be excluded)
+
+- Feedback requests: "rate", "rating", "survey", "how would you rate"
+- General questions: "how do i", "what is", "where can"
+- Support requests: "help with", "problem with", "not working"
+- Inquiry notifications: "Inquiry #"
+
+### Classification Flow
+
+1. **First**: Check if email matches non-cancellation patterns → return false
+2. **Then**: Check if email matches cancellation patterns → return true
+3. **Finally**: Analyze subject and body separately for context
+
+```typescript
+export function detectCancellationIntent(email: string): boolean {
+  // CRITICAL: Check exclusions first
+  if (isNonCancellationEmail(email)) {
+    return false;
+  }
+
+  // Then check for cancellation patterns
+  return hasCancellationPatterns(email);
+}
+```
+
 ## OpenAI API Best Practices (v5 - January 2025)
 
 ✅ **DO:** Use main namespace (latest)
@@ -26,9 +55,7 @@ import { zodResponseFormat } from "openai/helpers/zod";
 
 const completion = await openai.chat.completions.parse({
   model: "gpt-4o-2024-08-06",
-  messages: [
-    /* ... */
-  ],
+  messages: [/* ... */],
   response_format: zodResponseFormat(extractionSchema, "extraction"),
   temperature: 0, // Deterministic for policy-critical tasks
   timeout: 30000 // 30s timeout
@@ -61,7 +88,7 @@ let extraction = extractEmailDataDeterministic(rawEmail);
 let extractionMethod: "deterministic" | "openai" = "deterministic";
 
 // Only use OpenAI for complex cases
-const needsOpenAI = 
+const needsOpenAI =
   !extraction.confidence_factors.standard_case ||
   extraction.confidence_factors.clear_intent === false ||
   extraction.policy_risks.length > 1 ||
@@ -107,11 +134,11 @@ export const extractionSchemaEnhanced = z.object({
   move_date: z.string().date().optional().nullable(),
   language: z.enum(["no", "en", "sv"]), // Swedish support
   edge_case: z.enum([
-    "none", 
-    "no_app_access", 
-    "corporate_account", 
-    "future_move_date", 
-    "already_canceled", 
+    "none",
+    "no_app_access",
+    "corporate_account",
+    "future_move_date",
+    "already_canceled",
     "sameie_concern"
   ]),
   urgency: z.enum(["immediate", "future", "unclear"]),
@@ -149,32 +176,32 @@ Handle special scenarios with pattern matching:
 ```typescript
 function detectEdgeCase(email: string, extraction: ExtractionResult): string {
   const emailLower = email.toLowerCase();
-  
+
   // Corporate account detection
   if (emailLower.match(/bedrift|corporate|company|business|firma/)) {
     return "corporate_account";
   }
-  
+
   // App access issues
   if (emailLower.match(/ikke fungerer|not working|app.*problem|login.*issue/)) {
     return "no_app_access";
   }
-  
+
   // Future move dates (>1 month)
   if (extraction.move_date && getMonthsFromNow(extraction.move_date) > 1) {
     return "future_move_date";
   }
-  
+
   // Already canceled
   if (emailLower.match(/allerede.*oppsagt|already.*cancel|avsluttet|terminated/)) {
     return "already_canceled";
   }
-  
+
   // Sameie concerns
   if (emailLower.match(/sameie|housing association|hele|everyone|whole building/)) {
     return "sameie_concern";
   }
-  
+
   return "none";
 }
 ```
@@ -186,51 +213,34 @@ Use templates that handle edge cases:
 ```typescript
 export function generateDraftEnhanced(params: EnhancedDraftParams): string {
   const { language, reason, moveDate, edgeCase, customerConcerns } = params;
-  
+
   // Base template
   let body = getBaseTemplate(language);
-  
+
   // Add reason-specific content
   if (reason === "moving") {
     body += getMovingContent(language);
   }
-  
+
   // Handle edge cases
   if (edgeCase === "corporate_account") {
     body += getCorporateAccountContent(language);
   }
-  
+
   if (edgeCase === "no_app_access") {
     body += getAppAccessContent(language);
   }
-  
+
   // Add policy information
   body += getPolicyContent(language);
-  
+
   // Add move date information
   if (moveDate) {
     body += getMoveDateContent(moveDate, language);
   }
-  
+
   return body;
 }
-```
-
-## Metrics Collection
-
-✅ **DO:** Track processing methods and performance
-
-```typescript
-// From metrics.ts
-metricsCollector.record({
-  extraction_method: extractionMethod,
-  is_cancellation: extraction.is_cancellation,
-  edge_case: extraction.edge_case,
-  confidence,
-  processing_time_ms: duration,
-  policy_compliant: validation.compliant,
-  language: extraction.language
-});
 ```
 
 ## Retry Logic with Exponential Backoff
@@ -244,9 +254,7 @@ const completion = await withRetry(
   async () => {
     return await openai.chat.completions.parse({
       model: "gpt-4o-2024-08-06",
-      messages: [
-        /* ... */
-      ],
+      messages: [/* ... */],
       response_format: zodResponseFormat(extractionSchema, "extraction"),
       temperature: 0,
       timeout: 30000
@@ -319,6 +327,23 @@ if (norwegianCount >= 2) {
 }
 ```
 
+## Metrics Collection
+
+✅ **DO:** Track processing methods and performance
+
+```typescript
+// From metrics.ts
+metricsCollector.record({
+  extraction_method: extractionMethod,
+  is_cancellation: extraction.is_cancellation,
+  edge_case: extraction.edge_case,
+  confidence,
+  processing_time_ms: duration,
+  policy_compliant: validation.compliant,
+  language: extraction.language
+});
+```
+
 ## Performance Benefits
 
 ### Deterministic Processing
@@ -343,21 +368,15 @@ if (norwegianCount >= 2) {
 
 ## Testing Strategy
 
-Test both processing paths:
+### Classification Edge Cases
 
-```typescript
-// Test deterministic path
-const standardEmail = "Hei, jeg skal flytte og vil si opp abonnementet mitt.";
-const result = await processEmailHybrid({ source: "test", customerEmail: "test@example.com", rawEmail: standardEmail });
-expect(result.extraction_method).toBe("deterministic");
+Always test with these edge cases:
+- Feedback emails: "How would you rate the received customer service?"
+- Question emails: "How do I update my payment method?"
+- Support emails: "The app is not working"
+- Actual cancellations: "I am moving and want to cancel"
 
-// Test OpenAI fallback path
-const complexEmail = "I'm not sure if I want to cancel, but I might be moving to a different country next year...";
-const result2 = await processEmailHybrid({ source: "test", customerEmail: "test@example.com", rawEmail: complexEmail });
-expect(result2.extraction_method).toBe("openai");
-```
-
-## Testing Strategy
+### Processing Path Tests
 
 Test both processing paths:
 
@@ -372,8 +391,6 @@ const complexEmail = "I'm not sure if I want to cancel, but I might be moving to
 const result2 = await processEmailHybrid({ source: "test", customerEmail: "test@example.com", rawEmail: complexEmail });
 expect(result2.extraction_method).toBe("openai");
 ```
-
-## Testing & Evaluation Best Practices
 
 ### Golden Set Testing
 
@@ -448,7 +465,7 @@ test("validates extraction schema", () => {
     language: "no",
     policy_risks: []
   };
-  
+
   const result = extractionSchema.safeParse(valid);
   expect(result.success).toBe(true);
 });
@@ -469,6 +486,7 @@ pnpm eval
 - apps/agent/src/simplified-processor.ts - Pure deterministic fallback
 - apps/agent/src/metrics.ts - Performance metrics collection
 - packages/prompts/src/templates-enhanced.ts - Enhanced schemas and templates
+- packages/prompts/src/patterns.ts - Classification patterns
 - packages/core/src/index.ts - Retry logic and logging
 - ops/scripts/eval.ts - Evaluation implementation
 - SIMPLIFICATION_SUMMARY.md - Architecture migration details

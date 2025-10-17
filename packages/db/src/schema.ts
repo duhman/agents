@@ -79,3 +79,23 @@ export const agentApprovals = pgTable("agent_approvals", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true })
 });
 
+export const slackRetryQueue = pgTable("slack_retry_queue", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  draftId: uuid("draft_id").references(() => drafts.id).notNull(),
+  channel: text("channel").notNull(),
+  originalEmail: text("original_email").notNull(),
+  originalEmailSubject: text("original_email_subject"),
+  originalEmailBody: text("original_email_body"),
+  draftText: text("draft_text").notNull(),
+  confidence: numeric("confidence").notNull(),
+  extraction: jsonb("extraction").notNull().default('{}'),
+  hubspotTicketUrl: text("hubspot_ticket_url"),
+  retryCount: numeric("retry_count").notNull().default('0'),
+  nextRetryAt: timestamp("next_retry_at", { withTimezone: true }).notNull(),
+  lastError: text("last_error"),
+  status: varchar("status", { length: 16 }).notNull().default('pending'), // pending, processing, succeeded, failed
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+

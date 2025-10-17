@@ -10,5 +10,6 @@
       "@agents/agents-runtime": ["../../packages/agents-runtime/dist/index.d.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/tests/**/*"]
 }

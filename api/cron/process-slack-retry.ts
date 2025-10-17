@@ -18,36 +18,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   try {
     const startTime = Date.now();
-    const initialQueueStatus = getSlackRetryQueueStatus();
-    
+    const initialQueueStatus = await getSlackRetryQueueStatus();
+
     console.log(JSON.stringify({
       level: "info",
       message: "Starting Slack retry queue processing",
       timestamp: new Date().toISOString(),
-      queueSize: initialQueueStatus.count
+      queueStats: initialQueueStatus
     }));
 
     await processSlackRetryQueue();
-    
-    const finalQueueStatus = getSlackRetryQueueStatus();
+
+    const finalQueueStatus = await getSlackRetryQueueStatus();
     const duration = Date.now() - startTime;
-    
+
     console.log(JSON.stringify({
       level: "info",
       message: "Completed Slack retry queue processing",
       timestamp: new Date().toISOString(),
-      initialQueueSize: initialQueueStatus.count,
-      finalQueueSize: finalQueueStatus.count,
-      processed: initialQueueStatus.count - finalQueueStatus.count,
+      initialStats: initialQueueStatus,
+      finalStats: finalQueueStatus,
       duration
     }));
 
     res.status(200).json({
       success: true,
       timestamp: new Date().toISOString(),
-      initialQueueSize: initialQueueStatus.count,
-      finalQueueSize: finalQueueStatus.count,
-      processed: initialQueueStatus.count - finalQueueStatus.count,
+      initialStats: initialQueueStatus,
+      finalStats: finalQueueStatus,
       duration
     });
   } catch (error: any) {

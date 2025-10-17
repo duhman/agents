@@ -46,7 +46,8 @@ export default defineConfig({
 ```typescript
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 ```
 
@@ -55,8 +56,16 @@ export const tickets = pgTable("tickets", {
 ```typescript
 export const drafts = pgTable("drafts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  ticketId: uuid("ticket_id").references(() => tickets.id)
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull()
 });
+```
+
+✅ **DO:** Add indexes for query performance
+
+```typescript
+// In migration files
+CREATE INDEX IF NOT EXISTS "slack_retry_queue_status_next_retry_idx"
+  ON "slack_retry_queue" ("status", "next_retry_at");
 ```
 
 ## Repository Pattern
@@ -99,6 +108,36 @@ moveDate: data.moveDate?.toISOString().split("T")[0];
 moveDate: data.moveDate; // Date object
 ```
 
+## Retry Queue Pattern
+
+For persistent background task queues (e.g., Slack retry queue):
+
+```typescript
+export const slackRetryQueue = pgTable("slack_retry_queue", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
+  draftId: uuid("draft_id").references(() => drafts.id).notNull(),
+  retryCount: numeric("retry_count").notNull().default('0'),
+  nextRetryAt: timestamp("next_retry_at", { withTimezone: true }).notNull(),
+  status: varchar("status", { length: 16 }).notNull().default('pending'), // pending, processing, succeeded, failed
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+// Efficient query for items to process
+export async function getItemsToProcess(maxRetries: number = 3) {
+  const now = new Date();
+  return db.query.slackRetryQueue.findMany({
+    where: and(
+      eq(slackRetryQueue.status, 'pending'),
+      lte(slackRetryQueue.nextRetryAt, now)
+    ),
+    orderBy: [slackRetryQueue.nextRetryAt]
+  }).then(items => items.filter(item => parseInt(item.retryCount.toString()) < maxRetries));
+}
+```
+
 ## Workspace References
 
 Always use workspace protocol in package.json:
@@ -116,3 +155,4 @@ Always use workspace protocol in package.json:
 - @packages/db/src/schema.ts - Database schema
 - @packages/db/src/repositories.ts - CRUD operations
 - @packages/db/drizzle.config.ts - Drizzle configuration
+- @packages/db/migrations/ - Versioned migrations

@@ -11,16 +11,18 @@ alwaysApply: false
 ⚠️ **Critical:** Slack webhooks timeout at 3 seconds
 
 ✅ **DO:** Acknowledge immediately, process async
+
 ```typescript
 app.action("approve", async ({ ack, body, client }) => {
   await ack(); // ✅ Acknowledge first (<3s)
-  
+
   // Then process async
   await processApproval(body);
 });
 ```
 
 ❌ **DON'T:** Process before acknowledging
+
 ```typescript
 app.action("approve", async ({ ack, body }) => {
   await processApproval(body); // ❌ May timeout
@@ -31,6 +33,7 @@ app.action("approve", async ({ ack, body }) => {
 ## Enhanced Reliability Patterns (2025)
 
 ✅ **DO:** Use Vercel waitUntil for background tasks
+
 ```typescript
 import { waitUntil } from "@vercel/functions";
 
@@ -47,14 +50,15 @@ if (typeof waitUntil === "function") {
 ```
 
 ✅ **DO:** Implement Slack connectivity health checks
+
 ```typescript
 async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
   const startTime = Date.now();
-  
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    
+
     const res = await fetch("https://slack.com/api/auth.test", {
       method: "POST",
       headers: {
@@ -63,11 +67,11 @@ async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
       },
       signal: controller.signal
     });
-    
+
     clearTimeout(timeout);
     const responseTime = Date.now() - startTime;
     const result = await res.json();
-    
+
     return {
       reachable: result.ok === true,
       responseTime,
@@ -86,31 +90,21 @@ async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
 }
 ```
 
-✅ **DO:** Implement retry queue for failed Slack posts
-```typescript
-interface SlackRetryItem {
-  ticketId: string;
-  draftId: string;
-  channel: string;
-  originalEmail: string;
-  draftText: string;
-  confidence: number;
-  extraction: Record<string, any>;
-  retryCount: number;
-  nextRetryAt: number;
-  createdAt: number;
-}
+✅ **DO:** Implement database-backed retry queue for failed Slack posts
 
-async function queueSlackRetry(params: PostReviewParams): Promise<void> {
-  const retryItem: SlackRetryItem = {
-    ...params,
-    retryCount: 0,
-    nextRetryAt: Date.now() + 5 * 60 * 1000, // 5 minutes
-    createdAt: Date.now()
-  };
-  
-  slackRetryQueue.push(retryItem);
-}
+```typescript
+// Queue failed post for retry
+await createSlackRetryQueueItem({
+  ticketId,
+  draftId,
+  channel,
+  originalEmail,
+  draftText,
+  confidence: String(confidence),
+  extraction,
+  retryCount: '0',
+  nextRetryAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+});
 ```
 
 ## Interactive Components
@@ -127,7 +121,7 @@ Store context in button values as JSON:
 }
 ```
 
-⚠️ **Size guard:** Slack button `value` fields are limited to 2 KB. If drafts can exceed ~1900 characters, trim before serializing or rely on server-side lookups (e.g., by ID) to avoid silent failures.
+⚠️ **Size guard:** Slack button `value` fields are limited to 2 KB. If drafts can exceed ~1900 characters, trim before serializing or rely on server-side lookups (e.g., by ID) to avoid silent failures.
 
 ### Modals for Edits
 
@@ -149,7 +143,7 @@ await client.views.open({
 
 🚨 **When opening from a message button:**
 
-- Call `views.open` synchronously within the 3 s window. Keep any other work async (wrap in `void` self-executing functions).
+- Call `views.open` synchronously within the 3 s window. Keep any other work async (wrap in `void` self-executing functions).
 - Only send the HTTP acknowledgement *after* `views.open` resolves. Responding first invalidates the trigger and the modal never appears.
 - Always guard for missing `trigger_id`; fail fast and send a friendly thread message if modal launch fails.
 
@@ -194,6 +188,7 @@ await createHumanReview({
 ## Message Formatting
 
 ✅ **DO:** Use blocks for rich formatting
+
 ```typescript
 blocks: [
   {
@@ -206,16 +201,93 @@ blocks: [
 ]
 ```
 
+✅ **DO:** Escape mrkdwn special characters
+
+```typescript
+function escapeMrkdwn(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+```
+
+✅ **DO:** Remove emojis from button text for accessibility
+
+```typescript
+{
+  type: "button",
+  text: { type: "plain_text", text: "Approve" },  // ✅ No emoji
+  style: "primary",
+  action_id: "approve"
+}
+```
+
 ## Error Handling
 
-Always handle Slack API errors:
+Always handle Slack API errors with specific codes:
 
 ```typescript
 try {
   await client.chat.postMessage({/* ... */});
-} catch (error) {
-  console.error("Slack API error:", error);
-  // Fallback or retry logic
+} catch (error: any) {
+  const errorCode = error?.data?.error || "unknown_error";
+
+  switch (errorCode) {
+    case "not_in_channel":
+      log("error", "Bot not in channel", { channel, requestId });
+      break;
+    case "channel_not_found":
+      log("error", "Channel not found", { channel, requestId });
+      break;
+    case "invalid_auth":
+      log("error", "Invalid Slack token", { requestId });
+      break;
+    case "expired_trigger_id":
+      log("error", "Trigger ID expired (>3s)", { requestId });
+      break;
+    case "rate_limited":
+      const retryAfter = error?.data?.retry_after || 60;
+      log("error", "Rate limited", { retryAfter, requestId });
+      break;
+    default:
+      log("error", "Slack API error", { error: errorCode, requestId });
+  }
+
+  // Queue for retry
+  await queueSlackRetry(params);
+}
+```
+
+## Security
+
+✅ **DO:** Verify Slack signature for all webhook requests
+
+```typescript
+import { createHmac, timingSafeEqual } from "crypto";
+
+function verifySlackSignature(req: VercelRequest, requestBody: string): boolean {
+  const signingSecret = process.env.SLACK_SIGNING_SECRET;
+
+  if (!signingSecret) {
+    log("error", "SLACK_SIGNING_SECRET not configured");
+    return true; // Allow in dev
+  }
+
+  const slackSignature = req.headers["x-slack-signature"] as string | undefined;
+  const slackTimestamp = req.headers["x-slack-request-timestamp"] as string | undefined;
+
+  // Verify timestamp is recent (within 5 minutes) to prevent replay attacks
+  const currentTime = Math.floor(Date.now() / 1000);
+  const requestTime = parseInt(slackTimestamp, 10);
+
+  if (Math.abs(currentTime - requestTime) > 60 * 5) {
+    return false;
+  }
+
+  const sigBasestring = `v0:${slackTimestamp}:${requestBody}`;
+  const computedSignature = `v0=${createHmac("sha256", signingSecret)
+    .update(sigBasestring, "utf8")
+    .digest("hex")}`;
+
+  return timingSafeEqual(Buffer.from(slackSignature), Buffer.from(computedSignature));
 }
 ```
 
@@ -225,3 +297,4 @@ try {
 - @packages/db/src/repositories.ts - Human review storage
 - @api/slack/interactions.ts - Modal + response handling
 - @documentation/project/policies.md - Review policies
+- SLACK_BOT_SETUP_GUIDE.md - Setup documentation
