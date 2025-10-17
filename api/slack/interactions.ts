@@ -733,94 +733,121 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
 
       if (actionId === "reject") {
-        const parsed = safeParseAction(action, requestId, "reject");
-        if (!parsed) {
-          respondOk();
-          return;
-        }
+        respondOk();
+        void (async () => {
+          const parsed = safeParseAction(action, requestId, "reject");
+          if (!parsed) return;
 
-        const { ticketId, draftId } = parsed;
-        try {
-          // Start token validation but don't await - run in background
-          void validateSlackToken(requestId).catch((error: any) => {
-            log("warn", "Background token validation failed", {
-              requestId,
-              error: error?.message || String(error)
+          const { ticketId, draftId } = parsed;
+          try {
+            // Provide immediate visual feedback while the modal is opening
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.update",
+                {
+                  channel: channelId,
+                  ts: messageTs,
+                  text: "Awaiting rejection reason",
+                  blocks: [
+                    {
+                      type: "section",
+                      text: {
+                        type: "mrkdwn",
+                        text: `❌ *Rejecting* – waiting for <@${userId}> to provide a reason.`
+                      }
+                    }
+                  ]
+                },
+                requestId
+              ).catch((error: any) => {
+                log("warn", "Slack reject pre-update failed", {
+                  requestId,
+                  ticketId,
+                  draftId,
+                  channelId,
+                  messageTs,
+                  error: error?.message || String(error)
+                });
+              });
+            }
+
+            // Start token validation but don't await - run in background
+            void validateSlackToken(requestId).catch((error: any) => {
+              log("warn", "Background token validation failed", {
+                requestId,
+                error: error?.message || String(error)
+              });
             });
-          });
 
-          log("info", "Slack reject modal opening", {
-            requestId,
-            ticketId,
-            draftId,
-            userId,
-            triggerId
-          });
-
-          const { view, metadataLength } = buildRejectModalView({
-            ticketId,
-            draftId,
-            channelId,
-            messageTs
-          });
-
-          if (metadataLength > 2000) {
-            log("warn", "Reject modal metadata approaching size limit", {
+            log("info", "Slack reject modal opening", {
               requestId,
               ticketId,
               draftId,
-              metadataLength
+              userId,
+              triggerId
             });
-          }
 
-          if (!triggerId) {
-            throw new Error("Missing trigger_id in block_actions payload");
-          }
+            const { view, metadataLength } = buildRejectModalView({
+              ticketId,
+              draftId,
+              channelId,
+              messageTs
+            });
 
-          const result = await slackApi(
-            "views.open",
-            {
-              trigger_id: triggerId,
-              view
-            },
-            requestId
-          );
+            if (metadataLength > 2000) {
+              log("warn", "Reject modal metadata approaching size limit", {
+                requestId,
+                ticketId,
+                draftId,
+                metadataLength
+              });
+            }
 
-          log("info", "Slack reject modal opened successfully", {
-            ticketId,
-            draftId,
-            userId,
-            requestId,
-            viewId: result?.view?.id,
-            ok: result?.ok,
-            responseKeys: Object.keys(result || {})
-          });
+            if (!triggerId) {
+              throw new Error("Missing trigger_id in block_actions payload");
+            }
 
-          respondOk();
-        } catch (error: any) {
-          const errMsg = error?.message || String(error);
-          log("error", "Slack reject modal open failed", {
-            requestId,
-            ticketId,
-            draftId,
-            userId,
-            error: errMsg
-          });
-
-          respond({ ok: false, error: "modal_open_failed" }, 200);
-
-          if (channelId && messageTs) {
-            await slackApi(
-              "chat.postMessage",
+            const result = await slackApi(
+              "views.open",
               {
-                channel: channelId,
-                text: `Kunne ikke åpne avslagsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
-                thread_ts: messageTs
+                trigger_id: triggerId,
+                view
               },
               requestId
-            ).catch(() => {});
+            );
+
+            log("info", "Slack reject modal opened successfully", {
+              ticketId,
+              draftId,
+              userId,
+              requestId,
+              viewId: result?.view?.id,
+              ok: result?.ok,
+              responseKeys: Object.keys(result || {})
+            });
+          } catch (error: any) {
+            const errMsg = error?.message || String(error);
+            log("error", "Slack reject modal open failed", {
+              requestId,
+              ticketId,
+              draftId,
+              userId,
+              error: errMsg
+            });
+
+            if (channelId && messageTs) {
+              await slackApi(
+                "chat.postMessage",
+                {
+                  channel: channelId,
+                  text: `Kunne ikke åpne avslagsvinduet for <@${userId}> – prøv igjen om noen sekunder.`,
+                  thread_ts: messageTs
+                },
+                requestId
+              ).catch(() => {});
+            }
           }
-        }
+        })();
         return;
       }
 
