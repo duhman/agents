@@ -8,27 +8,16 @@ import {
   type ProcessEmailResult
 } from "./hybrid-processor.js";
 
-import {
-  processEmailWithAiSdk,
-  healthCheckAiSdk,
-  type WorkflowParams,
-  type WorkflowResult
-} from "@agents/agents-runtime";
-
 const env = envSchema.parse(process.env);
-
-const AI_SDK_ENABLED = process.env.AI_SDK_ENABLED === "1" || process.env.AI_SDK_ENABLED === "true";
 
 export type { ProcessEmailParams, ProcessEmailResult };
 
 /**
- * Main email processing function
- * Routes to AI SDK workflow if AI_SDK_ENABLED=1, otherwise uses hybrid approach
+ * Main email processing function.
+ * Uses the hybrid processor that combines deterministic extraction with
+ * selective OpenAI fallback for complex cases.
  */
 export async function processEmail(params: ProcessEmailParams): Promise<ProcessEmailResult> {
-  if (AI_SDK_ENABLED) {
-    return processEmailWithAiSdk(params as WorkflowParams);
-  }
   return processEmailHybrid(params);
 }
 
@@ -36,9 +25,6 @@ export async function processEmail(params: ProcessEmailParams): Promise<ProcessE
  * Health check function
  */
 export async function healthCheck() {
-  if (AI_SDK_ENABLED) {
-    return healthCheckAiSdk();
-  }
   return healthCheckHybrid();
 }
 

@@ -12,7 +12,6 @@ import {
   logWarn, 
   type LogContext 
 } from "@agents/core";
-import { vectorStoreSearchTool } from "@agents/agents-runtime";
 import OpenAI from "openai";
 import type { ExtractionResultEnhanced } from "@agents/prompts";
 

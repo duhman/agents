@@ -6,8 +6,7 @@
     "paths": {
       "@agents/core": ["../../packages/core/dist/index.d.ts"],
       "@agents/db": ["../../packages/db/dist/index.d.ts"],
-      "@agents/prompts": ["../../packages/prompts/dist/index.d.ts"],
-      "@agents/agents-runtime": ["../../packages/agents-runtime/dist/index.d.ts"]
+      "@agents/prompts": ["../../packages/prompts/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],

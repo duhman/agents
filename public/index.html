@@ -62,7 +62,7 @@
   <body>
     <div class="header">
       <h1>🤖 Agents API</h1>
-      <p>OpenAI-first email agent system with Slack HITM</p>
+      <p>Hybrid email processor for HubSpot cancellations with Slack HITM review</p>
     </div>
 
     <div class="status">✅ API is running and ready to process requests</div>
@@ -86,32 +86,23 @@
       </div>
     </div>
 
-    <div class="endpoint">
-      <span class="method post">POST</span>
-      <span class="path">/api/cron/export-training-data</span>
-      <div class="description">
-        Monthly cron job for exporting approved human reviews as training data for fine-tuning.
-      </div>
-    </div>
-
     <h2>Features</h2>
     <ul>
-      <li>⚡ OpenAI v5 API integration with structured outputs</li>
-      <li>🛡️ Production-grade error handling with retry logic</li>
+      <li>⚡ Hybrid deterministic + OpenAI processing for cancellation emails</li>
+      <li>🛡️ PII masking and policy-compliant templates out of the box</li>
       <li>📊 Structured logging with request IDs</li>
-      <li>🔄 Exponential backoff for API failures</li>
-      <li>✅ Request validation middleware</li>
+      <li>🔄 Slack retry queue with exponential backoff</li>
+      <li>✅ Webhook validation and health checks</li>
       <li>🚀 Optimized for Vercel serverless functions</li>
     </ul>
 
     <h2>Documentation</h2>
-    <p>For detailed setup and usage instructions, see the project documentation:</p>
+    <p>Key guides for the production pipeline:</p>
     <ul>
-      <li><a href="https://github.com/your-org/agents" target="_blank">GitHub Repository</a></li>
-      <li><a href="/documentation/deployment/QUICKSTART.md">Quick Start Guide</a></li>
-      <li>
-        <a href="/documentation/deployment/VERCEL_DEVELOPMENT.md">Vercel Development Guide</a>
-      </li>
+      <li><a href="https://github.com/your-org/agents" target="_blank" rel="noreferrer">GitHub Repository</a></li>
+      <li>HUBSPOT_WEBHOOK_SETUP.md – HubSpot workflow configuration</li>
+      <li>SLACK_BOT_SETUP_GUIDE.md – Slack HITM setup and review flow</li>
+      <li>SLACK_INTEGRATION_ENHANCEMENTS.md – Reliability improvements</li>
     </ul>
 
     <footer
