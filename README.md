@@ -61,21 +61,20 @@ This project demonstrates production-ready implementation of:
   - `webhook.ts` - Inbound email webhook handler
   - `health.ts` - Health check endpoint
   - `cron/export-training-data.ts` - Monthly training data export
+  - `cron/process-slack-retry.ts` - Slack retry queue processor
+  - `slack/interactions.ts` - Slack HITM button handlers
 - `public/` - Static files
   - `index.html` - API documentation and landing page
 - `apps/` - Application services
-  - `agent` - OpenAI classify+draft worker
-  - `slack-bot` - HITM review flow
-  - `mailer` - Outbound replies
-  - `ingestor` - Dependency container for serverless functions
+  - `agent` - Hybrid email processor (deterministic + OpenAI fallback)
+  - `slack-bot` - HITM review flow with retry queue
 - `packages/` - Shared libraries
   - `core` - Utils, PII masking, Zod schemas
   - `prompts` - Prompt templates and extraction schemas
   - `db` - Drizzle ORM schema and repos
-  - `evaluation` - Eval harness and metrics
-- `docs/` - Project documentation
+- `documentation/` - Project documentation
 - `infra/` - Docker Compose for local dev
-- `ops/` - Scripts for export, eval, fine-tuning
+- `ops/scripts/` - Training loop scripts (export, eval, fine-tuning)
 
 ## Documentation
 
