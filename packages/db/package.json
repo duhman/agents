@@ -12,12 +12,13 @@
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "dotenv": "^16.6.1",
     "drizzle-orm": "^0.30.0",
     "postgres": "^3.4.0"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.0",
     "@types/node": "^20.0.0",
+    "drizzle-kit": "^0.20.0",
     "typescript": "^5.3.0"
   }
 }
