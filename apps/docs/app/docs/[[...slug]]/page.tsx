@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocsBody, DocsPage, DocsTitle } from "fumadocs-ui/page";
-import { getPage, pageTree } from "../../../lib/page-tree";
+import { DocsBody, DocsPage } from "fumadocs-ui/page";
+import { getPage } from "../../../lib/page-tree";
 
-interface PageProps {
-  params: {
-    slug?: string[];
-  };
+interface PageParams {
+  slug?: string[];
 }
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  const page = getPage(params.slug);
+interface PageProps {
+  params?: Promise<PageParams>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = (await params) ?? {};
+  const page = getPage(slug);
 
   if (!page) {
     return {
@@ -24,19 +27,26 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
-export default function Page({ params }: PageProps) {
-  const page = getPage(params.slug);
+export default async function Page({ params }: PageProps) {
+  const { slug } = (await params) ?? {};
+  const page = getPage(slug);
 
   if (!page) {
     notFound();
   }
 
+  const { body: MDXContent, toc, lastModified, description } = page.data;
+
   return (
-    <DocsPage toc={page.data.toc} meta={page.data.meta} lastModified={page.data.lastModified} tree={pageTree}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsBody>{page.data.body}</DocsBody>
+    <DocsPage
+      toc={toc}
+      lastUpdate={lastModified ? new Date(lastModified) : undefined}
+    >
+      <h1>{page.data.title}</h1>
+      {description ? <p>{description}</p> : null}
+      <DocsBody>
+        <MDXContent />
+      </DocsBody>
     </DocsPage>
   );
 }
-
-

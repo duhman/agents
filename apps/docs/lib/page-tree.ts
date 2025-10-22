@@ -1,8 +1,4 @@
 import { source } from "./source";
 
-const handlers = source.createHandlers();
-
-export const pageTree = handlers.pageTree;
-export const getPage = handlers.getPage;
-
+export const { pageTree, getPage, getPages, getLanguages } = source;
 

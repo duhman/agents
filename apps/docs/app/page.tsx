@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 export default function Home() {
@@ -11,13 +12,13 @@ export default function Home() {
       </p>
       <div className="flex gap-4">
         <Link
-          href="/docs"
+          href={"/docs" as Route}
           className="rounded-md bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
         >
           View Documentation
         </Link>
         <Link
-          href="/docs/hybrid-processing"
+          href={"/docs/hybrid-processing" as Route}
           className="rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
         >
           Start with the processor flow
@@ -26,5 +27,4 @@ export default function Home() {
     </main>
   );
 }
-
 

@@ -1,21 +1,16 @@
-import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import type { BaseLayoutProps } from "fumadocs-ui/layout";
 
-export function baseOptions(): BaseLayoutProps {
+export function baseOptions(): Omit<BaseLayoutProps, "children"> {
   return {
     nav: {
       title: "Agents Docs",
       url: "/docs"
     },
-    footer: {
-      text: "Agents Monorepo – Hybrid deterministic/AI processing",
-      links: [
-        {
-          text: "GitHub",
-          url: "https://github.com/"
-        }
-      ]
-    }
-  } satisfies BaseLayoutProps;
+    links: [
+      {
+        text: "GitHub",
+        url: "https://github.com/"
+      }
+    ]
+  } satisfies Omit<BaseLayoutProps, "children">;
 }
-
-

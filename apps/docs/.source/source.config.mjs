@@ -8,11 +8,11 @@ var frontmatterSchema = z.object({
 });
 var docs = defineDocs({
   dir: "content/docs",
-  schema: frontmatterSchema
+  docs: {
+    schema: frontmatterSchema
+  }
 });
-var source_config_default = defineConfig({
-  disableWarnings: process.env.NODE_ENV === "production"
-});
+var source_config_default = defineConfig();
 export {
   source_config_default as default,
   docs

@@ -31,6 +31,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vercel/node": "^3.0.0",
+    "autoprefixer": "^10.4.21",
     "chokidar": "^3.5.3",
     "eslint": "^8.50.0",
     "husky": "^8.0.3",

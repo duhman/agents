@@ -9,11 +9,10 @@ const frontmatterSchema = z.object({
 
 export const docs = defineDocs({
   dir: "content/docs",
-  schema: frontmatterSchema
+  docs: {
+    schema: frontmatterSchema
+  }
 });
 
-export default defineConfig({
-  disableWarnings: process.env.NODE_ENV === "production"
-});
-
+export default defineConfig();
 
