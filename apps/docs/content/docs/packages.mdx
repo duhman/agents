@@ -1,0 +1,58 @@
+---
+title: Package Responsibilities
+description: Responsibilities and integration points for shared packages and applications.
+order: 3
+---
+
+# Package Responsibilities
+
+The monorepo is organized into applications (`apps/`) and shared libraries (`packages/`). Each package has a
+clear contract to support the hybrid email processor and Slack HITM workflow.
+
+## Applications
+
+### `apps/agent`
+
+- Hybrid processor (`hybrid-processor.ts`) coordinating deterministic extraction, OpenAI fallback, draft generation
+- Deterministic-only processor (`simplified-processor.ts`) for evaluation and health checks
+- RAG context helpers (`rag-context.ts`) and metrics aggregator (`metrics.ts`)
+- Test suites validating classification patterns (`tests/classification.test.ts`)
+
+### `apps/slack-bot`
+
+- Slack App entrypoint with interactive workflows
+- Handles approvals, edits, rejections, and retry queue orchestration
+- Uses `createHumanReview()` to persist reviewer decisions
+
+## Shared Packages
+
+### `@agents/core`
+
+- PII masking (`maskPII`), logging (`logInfo`, `logError`), request IDs, retry logic
+- Exported from `packages/core/src/index.ts`
+- Required before any LLM interaction; ensures `user_rules` privacy mandate
+
+### `@agents/prompts`
+
+- Deterministic patterns (`patterns.ts`) for intent detection and edge cases
+- Enhanced templates (`templates-enhanced.ts`) for drafts, prompts, confidence scoring
+- All schemas follow the `.nullable().optional()` rule to align with the Schema-Driven Development principle
+
+### `@agents/db`
+
+- Drizzle ORM schema (`schema.ts`) + repository interfaces for tickets, drafts, reviews, Slack retry queue
+- Utility exports for serverless functions including `resetDbClient()` for transient errors
+
+## Serverless APIs
+
+- `api/webhook.ts` ingests HubSpot requests, normalizes HTML, calls the hybrid processor, and schedules Slack posting
+- `api/slack/interactions.ts` verifies Slack signatures, opens modals within 3 seconds, and persists review outcomes
+- `api/cron/process-slack-retry.ts` drains retry queue for failed Slack posts
+
+## Reference Docs
+
+- `SIMPLIFICATION_SUMMARY.md` – Evolution from multi-agent to hybrid deterministic/AI
+- `.cursor/rules/*` – Operational guardrails (privacy, prompts, Slack workflows, Vercel patterns)
+- `AGENTS.md` – Contributor commands (build, lint, test)
+
+

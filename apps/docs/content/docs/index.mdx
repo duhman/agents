@@ -1,0 +1,30 @@
+---
+title: Overview
+description: High-level picture of the Agents hybrid deterministic/AI email automation platform.
+order: 1
+---
+
+# Agents Platform Overview
+
+The Agents monorepo powers Elaway's automated handling of HubSpot cancellation tickets. The system routes
+every inbound customer email through a **hybrid deterministic/AI pipeline** that balances reliability,
+cost, and quality:
+
+- **Deterministic first** via pattern matching for standard cancellations
+- **AI fallback** (OpenAI GPT-4o) for ambiguous or edge-case messages
+- **Human-in-the-middle (HITM)** review in Slack for final approval
+
+The architecture is optimized around privacy-safe processing, policy compliance, and rapid manual
+intervention when needed. This documentation uses the [Fumadocs](https://fumadocs.dev) framework and is
+organized to mirror the codebase hierarchy.
+
+## Key Repositories
+
+- `api/` – Serverless webhooks deployed to Vercel
+- `apps/agent/` – Hybrid processor entrypoint and supporting modules
+- `apps/slack-bot/` – Slack reviewer workflow and interactions
+- `packages/` – Shared libraries: core utilities, prompts, database schema
+
+Continue to the next section for a detailed look at the hybrid processor flow.
+
+

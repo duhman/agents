@@ -1,0 +1,79 @@
+---
+title: Hybrid Processing Flow
+description: Detailed walk-through of the deterministic-first pipeline with AI fallback and metrics instrumentation.
+order: 2
+---
+
+# Hybrid Processing Flow
+
+The hybrid processor defined in `apps/agent/src/hybrid-processor.ts` orchestrates intake, extraction,
+drafting, and persistence. It strictly follows the privacy-first guidelines established in `.cursor/rules`.
+
+## 1. PII Masking and Request Context
+
+Every request begins with ID generation and PII masking using `maskPII()` from `@agents/core`:
+
+```150:174:apps/agent/src/hybrid-processor.ts
+const maskedEmail = maskPII(rawEmail);
+const maskedCustomerEmail = maskPII(customerEmail);
+```
+
+Masking happens **before** any third-party calls to guarantee no raw customer data leaves the system.
+
+## 2. Deterministic Extraction
+
+The processor calls `extractEmailDataDeterministic()` (implemented in `simplified-processor.ts`) to
+classify language, reason, edge cases, and policy risks. Deterministic extraction uses enhanced pattern
+matching with subject/body analysis and Swedish support.
+
+If the extraction returns a standard, high-confidence case, the pipeline proceeds without LLM usage.
+
+## 3. AI Fallback for Complex Cases
+
+OpenAI is invoked only when:
+
+- `clear_intent` is `false`
+- `standard_case` is `false`
+- More than one policy risk is detected
+- Edge case requires richer interpretation (e.g., corporate accounts)
+
+```128:166:apps/agent/src/hybrid-processor.ts
+const needsOpenAI =
+  !extraction.confidence_factors.standard_case ||
+  extraction.confidence_factors.clear_intent === false ||
+  extraction.policy_risks.length > 1 ||
+  (extraction.edge_case !== "none" && extraction.edge_case !== "sameie_concern" && extraction.edge_case !== "no_app_access");
+```
+
+When OpenAI runs, the email is already masked. The prompt leverages `extractionPromptEnhanced()` with a
+Zod schema to enforce structure and `.nullable().optional()` ordering, preventing downstream parse errors.
+
+## 4. Draft Generation and Policy Validation
+
+Drafts are generated via deterministic templates in
+`packages/prompts/src/templates-enhanced.ts#generateDraftEnhanced` with explicit policy guardrails:
+
+- Explicit end-of-month cancellation reminder
+- App self-service instructions
+- Edge-case paragraphs (no app access, sameie concerns, already cancelled)
+
+Generated drafts run through `validatePolicyCompliance()` and `calculateConfidenceEnhanced()` before
+being persisted with `@agents/db` repositories.
+
+## 5. Persistence and Slack HITM
+
+`createTicket()` and `createDraft()` store masked customer emails, reasons, move dates, and draft text.
+`metricsCollector.record()` captures processing method, policy compliance, RAG usage, and language
+distribution for observability.
+
+If a draft is available, the webhook (`api/webhook.ts`) posts to Slack using the Slack bot. Human reviewers
+can approve, edit, or reject with structured feedback stored by `createHumanReview()`.
+
+## Related Modules
+
+- `apps/agent/src/simplified-processor.ts` – Deterministic-only processor and health check
+- `packages/prompts/src/patterns.ts` – Cancellation classifiers and edge-case detection
+- `packages/prompts/src/templates-enhanced.ts` – Draft templates, prompts, and confidence scoring
+- `apps/agent/src/metrics.ts` – Aggregated processing metrics
+
+

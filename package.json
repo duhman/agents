@@ -20,6 +20,8 @@
     "db:push": "pnpm --filter @agents/db push",
     "db:studio": "pnpm --filter @agents/db studio",
     "agent:dev": "pnpm --filter @agents/agent dev",
+    "docs:dev": "pnpm --filter @agents/docs dev",
+    "docs:build": "pnpm --filter @agents/docs build",
     "cursor:sync": "tsx .cursor/automation/rules-updater.ts",
     "cursor:watch": "tsx .cursor/automation/file-watcher.ts",
     "prepare": "husky install"
@@ -54,5 +56,5 @@
     "@vercel/functions": "^3.1.3",
     "openai": "^6.2.0"
   },
-  "packageManager": "pnpm@10.18.3"
+  "packageManager": "pnpm@10.19.0"
 }

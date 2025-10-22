@@ -1,0 +1,63 @@
+---
+title: Operational Runbooks
+description: How to build, run, and monitor the hybrid processor, Slack bot, and supporting infrastructure.
+order: 5
+---
+
+# Operational Runbooks
+
+## Local Development
+
+```bash
+pnpm install
+pnpm agent:dev         # hybrid processor watcher
+pnpm --filter @agents/slack-bot dev  # optional Slack bot local run
+pnpm docs:dev          # launch documentation (this site)
+```
+
+For Postgres-backed features, start the local database and push migrations:
+
+```bash
+cd infra
+docker compose up -d
+pnpm db:push
+```
+
+## Testing & Linting
+
+- `pnpm test` executes the hybrid classifier tests in `apps/agent/src/tests`.
+- `pnpm lint` and `pnpm format:check` enforce TypeScript, ESLint, and Prettier rules.
+- Run targeted classification tests using `node --enable-source-maps` with `tsx` as described in `AGENTS.md`.
+
+## Deployment
+
+- Vercel deploys `api/*` serverless functions with Node runtime. Ensure environment variables (`DATABASE_URL`,
+  `OPENAI_API_KEY`, `SLACK_*`) are set.
+- `pnpm build` triggers Turborepo to build all packages including this docs app (`@agents/docs`).
+
+## Monitoring & Metrics
+
+- `metricsCollector` stores aggregate metrics in memory for logging/observability. Consider exporting to your
+  monitoring stack if required.
+- Slack retry queue (`packages/db` repositories + `api/cron/process-slack-retry.ts`) handles transient Slack
+  failures.
+- Health checks (`processEmailHybrid.healthCheckHybrid`, `processEmailSimplified.healthCheckSimplified`) can
+  be exposed via API endpoints for uptime monitors.
+
+## Incident Response
+
+1. **Processor Failures**: Inspect Vercel logs filtered by `requestId`. Use masked logs to debug extraction.
+2. **Slack Errors**: Check `api/slack/interactions.ts` logs for signature verification or API rate limits.
+3. **Policy Drift**: Update templates and prompt schemas; re-run evaluation tests and ensure `.nullable().optional()`
+   ordering remains intact.
+4. **Database Connectivity**: Use `resetDbClient()` to recover from serverless connection pooling issues.
+
+## Useful Files & References
+
+- `README.md` – Quick start and command reference
+- `HUBSPOT_WEBHOOK_SETUP.md` – HubSpot workflow configuration
+- `SLACK_BOT_SETUP_GUIDE.md` – Slack app configuration
+- `SIMPLIFICATION_SUMMARY.md` – Architectural rationale and metrics
+- `.cursor/rules` – Detailed guardrails for AI processing, Slack, and Vercel
+
+

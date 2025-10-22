@@ -1,0 +1,52 @@
+---
+title: Data Model & Persistence
+description: Drizzle schema overview for tickets, drafts, reviews, and Slack retry queue.
+order: 6
+---
+
+# Data Model & Persistence
+
+The database layer lives in `packages/db` using Drizzle ORM. The schema ensures every step of the pipeline has a
+structured, auditable record.
+
+## Tickets
+
+- Stored via `createTicket()` when a cancellation is detected
+- Fields: `id`, `source`, `customerEmail` (masked), `rawEmailMasked`, `reason`, `moveDate`, timestamps
+- Links drafts and reviews for traceability
+
+## Drafts
+
+- Created by `createDraft()` immediately after ticket creation when we generate a reply
+- Fields: `id`, `ticketId`, `language`, `draftText`, `confidence`, `model`
+- Confidence stored as string for compatibility with Slack + UI displays
+
+## Human Reviews
+
+- Managed by `createHumanReview()` in Slack interactions handler
+- Fields: `ticketId`, `draftId`, `decision` (`approve`, `edit`, `reject`), `finalText`, `reviewerSlackId`
+- Review text contains final reply or rejection rationale (used for training data/export)
+
+## Slack Retry Queue
+
+- Table stores payloads that failed to post to Slack due to temporary errors
+- Cron job (`api/cron/process-slack-retry.ts`) replays items with exponential backoff
+
+## Vector Store Context (Optional)
+
+- `apps/agent/src/rag-context.ts` fetches context snippets for edge cases like payment disputes
+- Stored locally as JSONL or external vector DB (depending on deployment); not persisted in Postgres
+
+## Migration & Config
+
+- Drizzle config in `packages/db/drizzle.config.ts`
+- Migrations stored under `packages/db/migrations/`
+- Use `pnpm db:push` locally; for production, follow `apply-to-neon.sql` or `apply-production-migration.sh`
+
+## Schema Guarantees
+
+- All tables include timestamps for auditing
+- Foreign keys enforce relational integrity between tickets, drafts, reviews, and retry queue entries
+- Combined with masked data ensures GDPR compliance throughout the storage layer
+
+

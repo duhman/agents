@@ -1,0 +1,52 @@
+---
+title: Privacy & Policy Guardrails
+description: Rules for masking PII, language priorities, and Slack HITM expectations.
+order: 4
+---
+
+# Privacy & Policy Guardrails
+
+The Agents platform is governed by privacy-first and policy-compliant practices documented in
+`.cursor/rules`. This section summarizes the critical requirements enforced across processors, prompts, and
+Slack workflows.
+
+## PII Handling
+
+- **Mask before AI**: Always call `maskPII()` on raw email content and customer addresses prior to any LLM
+  interaction or logging.
+- **Mask in logs**: Use structured logging helpers from `@agents/core`; never log raw addresses, phone
+  numbers, or personal details.
+- **Storage**: Persist masked versions of emails in Postgres (`createTicket`, `createDraft`).
+
+## Language & Tone
+
+- Default to **Norwegian** (`language: "no"`), fallback to **English**, with **Swedish** detection supported by
+  `detectLanguage()`.
+- Draft templates guarantee consistent, branded tone and mention of app self-service plus end-of-month
+  cancellation bindings.
+
+## Slack HITM Expectations
+
+- Webhook posts drafts to Slack using `postReview()` only after successful ticket/draft creation.
+- Reviewers interact through approve, edit, reject buttons. Results stored via `createHumanReview()`.
+- Slack interactions verify signatures, respect 3-second acknowledgement rule, and reuse trigger IDs safely.
+
+## Schema Discipline
+
+- All optional fields in Zod schemas use `.nullable().optional()` ordering to avoid parser failures when LLMs
+  omit data.
+- Extraction schemas include policy risk arrays, confidence factors, and edge case enumerations.
+
+## Compliance Checkpoints
+
+- `validatePolicyCompliance()` ensures drafts reference app instructions and end-of-month effective dates.
+- `calculateConfidenceEnhanced()` determines review priority; low scores short-circuit automation.
+- `metricsCollector.record()` tracks policy compliance rates and classification accuracy across time.
+
+## Additional References
+
+- `.cursor/rules/core-principles.mdc` – Guiding principles for automation
+- `packages/prompts/src/templates-enhanced.ts` – Policy-aware template logic
+- `apps/agent/src/hybrid-processor.ts` – Enforcement of masking and intent clarity checks
+
+
