@@ -6,6 +6,7 @@ export const envSchema = z.object({
   OPENAI_VECTOR_STORE_ID: z.string().optional(),
   SLACK_BOT_TOKEN: z.string().optional(),
   SLACK_SIGNING_SECRET: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
   HUBSPOT_ACCESS_TOKEN: z.string().optional(),
   HUBSPOT_PORTAL_ID: z.string().optional(),
   HUBSPOT_PORTAL_BASE_URL: z.string().optional()

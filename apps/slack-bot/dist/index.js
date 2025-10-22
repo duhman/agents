@@ -30,7 +30,7 @@ async function testSlackConnectivity(token) {
         const res = await fetch("https://slack.com/api/auth.test", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
             signal: controller.signal
@@ -304,12 +304,16 @@ export async function postReview(params, options = {}) {
         }
         return { ok: false, error: "slack_unreachable" };
     }
-    const subjectLine = originalEmailSubject ?? (originalEmail?.split("\n")[0] ?? "");
+    const subjectLine = originalEmailSubject ?? originalEmail?.split("\n")[0] ?? "";
     const subjectBlockText = escapeMrkdwn(subjectLine.slice(0, SUBJECT_MAX_LENGTH));
     const rawBody = originalEmailBody ?? originalEmail ?? "";
-    const trimmedBody = rawBody.length > BODY_BLOCK_MAX_LENGTH ? `${rawBody.slice(0, BODY_BLOCK_MAX_LENGTH)}\n…[truncated]` : rawBody;
+    const trimmedBody = rawBody.length > BODY_BLOCK_MAX_LENGTH
+        ? `${rawBody.slice(0, BODY_BLOCK_MAX_LENGTH)}\n…[truncated]`
+        : rawBody;
     const bodyBlockText = sanitizeForCodeBlock(trimmedBody);
-    const trimmedDraft = draftText.length > DRAFT_BLOCK_MAX_LENGTH ? `${draftText.slice(0, DRAFT_BLOCK_MAX_LENGTH)}\n…[truncated]` : draftText;
+    const trimmedDraft = draftText.length > DRAFT_BLOCK_MAX_LENGTH
+        ? `${draftText.slice(0, DRAFT_BLOCK_MAX_LENGTH)}\n…[truncated]`
+        : draftText;
     const draftBlockText = sanitizeForCodeBlock(trimmedDraft);
     const confidencePercent = Number.isFinite(confidence) ? Math.round(confidence * 100) : 0;
     const blocks = [
@@ -433,7 +437,11 @@ export async function postReview(params, options = {}) {
                 return parsed;
             }
         }
-        const fallbackNumber = typeof fallback === "number" ? fallback : typeof fallback === "string" ? parseInt(fallback, 10) : undefined;
+        const fallbackNumber = typeof fallback === "number"
+            ? fallback
+            : typeof fallback === "string"
+                ? parseInt(fallback, 10)
+                : undefined;
         if (fallbackNumber && fallbackNumber > 0) {
             return fallbackNumber;
         }

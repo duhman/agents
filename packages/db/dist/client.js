@@ -29,10 +29,17 @@ if (!connectionString) {
 }
 try {
     const { host } = new URL(connectionString);
-    logStructured("info", "Database connection string resolved", { requestId: "db-init", host, isServerless });
+    logStructured("info", "Database connection string resolved", {
+        requestId: "db-init",
+        host,
+        isServerless
+    });
 }
 catch (error) {
-    logStructured("warn", "Invalid database connection string", { requestId: "db-init", isServerless });
+    logStructured("warn", "Invalid database connection string", {
+        requestId: "db-init",
+        isServerless
+    });
     throw error;
 }
 // For migrations

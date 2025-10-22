@@ -5,6 +5,7 @@ export const envSchema = z.object({
     OPENAI_VECTOR_STORE_ID: z.string().optional(),
     SLACK_BOT_TOKEN: z.string().optional(),
     SLACK_SIGNING_SECRET: z.string().optional(),
+    CRON_SECRET: z.string().optional(),
     HUBSPOT_ACCESS_TOKEN: z.string().optional(),
     HUBSPOT_PORTAL_ID: z.string().optional(),
     HUBSPOT_PORTAL_BASE_URL: z.string().optional()
@@ -82,14 +83,18 @@ export function logWarn(message, context, data) {
 /**
  * Webhook request validation schema
  */
-export const webhookRequestSchema = z.object({
+export const webhookRequestSchema = z
+    .object({
     source: z.string().min(1),
     customerEmail: z.string().email(),
     // Accept either rawEmail (legacy) OR subject+body (new webhook approach)
     rawEmail: z.string().min(1).optional(),
     subject: z.string().optional(),
     body: z.string().optional()
-}).refine(data => data.rawEmail || (data.subject || data.body), { message: "Either rawEmail or subject/body must be provided" });
+})
+    .refine(data => data.rawEmail || data.subject || data.body, {
+    message: "Either rawEmail or subject/body must be provided"
+});
 /**
  * Validate webhook request body
  */

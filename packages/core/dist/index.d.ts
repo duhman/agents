@@ -5,6 +5,7 @@ export declare const envSchema: z.ZodObject<{
     OPENAI_VECTOR_STORE_ID: z.ZodOptional<z.ZodString>;
     SLACK_BOT_TOKEN: z.ZodOptional<z.ZodString>;
     SLACK_SIGNING_SECRET: z.ZodOptional<z.ZodString>;
+    CRON_SECRET: z.ZodOptional<z.ZodString>;
     HUBSPOT_ACCESS_TOKEN: z.ZodOptional<z.ZodString>;
     HUBSPOT_PORTAL_ID: z.ZodOptional<z.ZodString>;
     HUBSPOT_PORTAL_BASE_URL: z.ZodOptional<z.ZodString>;
@@ -14,6 +15,7 @@ export declare const envSchema: z.ZodObject<{
     OPENAI_VECTOR_STORE_ID?: string | undefined;
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;
+    CRON_SECRET?: string | undefined;
     HUBSPOT_ACCESS_TOKEN?: string | undefined;
     HUBSPOT_PORTAL_ID?: string | undefined;
     HUBSPOT_PORTAL_BASE_URL?: string | undefined;
@@ -23,6 +25,7 @@ export declare const envSchema: z.ZodObject<{
     OPENAI_VECTOR_STORE_ID?: string | undefined;
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;
+    CRON_SECRET?: string | undefined;
     HUBSPOT_ACCESS_TOKEN?: string | undefined;
     HUBSPOT_PORTAL_ID?: string | undefined;
     HUBSPOT_PORTAL_BASE_URL?: string | undefined;

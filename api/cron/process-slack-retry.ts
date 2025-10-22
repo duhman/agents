@@ -2,19 +2,19 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   processSlackRetryQueue,
   getSlackRetryQueueStatus
-} from "../../apps/slack-bot/dist/index.js";
+} from "../../apps/slack-bot/src/index.js";
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  if (req.method !== "POST") {
+  if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
-  // Verify this is a cron job request (optional security check)
-  const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify this is a cron job request (Vercel cron jobs send a special header)
+  const cronSecret = req.headers['x-vercel-cron-secret'];
+  if (cronSecret !== process.env.CRON_SECRET) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
