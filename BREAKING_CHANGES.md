@@ -7,6 +7,7 @@
 The webhook endpoint no longer accepts the `rawEmail` field. You must use the new format:
 
 **Before (DEPRECATED):**
+
 ```json
 {
   "source": "hubspot",
@@ -16,6 +17,7 @@ The webhook endpoint no longer accepts the `rawEmail` field. You must use the ne
 ```
 
 **After (REQUIRED):**
+
 ```json
 {
   "source": "hubspot",
@@ -32,6 +34,7 @@ Update your HubSpot workflow to use the new webhook format. See HUBSPOT_WEBHOOK_
 ### Error Response
 
 Webhooks using the old format will now receive a 400 error:
+
 ```json
 {
   "error": "validation: subject and body are required",
@@ -42,6 +45,7 @@ Webhooks using the old format will now receive a 400 error:
 ### Testing
 
 Test the new format:
+
 ```bash
 # Should succeed
 curl -X POST https://your-app.vercel.app/api/webhook \

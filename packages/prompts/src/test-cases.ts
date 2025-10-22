@@ -1,6 +1,6 @@
 /**
  * Test Cases from Research
- * 
+ *
  * Based on real ticket patterns from research analysis
  */
 
@@ -46,7 +46,8 @@ export const researchBasedTestCases: TestCase[] = [
   },
   {
     name: "Slightly formal Norwegian",
-    input: "Det har blitt endringer på parkeringsplass, jeg ønsker å avslutte mitt abonnement fra 1. mars.",
+    input:
+      "Det har blitt endringer på parkeringsplass, jeg ønsker å avslutte mitt abonnement fra 1. mars.",
     expected: {
       is_cancellation: true,
       reason: "other",
@@ -55,16 +56,14 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 70,
         max_words: 100,
-        must_include: [
-          "Elaway-appen",
-          "Oppsigelsen gjelder ut inneværende måned"
-        ]
+        must_include: ["Elaway-appen", "Oppsigelsen gjelder ut inneværende måned"]
       }
     }
   },
   {
     name: "Apologetic/polite Norwegian",
-    input: "Hei, jeg kommer til å flytte i oktober og ønsker derfor å avslutte abonnementet. Takk for hjelpen.",
+    input:
+      "Hei, jeg kommer til å flytte i oktober og ønsker derfor å avslutte abonnementet. Takk for hjelpen.",
     expected: {
       is_cancellation: true,
       reason: "moving",
@@ -86,7 +85,8 @@ export const researchBasedTestCases: TestCase[] = [
   // ========== EDGE CASE: SAMEIE CONCERN ==========
   {
     name: "Sameie (housing association) concern",
-    input: "Jeg flytter ut av boligen og vil forsikre meg om at jeg ikke avslutter for hele sameiet.",
+    input:
+      "Jeg flytter ut av boligen og vil forsikre meg om at jeg ikke avslutter for hele sameiet.",
     expected: {
       is_cancellation: true,
       reason: "moving",
@@ -107,7 +107,8 @@ export const researchBasedTestCases: TestCase[] = [
   // ========== STANDARD ENGLISH CASES ==========
   {
     name: "Standard English relocation",
-    input: "Hello, I'm moving out at the end of September and need to cancel my subscription from October.",
+    input:
+      "Hello, I'm moving out at the end of September and need to cancel my subscription from October.",
     expected: {
       is_cancellation: true,
       reason: "moving",
@@ -117,12 +118,7 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 70,
         max_words: 100,
-        must_include: [
-          "Elaway app",
-          "end of the current month",
-          "Menu",
-          "Manage Subscription"
-        ]
+        must_include: ["Elaway app", "end of the current month", "Menu", "Manage Subscription"]
       }
     }
   },
@@ -138,11 +134,7 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 60,
         max_words: 100,
-        must_include: [
-          "November",
-          "closer to your move date",
-          "end of the current month"
-        ]
+        must_include: ["November", "closer to your move date", "end of the current month"]
       }
     }
   },
@@ -159,15 +151,8 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 50,
         max_words: 90,
-        must_include: [
-          "manually",
-          "confirm your address",
-          "end of the current month"
-        ],
-        must_not_include: [
-          "Elaway app",
-          "Menu"
-        ]
+        must_include: ["manually", "confirm your address", "end of the current month"],
+        must_not_include: ["Elaway app", "Menu"]
       }
     }
   },
@@ -182,15 +167,8 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 50,
         max_words: 90,
-        must_include: [
-          "manuelt",
-          "bekreft",
-          "Oppsigelsen gjelder ut inneværende måned"
-        ],
-        must_not_include: [
-          "Elaway-appen",
-          "Meny"
-        ]
+        must_include: ["manuelt", "bekreft", "Oppsigelsen gjelder ut inneværende måned"],
+        must_not_include: ["Elaway-appen", "Meny"]
       }
     }
   },
@@ -207,10 +185,7 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 60,
         max_words: 100,
-        must_include: [
-          "Elaway-appen",
-          "slutet av innevarande månad"
-        ]
+        must_include: ["Elaway-appen", "slutet av innevarande månad"]
       }
     }
   },
@@ -227,10 +202,7 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 40,
         max_words: 80,
-        must_include: [
-          "already",
-          "canceled"
-        ]
+        must_include: ["already", "canceled"]
       }
     }
   },
@@ -266,7 +238,8 @@ export const researchBasedTestCases: TestCase[] = [
   // ========== COMPLEX CASES ==========
   {
     name: "Multiple concerns - moving + billing",
-    input: "Hei, jeg skal flytte 15. mars og ønsker å avslutte. Jeg vil også forsikre meg om at jeg ikke blir belastet for mars måned.",
+    input:
+      "Hei, jeg skal flytte 15. mars og ønsker å avslutte. Jeg vil også forsikre meg om at jeg ikke blir belastet for mars måned.",
     expected: {
       is_cancellation: true,
       reason: "moving",
@@ -275,16 +248,14 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 70,
         max_words: 120,
-        must_include: [
-          "Elaway-appen",
-          "Oppsigelsen gjelder ut inneværende måned"
-        ]
+        must_include: ["Elaway-appen", "Oppsigelsen gjelder ut inneværende måned"]
       }
     }
   },
   {
     name: "Corporate account concern",
-    input: "I'm moving out and want to cancel, but this is a corporate account. Will this affect my company's other subscriptions?",
+    input:
+      "I'm moving out and want to cancel, but this is a corporate account. Will this affect my company's other subscriptions?",
     expected: {
       is_cancellation: true,
       reason: "moving",
@@ -293,9 +264,7 @@ export const researchBasedTestCases: TestCase[] = [
       response_validation: {
         min_words: 50,
         max_words: 100,
-        must_include: [
-          "end of the current month"
-        ]
+        must_include: ["end of the current month"]
       }
     }
   }
@@ -346,10 +315,14 @@ export function validateResponse(
 
   // Check word count
   if (wordCount < response_validation.min_words) {
-    errors.push(`Response too short: ${wordCount} words (minimum: ${response_validation.min_words})`);
+    errors.push(
+      `Response too short: ${wordCount} words (minimum: ${response_validation.min_words})`
+    );
   }
   if (wordCount > response_validation.max_words) {
-    warnings.push(`Response too long: ${wordCount} words (maximum: ${response_validation.max_words})`);
+    warnings.push(
+      `Response too long: ${wordCount} words (maximum: ${response_validation.max_words})`
+    );
   }
 
   // Check required phrases
@@ -369,7 +342,7 @@ export function validateResponse(
   }
 
   // Check policy statement
-  const hasPolicyStatement = 
+  const hasPolicyStatement =
     response.includes("Oppsigelsen gjelder ut inneværende måned") ||
     response.includes("end of the current month") ||
     response.includes("slutet av innevarande månad");
@@ -379,9 +352,7 @@ export function validateResponse(
   }
 
   // Check app instructions (unless no_app_access edge case)
-  const hasAppInstructions = 
-    response.includes("Elaway-appen") ||
-    response.includes("Elaway app");
+  const hasAppInstructions = response.includes("Elaway-appen") || response.includes("Elaway app");
 
   if (!hasAppInstructions && expected.edge_case !== "no_app_access") {
     warnings.push("Missing app self-service instructions");
@@ -395,8 +366,8 @@ export function validateResponse(
       word_count: wordCount,
       has_policy_statement: hasPolicyStatement,
       has_app_instructions: hasAppInstructions,
-      response_length_ok: wordCount >= response_validation.min_words && 
-                          wordCount <= response_validation.max_words
+      response_length_ok:
+        wordCount >= response_validation.min_words && wordCount <= response_validation.max_words
     }
   };
 }
@@ -478,4 +449,3 @@ export async function runTestSuite(
     results
   };
 }
-

@@ -11,7 +11,7 @@ async function checkSlackAPIHealth(): Promise<{
   timestamp: number;
 }> {
   const startTime = Date.now();
-  
+
   try {
     const token = process.env.SLACK_BOT_TOKEN;
     if (!token) {
@@ -25,20 +25,20 @@ async function checkSlackAPIHealth(): Promise<{
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    
+
     const res = await fetch("https://slack.com/api/auth.test", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
       signal: controller.signal
     });
-    
+
     clearTimeout(timeout);
     const responseTime = Date.now() - startTime;
     const result = await res.json();
-    
+
     return {
       reachable: result.ok === true,
       responseTime,

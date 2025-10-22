@@ -1,12 +1,12 @@
 /**
  * Enhanced Prompt Templates - Based on High-Volume Ticket Research
- * 
+ *
  * Research insights:
  * - 25-30% of cancellations are relocation-related
  * - Highly predictable patterns (4-5 sentences, 70-100 words)
  * - 85% Norwegian, 10% English, 5% Swedish
  * - Clear edge cases require specific handling
- * 
+ *
  * Based on research analysis of high-volume relocation cancellation tickets
  */
 
@@ -27,36 +27,54 @@ import {
 export const extractionSchemaEnhanced = z.object({
   // Core fields
   is_cancellation: z.boolean().describe("True if customer is requesting subscription cancellation"),
-  reason: z.enum(["moving", "payment_issue", "other", "unknown"]).describe("Reason for cancellation"),
-  move_date: z.string().date().optional().nullable().describe("Move date in ISO format if mentioned"),
+  reason: z
+    .enum(["moving", "payment_issue", "other", "unknown"])
+    .describe("Reason for cancellation"),
+  move_date: z
+    .string()
+    .date()
+    .optional()
+    .nullable()
+    .describe("Move date in ISO format if mentioned"),
   language: z.enum(["no", "en", "sv"]).describe("Detected language (Norwegian, English, Swedish)"),
-  
+
   // Enhanced fields from research
-  edge_case: z.enum([
-    "none",
-    "no_app_access",
-    "corporate_account",
-    "future_move_date",
-    "already_canceled",
-    "sameie_concern",
-    "payment_dispute"
-  ]).describe("Identified edge case requiring special handling"),
-  
+  edge_case: z
+    .enum([
+      "none",
+      "no_app_access",
+      "corporate_account",
+      "future_move_date",
+      "already_canceled",
+      "sameie_concern",
+      "payment_dispute"
+    ])
+    .describe("Identified edge case requiring special handling"),
+
   // Payment issue support
-  has_payment_issue: z.boolean().describe("True if email mentions payment problems, billing issues, refunds, or charges"),
+  has_payment_issue: z
+    .boolean()
+    .describe("True if email mentions payment problems, billing issues, refunds, or charges"),
   payment_concerns: z.array(z.string()).default([]).describe("Specific payment issues mentioned"),
-  
+
   urgency: z.enum(["immediate", "future", "unclear"]).describe("Timing urgency of cancellation"),
-  
-  customer_concerns: z.array(z.string()).describe("Specific customer concerns or questions mentioned"),
-  
-  policy_risks: z.array(z.string()).default([]).describe("Any ambiguities or policy compliance risks"),
-  
-  confidence_factors: z.object({
-    clear_intent: z.boolean().describe("Intent is unambiguous"),
-    complete_information: z.boolean().describe("All necessary information provided"),
-    standard_case: z.boolean().describe("Falls into standard pattern without edge cases")
-  }).describe("Factors affecting confidence score")
+
+  customer_concerns: z
+    .array(z.string())
+    .describe("Specific customer concerns or questions mentioned"),
+
+  policy_risks: z
+    .array(z.string())
+    .default([])
+    .describe("Any ambiguities or policy compliance risks"),
+
+  confidence_factors: z
+    .object({
+      clear_intent: z.boolean().describe("Intent is unambiguous"),
+      complete_information: z.boolean().describe("All necessary information provided"),
+      standard_case: z.boolean().describe("Falls into standard pattern without edge cases")
+    })
+    .describe("Factors affecting confidence score")
 });
 
 export type ExtractionResultEnhanced = z.infer<typeof extractionSchemaEnhanced>;
@@ -224,8 +242,8 @@ export interface DraftParamsEnhanced {
 function getMonthsFromNow(dateStr: string): number {
   const moveDate = new Date(dateStr);
   const now = new Date();
-  const months = (moveDate.getFullYear() - now.getFullYear()) * 12 + 
-                 (moveDate.getMonth() - now.getMonth());
+  const months =
+    (moveDate.getFullYear() - now.getFullYear()) * 12 + (moveDate.getMonth() - now.getMonth());
   return months;
 }
 
@@ -242,26 +260,45 @@ function formatDate(dateStr: string, lang: "no" | "en"): string {
 
 /**
  * Enhanced draft generation with research-backed templates
- * 
+ *
  * Target: 4-5 sentences, 70-100 words
  * Structure: Greeting → Acknowledgment → Instructions → Policy → Closing
  */
 export function generateDraftEnhanced(params: DraftParamsEnhanced): string {
-  const { language, reason, moveDate, customerName, edgeCase, customerConcerns, hasPaymentIssue, paymentConcerns, ragContext } = params;
-  
+  const {
+    language,
+    reason,
+    moveDate,
+    customerName,
+    edgeCase,
+    customerConcerns,
+    hasPaymentIssue,
+    paymentConcerns,
+    ragContext
+  } = params;
+
   // Generate base template
   let draft = generateBaseTemplate(params);
-  
+
   // If RAG context available, enhance with context
   if (ragContext && ragContext.length > 0) {
     draft = enhanceDraftWithRagContext(draft, ragContext, params);
   }
-  
+
   return draft;
 }
 
 function generateBaseTemplate(params: DraftParamsEnhanced): string {
-  const { language, reason, moveDate, customerName, edgeCase, customerConcerns, hasPaymentIssue, paymentConcerns } = params;
+  const {
+    language,
+    reason,
+    moveDate,
+    customerName,
+    edgeCase,
+    customerConcerns,
+    hasPaymentIssue,
+    paymentConcerns
+  } = params;
 
   // Helper to format greeting
   const greeting = (lang: "no" | "en" | "sv", name?: string) => {
@@ -271,7 +308,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
 
   // Helper to format closing
   const closing = (lang: "no" | "en" | "sv") => {
-    return lang === "no" 
+    return lang === "no"
       ? "\n\nMed vennlig hilsen,\nElaway Support"
       : "\n\nKind regards,\nElaway Support";
   };
@@ -318,7 +355,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     // Handle move date timing
     if (moveDate) {
       const moveMonthsFromNow = getMonthsFromNow(moveDate);
-      
+
       if (moveMonthsFromNow > 1) {
         // Future move date - advise to cancel closer to date
         body += `\n\nDu kan avslutte abonnementet i Elaway-appen når du nærmer deg flyttedatoen (${formatDate(moveDate, "no")}), slik at du kan bruke laderen frem til du flytter:\nMeny → Administrer abonnement → Avslutt abonnement nå.`;
@@ -335,7 +372,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     }
 
     body += `\n\nOppsigelsen gjelder ut inneværende måned.`;
-    
+
     // Add manual help offer
     if (edgeCase !== "no_app_access") {
       body += ` Dersom du har problemer med appen eller ikke har tilgang, hjelper vi deg gjerne manuelt – gi oss beskjed.`;
@@ -388,7 +425,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     // Handle move date timing
     if (moveDate) {
       const moveMonthsFromNow = getMonthsFromNow(moveDate);
-      
+
       if (moveMonthsFromNow > 1) {
         body += `\n\nYou can cancel your subscription in the Elaway app closer to your move date (${formatDate(moveDate, "en")}), so you can continue using the charger until then:\nMenu → Manage Subscription → Cancel Subscription.`;
       } else {
@@ -402,7 +439,7 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
     }
 
     body += `\n\nThe cancellation will take effect at the end of the current month.`;
-    
+
     // Add manual help offer
     if (edgeCase !== "no_app_access") {
       body += ` If you have trouble accessing the app, we are happy to help you manually.`;
@@ -418,11 +455,11 @@ function generateBaseTemplate(params: DraftParamsEnhanced): string {
   body += `\n\nTack för att du hörde av dig! Vi förstår att du ska flytta och vill avsluta ditt abonnemang.`;
   body += `\n\nDu kan enkelt avsluta abonnemanget i Elaway-appen:\nMeny → Hantera abonnemang → Avsluta abonnemang.`;
   body += `\n\nUppsägningen gäller till slutet av innevarande månad.`;
-  
+
   if (edgeCase !== "no_app_access") {
     body += ` Om du har problem med appen är vi glada att hjälpa dig manuellt.`;
   }
-  
+
   return body + "\n\nMed vänliga hälsningar,\nElaway Support";
 }
 
@@ -442,12 +479,12 @@ export function calculateConfidenceEnhanced(extraction: ExtractionResultEnhanced
   if (extraction.reason === "moving") {
     confidence += 0.15;
   } else if (extraction.reason === "other") {
-    confidence += 0.10;
+    confidence += 0.1;
   }
 
   // Language confidence (10%)
   if (extraction.language === "no" || extraction.language === "en") {
-    confidence += 0.10; // High confidence for primary languages
+    confidence += 0.1; // High confidence for primary languages
   } else if (extraction.language === "sv") {
     confidence += 0.05; // Medium confidence for Swedish
   }
@@ -456,7 +493,7 @@ export function calculateConfidenceEnhanced(extraction: ExtractionResultEnhanced
   if (extraction.move_date) {
     const monthsFromNow = getMonthsFromNow(extraction.move_date);
     if (monthsFromNow >= 0 && monthsFromNow <= 3) {
-      confidence += 0.10; // Good timing
+      confidence += 0.1; // Good timing
     } else if (monthsFromNow > 3) {
       confidence += 0.05; // Future date but valid
     }
@@ -466,14 +503,16 @@ export function calculateConfidenceEnhanced(extraction: ExtractionResultEnhanced
 
   // Edge case handling (10%)
   if (extraction.edge_case === "none") {
-    confidence += 0.10; // Standard case
-  } else if (["no_app_access", "sameie_concern", "future_move_date"].includes(extraction.edge_case)) {
+    confidence += 0.1; // Standard case
+  } else if (
+    ["no_app_access", "sameie_concern", "future_move_date"].includes(extraction.edge_case)
+  ) {
     confidence += 0.05; // Known edge case with template
   }
 
   // Policy compliance (10%)
   if (extraction.policy_risks.length === 0) {
-    confidence += 0.10;
+    confidence += 0.1;
   } else if (extraction.policy_risks.length === 1) {
     confidence += 0.05;
   }
@@ -488,30 +527,39 @@ export function calculateConfidenceEnhanced(extraction: ExtractionResultEnhanced
 
 // Confidence thresholds for HITM workflow
 export const CONFIDENCE_THRESHOLDS = {
-  AUTO_APPROVE: 0.95,  // Future: Auto-send without review
-  HIGH: 0.85,          // Minimal review needed
-  MEDIUM: 0.70,        // Standard review
-  LOW: 0.50,           // Careful review needed
-  MANUAL: 0.50         // Below this: flag for manual handling
+  AUTO_APPROVE: 0.95, // Future: Auto-send without review
+  HIGH: 0.85, // Minimal review needed
+  MEDIUM: 0.7, // Standard review
+  LOW: 0.5, // Careful review needed
+  MANUAL: 0.5 // Below this: flag for manual handling
 };
 
 // ============================================================================
 // EDGE CASE DETECTION
 // ============================================================================
 
-export function detectEdgeCase(email: string, extraction: Partial<ExtractionResultEnhanced>): string {
+export function detectEdgeCase(
+  email: string,
+  extraction: Partial<ExtractionResultEnhanced>
+): string {
   const emailLower = email.toLowerCase();
 
   // No app access
-  if (emailLower.match(/(?:no|not|don't|cannot|can't|har ikke).*(?:app|access|login|tilgang)/i) ||
-      emailLower.includes("ikke tilgang") ||
-      emailLower.includes("får ikke") ||
-      emailLower.includes("manual")) {
+  if (
+    emailLower.match(/(?:no|not|don't|cannot|can't|har ikke).*(?:app|access|login|tilgang)/i) ||
+    emailLower.includes("ikke tilgang") ||
+    emailLower.includes("får ikke") ||
+    emailLower.includes("manual")
+  ) {
     return "no_app_access";
   }
 
   // Corporate/housing association concern
-  if (emailLower.match(/(?:sameie|housing association|corporate|bedrift|alle|everyone|whole building|hele sameiet)/i)) {
+  if (
+    emailLower.match(
+      /(?:sameie|housing association|corporate|bedrift|alle|everyone|whole building|hele sameiet)/i
+    )
+  ) {
     return "sameie_concern";
   }
 
@@ -524,7 +572,9 @@ export function detectEdgeCase(email: string, extraction: Partial<ExtractionResu
   }
 
   // Already canceled check
-  if (emailLower.match(/(?:allerede|already|previously).*(?:cancel|avsluttet|oppsagt|terminated)/i)) {
+  if (
+    emailLower.match(/(?:allerede|already|previously).*(?:cancel|avsluttet|oppsagt|terminated)/i)
+  ) {
     return "already_canceled";
   }
 
@@ -535,7 +585,9 @@ export function detectEdgeCase(email: string, extraction: Partial<ExtractionResu
 // EXTRACTION PROMPT (Enhanced)
 // ============================================================================
 
-export const extractionPromptEnhanced = (email: string) => `Analyze this customer email and extract structured information:
+export const extractionPromptEnhanced = (
+  email: string
+) => `Analyze this customer email and extract structured information:
 
 CRITICAL: First determine if this is actually a cancellation request or something else.
 
@@ -590,47 +642,54 @@ function enhanceDraftWithRagContext(
       baseDraft += `\n\n${paymentGuidance}`;
     }
   }
-  
+
   // For edge cases, adapt tone from similar cases
   if (params.edgeCase !== "none" && context.length > 0) {
     // Use context to inform phrasing (not copy verbatim)
     baseDraft = adaptToneFromContext(baseDraft, context[0], params.language);
   }
-  
+
   return baseDraft;
 }
 
 function extractPaymentGuidance(context: string): string | null {
   // Extract payment-related guidance from RAG context
   const lower = context.toLowerCase();
-  
-  if (lower.includes('refund') || lower.includes('refusjon') || lower.includes('återbetalning')) {
+
+  if (lower.includes("refund") || lower.includes("refusjon") || lower.includes("återbetalning")) {
     return "Vi vil sjekke betalingshistorikken din og ordne eventuelle refusjoner.";
   }
-  
-  if (lower.includes('double') || lower.includes('dobbel') || lower.includes('dubbel')) {
+
+  if (lower.includes("double") || lower.includes("dobbel") || lower.includes("dubbel")) {
     return "Vi ser at det kan være et dobbelt trekk. Vi vil undersøke dette umiddelbart.";
   }
-  
+
   return null;
 }
 
 function adaptToneFromContext(baseDraft: string, context: string, language: string): string {
   // Adapt the tone based on successful examples from similar cases
   const lower = context.toLowerCase();
-  
+
   // If the context shows a particularly empathetic response, enhance the draft
-  if (lower.includes('beklager') || lower.includes('sorry') || lower.includes('ursäkta')) {
+  if (lower.includes("beklager") || lower.includes("sorry") || lower.includes("ursäkta")) {
     if (language === "no") {
-      return baseDraft.replace("Takk for beskjed", "Takk for beskjed, og beklager eventuelle ulemper");
+      return baseDraft.replace(
+        "Takk for beskjed",
+        "Takk for beskjed, og beklager eventuelle ulemper"
+      );
     } else if (language === "en") {
-      return baseDraft.replace("Thank you for reaching out", "Thank you for reaching out, and we apologize for any inconvenience");
+      return baseDraft.replace(
+        "Thank you for reaching out",
+        "Thank you for reaching out, and we apologize for any inconvenience"
+      );
     } else if (language === "sv") {
-      return baseDraft.replace("Tack för att du hörde av dig", "Tack för att du hörde av dig, och vi ber om ursäkt för eventuella olägenheter");
+      return baseDraft.replace(
+        "Tack för att du hörde av dig",
+        "Tack för att du hörde av dig, och vi ber om ursäkt för eventuella olägenheter"
+      );
     }
   }
-  
+
   return baseDraft;
 }
-
-

@@ -1,9 +1,9 @@
 /**
  * Simplified Email Processor for HITM Workflow
- * 
+ *
  * This replaces the complex multi-agent system with a straightforward,
  * deterministic approach optimized for human-in-the-middle review.
- * 
+ *
  * Flow:
  * 1. Mask PII
  * 2. Extract data (regex-based, deterministic)
@@ -13,13 +13,7 @@
  */
 
 import "dotenv/config";
-import {
-  maskPII,
-  generateRequestId,
-  logInfo,
-  logError,
-  type LogContext
-} from "@agents/core";
+import { maskPII, generateRequestId, logInfo, logError, type LogContext } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
 import {
   generateDraftEnhanced,
@@ -28,7 +22,7 @@ import {
   validatePolicyCompliance,
   type ExtractionResultEnhanced
 } from "@agents/prompts";
-import { 
+import {
   detectCancellationIntent,
   detectCancellationIntentEnhanced,
   detectPaymentIssue,
@@ -60,8 +54,8 @@ function getMonthsFromNow(dateStr: string): number {
   try {
     const moveDate = new Date(dateStr);
     const now = new Date();
-    const months = (moveDate.getFullYear() - now.getFullYear()) * 12 + 
-                   (moveDate.getMonth() - now.getMonth());
+    const months =
+      (moveDate.getFullYear() - now.getFullYear()) * 12 + (moveDate.getMonth() - now.getMonth());
     return months;
   } catch {
     return 0;
@@ -79,14 +73,20 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
   const language = detectLanguage(email);
   const customerConcerns = extractCustomerConcerns(email);
   const confidenceFactors = calculateConfidenceFactors(email);
-  
+
   const emailLower = email.toLowerCase();
-  
+
   const movingKeywords = [
-    'flytt', 'moving', 'relocat', 'move', 'new address', 'ny adresse', 'nya adress'
+    "flytt",
+    "moving",
+    "relocat",
+    "move",
+    "new address",
+    "ny adresse",
+    "nya adress"
   ];
   const isMoving = movingKeywords.some(keyword => emailLower.includes(keyword));
-  
+
   let moveDate: string | null = null;
   const datePatterns = [
     /\b(\d{4})-(\d{2})-(\d{2})\b/,
@@ -95,15 +95,15 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
     /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})\b/i,
     /\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\b/i
   ];
-  
+
   for (const pattern of datePatterns) {
     const match = email.match(pattern);
     if (match) {
-      if (pattern.source.includes('\\d{4}-\\d{2}-\\d{2}')) {
+      if (pattern.source.includes("\\d{4}-\\d{2}-\\d{2}")) {
         moveDate = match[0]; // Already ISO
-      } else if (pattern.source.includes('[./]')) {
+      } else if (pattern.source.includes("[./]")) {
         const [_, day, month, year] = match;
-        moveDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        moveDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       } else {
         // For text dates, we'll keep them as-is for now
         moveDate = match[0];
@@ -111,7 +111,7 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
       break;
     }
   }
-  
+
   // Determine reason with payment issue support
   let reason: "moving" | "payment_issue" | "other" | "unknown";
   if (isCancellation) {
@@ -125,38 +125,57 @@ export function extractEmailData(email: string): ExtractionResultEnhanced {
   } else {
     reason = "unknown";
   }
-  
+
   const policyRisks: string[] = [];
   if (isCancellation && !moveDate && isMoving) {
     policyRisks.push("Moving mentioned but no date found");
   }
-  if (hasPaymentIssue && !customerConcerns.includes('payment_issue')) {
+  if (hasPaymentIssue && !customerConcerns.includes("payment_issue")) {
     policyRisks.push("Payment issue detected but not explicitly mentioned");
   }
-  
+
   // Detect edge cases using enhanced detection
   const detectedEdgeCase = detectEdgeCaseFromPatterns(email);
-  const edgeCase = detectedEdgeCase as "none" | "no_app_access" | "corporate_account" | "future_move_date" | "already_canceled" | "sameie_concern" | "payment_dispute";
-  
+  const edgeCase = detectedEdgeCase as
+    | "none"
+    | "no_app_access"
+    | "corporate_account"
+    | "future_move_date"
+    | "already_canceled"
+    | "sameie_concern"
+    | "payment_dispute";
+
   // Determine urgency
-  const urgency: "immediate" | "future" | "unclear" = moveDate ? 
-    (getMonthsFromNow(moveDate) > 1 ? "future" : "immediate") : 
-    (isCancellation ? "immediate" : "unclear");
-  
+  const urgency: "immediate" | "future" | "unclear" = moveDate
+    ? getMonthsFromNow(moveDate) > 1
+      ? "future"
+      : "immediate"
+    : isCancellation
+      ? "immediate"
+      : "unclear";
+
   // Extract payment concerns
   const paymentConcerns: string[] = [];
   if (hasPaymentIssue) {
-    if (emailLower.includes('refund') || emailLower.includes('refusjon') || emailLower.includes('återbetalning')) {
-      paymentConcerns.push('refund_request');
+    if (
+      emailLower.includes("refund") ||
+      emailLower.includes("refusjon") ||
+      emailLower.includes("återbetalning")
+    ) {
+      paymentConcerns.push("refund_request");
     }
-    if (emailLower.includes('double') || emailLower.includes('dobbel') || emailLower.includes('dubbel')) {
-      paymentConcerns.push('double_charge');
+    if (
+      emailLower.includes("double") ||
+      emailLower.includes("dobbel") ||
+      emailLower.includes("dubbel")
+    ) {
+      paymentConcerns.push("double_charge");
     }
-    if (emailLower.includes('error') || emailLower.includes('feil') || emailLower.includes('fel')) {
-      paymentConcerns.push('billing_error');
+    if (emailLower.includes("error") || emailLower.includes("feil") || emailLower.includes("fel")) {
+      paymentConcerns.push("billing_error");
     }
   }
-  
+
   return {
     is_cancellation: isCancellation,
     reason,
@@ -192,11 +211,11 @@ export async function processEmailSimplified(
 
     const maskedEmail = maskPII(rawEmail);
     const maskedCustomerEmail = maskPII(customerEmail);
-    
+
     logInfo("PII masked successfully", logContext);
 
     const extraction = extractEmailData(rawEmail);
-    
+
     logInfo("Email data extracted", logContext, {
       isCancellation: extraction.is_cancellation,
       reason: extraction.reason,
@@ -235,7 +254,7 @@ export async function processEmailSimplified(
       reason: extraction.reason,
       moveDate: extraction.move_date ? new Date(extraction.move_date) : undefined
     });
-    
+
     logInfo("Ticket created", logContext, { ticketId: ticket.id });
 
     const draftText = generateDraftEnhanced({
@@ -248,9 +267,9 @@ export async function processEmailSimplified(
       paymentConcerns: extraction.payment_concerns,
       ragContext: [] // No RAG context in simplified processor
     });
-    
+
     const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
-    
+
     logInfo("Draft generated from enhanced template", logContext, {
       language: extraction.language,
       edgeCase: extraction.edge_case,
@@ -267,7 +286,7 @@ export async function processEmailSimplified(
       confidence: String(confidenceScore),
       model: "template-enhanced-v1"
     });
-    
+
     logInfo("Draft saved", logContext, { draftId: draft.id });
 
     const duration = Date.now() - startTime;
@@ -320,11 +339,11 @@ export async function healthCheckSimplified(): Promise<{
     const testExtraction = extractEmailData(
       "Hei, jeg skal flytte og vil si opp abonnementet mitt."
     );
-    
+
     if (!testExtraction.is_cancellation) {
       throw new Error("Test extraction failed - cancellation not detected");
     }
-    
+
     // Test enhanced draft generation
     const testDraft = generateDraftEnhanced({
       language: testExtraction.language,
@@ -333,7 +352,7 @@ export async function healthCheckSimplified(): Promise<{
       edgeCase: testExtraction.edge_case,
       customerConcerns: testExtraction.customer_concerns
     });
-    
+
     if (!testDraft || testDraft.length < 50) {
       throw new Error("Test draft generation failed");
     }

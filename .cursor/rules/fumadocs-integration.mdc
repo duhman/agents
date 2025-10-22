@@ -1,0 +1,105 @@
+---
+description: Fumadocs integration patterns and documentation management
+globs: apps/docs/**/*.mdx, apps/docs/**/*.ts, apps/docs/**/*.tsx
+alwaysApply: false
+---
+
+# Fumadocs Integration
+
+This project uses [Fumadocs](https://fumadocs.dev) for documentation with Next.js and MDX.
+
+## Documentation Structure
+
+- **Content Location**: `apps/docs/content/docs/`
+- **Build System**: Next.js 15 with Fumadocs framework
+- **Content Format**: MDX files with frontmatter metadata
+- **Styling**: Tailwind CSS v4
+
+## MDX File Structure
+
+All documentation files should follow this structure:
+
+```mdx
+---
+title: "Page Title"
+description: "Brief description for SEO and navigation"
+order: 1
+---
+
+# Page Title
+
+Content goes here...
+
+## Sections
+
+Use proper heading hierarchy (H1, H2, H3, etc.)
+```
+
+## Frontmatter Requirements
+
+- **title**: Display name in navigation
+- **description**: SEO and navigation description  
+- **order**: Navigation ordering (optional)
+
+## Development Workflow
+
+1. **Start docs locally**: `pnpm --filter @agents/docs dev`
+2. **Access at**: `http://localhost:3000`
+3. **Edit content**: Modify MDX files in `apps/docs/content/docs/`
+4. **Auto-reload**: Changes reflect immediately in development
+
+## Content Guidelines
+
+- Use clear, descriptive headings
+- Include code examples with proper syntax highlighting
+- Add frontmatter for all pages
+- Follow the established navigation structure
+- Use consistent formatting and style
+
+## File Naming
+
+- Use kebab-case for filenames: `data-model.mdx`
+- Keep names descriptive and concise
+- Avoid special characters and spaces
+
+## Cursor AI Integration
+
+When working with Fumadocs documentation, Cursor AI should:
+
+### **Reading Documentation**
+- Always read existing MDX files before making changes
+- Understand the current structure and content
+- Preserve existing frontmatter and formatting
+
+### **Updating Documentation**
+- Maintain consistent MDX structure
+- Preserve frontmatter metadata (title, description, order)
+- Use proper heading hierarchy (H1, H2, H3, etc.)
+- Include code examples with syntax highlighting
+- Follow established content patterns
+
+### **Creating New Documentation**
+- Create MDX files in `apps/docs/content/docs/`
+- Include proper frontmatter with title and description
+- Use kebab-case for filenames
+- Follow the established documentation structure
+- Ensure content is comprehensive and well-organized
+
+### **Code Examples**
+- Use proper syntax highlighting for code blocks
+- Include relevant imports and dependencies
+- Show complete, working examples
+- Add explanatory comments where helpful
+
+### **Navigation Structure**
+- Maintain logical ordering with `order` frontmatter
+- Use descriptive titles and descriptions
+- Keep navigation hierarchy consistent
+- Update related pages when making structural changes
+
+### **Best Practices**
+- Always validate MDX syntax before saving
+- Test documentation locally with `pnpm --filter @agents/docs dev`
+- Keep content up-to-date with codebase changes
+- Use consistent terminology and formatting
+- Include cross-references between related pages

@@ -175,10 +175,14 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
 
       if (transient && attempt < maxAttempts) {
         const delay = baseDelayMs * Math.pow(2, attempt - 1);
-        await new Promise((r) => setTimeout(r, delay));
+        await new Promise(r => setTimeout(r, delay));
         continue;
       }
-      log("error", "DB operation failed", { requestId: ctx.requestId, actionId: ctx.actionId, error: msg });
+      log("error", "DB operation failed", {
+        requestId: ctx.requestId,
+        actionId: ctx.actionId,
+        error: msg
+      });
       throw e;
     }
   }
@@ -188,13 +192,19 @@ async function withDbRetry<T>(op: () => Promise<T>, ctx: { requestId: string; ac
 async function validateSlackToken(requestId?: string): Promise<boolean> {
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token) {
-    log("error", "Slack token validation failed", { requestId, error: "SLACK_BOT_TOKEN not configured" });
+    log("error", "Slack token validation failed", {
+      requestId,
+      error: "SLACK_BOT_TOKEN not configured"
+    });
     return false;
   }
 
   const now = Date.now();
 
-  if (lastTokenValidationResult === true && now - lastSuccessfulTokenValidation < TOKEN_VALIDATION_TTL_MS) {
+  if (
+    lastTokenValidationResult === true &&
+    now - lastSuccessfulTokenValidation < TOKEN_VALIDATION_TTL_MS
+  ) {
     log("info", "Slack token validation skipped (cached success)", { requestId });
     return true;
   }
@@ -240,7 +250,10 @@ async function validateSlackToken(requestId?: string): Promise<boolean> {
         lastTokenValidationResult = true;
         return true;
       } catch (error: any) {
-        log("error", "Slack token validation error", { requestId, error: error?.message || String(error) });
+        log("error", "Slack token validation error", {
+          requestId,
+          error: error?.message || String(error)
+        });
         lastTokenValidationResult = false;
         return false;
       } finally {
@@ -288,7 +301,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
 
       if (!res.ok) {
         const snippet = (text || JSON.stringify(json || {})).slice(0, 300);
-        const err = new Error(`Slack HTTP ${res.status} for ${method}: ${snippet}${requestId ? ` (requestId=${requestId})` : ""}`);
+        const err = new Error(
+          `Slack HTTP ${res.status} for ${method}: ${snippet}${requestId ? ` (requestId=${requestId})` : ""}`
+        );
         if (res.status >= 500 && attempt < maxAttempts) {
           await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
           continue;
@@ -308,7 +323,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             error,
             remedy: "Ensure views.open is called within 3 seconds of receiving trigger_id"
           });
-          throw new Error(`Trigger expired: ${error}. Modal must open within 3 seconds${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Trigger expired: ${error}. Modal must open within 3 seconds${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "not_in_channel") {
@@ -319,7 +336,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             error,
             remedy: "Invite bot to channel with /invite @bot"
           });
-          throw new Error(`Bot not in channel. Run /invite @bot${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Bot not in channel. Run /invite @bot${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "channel_not_found") {
@@ -329,7 +348,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             requestId,
             error
           });
-          throw new Error(`Channel not found or bot lacks access${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Channel not found or bot lacks access${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "invalid_auth" || error === "token_expired" || error === "token_revoked") {
@@ -340,7 +361,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             error,
             remedy: "Check SLACK_BOT_TOKEN validity"
           });
-          throw new Error(`Authentication failed: ${error}${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Authentication failed: ${error}${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "missing_scope") {
@@ -352,7 +375,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             needed: json.needed,
             remedy: "Add required scopes and reinstall app"
           });
-          throw new Error(`Missing scope: ${json.needed || "unknown"}${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Missing scope: ${json.needed || "unknown"}${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "rate_limited" || error === "ratelimited") {
@@ -364,7 +389,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             error,
             retryAfter
           });
-          throw new Error(`Rate limited. Retry after ${retryAfter}s${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Rate limited. Retry after ${retryAfter}s${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         if (error === "view_too_large") {
@@ -375,11 +402,19 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
             error,
             remedy: "Reduce modal content size (blocks, metadata, or text fields)"
           });
-          throw new Error(`Modal view too large. Reduce content size${requestId ? ` (requestId=${requestId})` : ""}`);
+          throw new Error(
+            `Modal view too large. Reduce content size${requestId ? ` (requestId=${requestId})` : ""}`
+          );
         }
 
         // Generic error fallback
-        log("error", "Slack API error response", { method, attempt, requestId, error, response: json });
+        log("error", "Slack API error response", {
+          method,
+          attempt,
+          requestId,
+          error,
+          response: json
+        });
         const errorDetails = {
           method,
           error,
@@ -387,7 +422,9 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
           requestId
         };
         log("error", "Slack API error response (details)", errorDetails);
-        throw new Error(`${method} failed: ${error}${requestId ? ` (requestId=${requestId})` : ""}`);
+        throw new Error(
+          `${method} failed: ${error}${requestId ? ` (requestId=${requestId})` : ""}`
+        );
       }
 
       log("info", "Slack API request succeeded", {
@@ -417,11 +454,15 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
         await new Promise(r => setTimeout(r, baseDelayMs * Math.pow(2, attempt - 1)));
         continue;
       }
-      throw new Error(`slackApi(${method}) error: ${message}${requestId ? ` (requestId=${requestId})` : ""}`);
+      throw new Error(
+        `slackApi(${method}) error: ${message}${requestId ? ` (requestId=${requestId})` : ""}`
+      );
     }
   }
 
-  throw new Error(`slackApi(${method}) exhausted retries${requestId ? ` (requestId=${requestId})` : ""}`);
+  throw new Error(
+    `slackApi(${method}) exhausted retries${requestId ? ` (requestId=${requestId})` : ""}`
+  );
 }
 
 interface EditModalViewParams {
@@ -503,7 +544,10 @@ interface RejectModalViewParams {
   messageTs?: string;
 }
 
-export function buildRejectModalView(params: RejectModalViewParams): { view: Record<string, unknown>; metadataLength: number } {
+export function buildRejectModalView(params: RejectModalViewParams): {
+  view: Record<string, unknown>;
+  metadataLength: number;
+} {
   const { ticketId, draftId, channelId, messageTs } = params;
   const metadataPayload: Record<string, string> = {
     ticketId,
@@ -604,11 +648,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-    log("info", "Slack interaction received (serverless)", {
-      raw_type: payload?.type,
-      has_actions: Array.isArray(payload?.actions),
-      has_view: !!payload?.view
-    });
+  log("info", "Slack interaction received (serverless)", {
+    raw_type: payload?.type,
+    has_actions: Array.isArray(payload?.actions),
+    has_view: !!payload?.view
+  });
 
   let responded = false;
   const respond = (body: Record<string, unknown>, status: number = 200) => {
@@ -639,7 +683,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
       if (!actionId) {
         respondOk();
-        log("warn", "Slack block action missing action_id", { requestId, channelId, messageTs, userId });
+        log("warn", "Slack block action missing action_id", {
+          requestId,
+          channelId,
+          messageTs,
+          userId
+        });
         return;
       }
 
@@ -658,13 +707,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           if (!parsed) return;
           const { ticketId, draftId } = parsed;
           try {
-            const draft = await withDbRetry(
-              () => getDraftById(draftId),
-              { requestId, actionId }
-            );
+            const draft = await withDbRetry(() => getDraftById(draftId), { requestId, actionId });
 
             if (!draft || typeof draft.draftText !== "string") {
-              log("error", "Slack approve failed - draft not found", { requestId, ticketId, draftId, userId });
+              log("error", "Slack approve failed - draft not found", {
+                requestId,
+                ticketId,
+                draftId,
+                userId
+              });
               if (channelId && messageTs) {
                 await slackApi(
                   "chat.postMessage",
@@ -715,7 +766,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             log("info", "Slack approve handled", { ticketId, draftId, userId, requestId });
           } catch (error: any) {
             const errMsg = error?.message || String(error);
-            log("error", "Slack approve failed", { requestId, ticketId, draftId, userId, error: errMsg });
+            log("error", "Slack approve failed", {
+              requestId,
+              ticketId,
+              draftId,
+              userId,
+              error: errMsg
+            });
             if (channelId && messageTs) {
               await slackApi(
                 "chat.postMessage",
@@ -860,13 +917,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           }
 
           const { ticketId, draftId } = parsed;
-          const draft = await withDbRetry(
-            () => getDraftById(draftId),
-            { requestId, actionId: "edit" }
-          );
+          const draft = await withDbRetry(() => getDraftById(draftId), {
+            requestId,
+            actionId: "edit"
+          });
 
           if (!draft || typeof draft.draftText !== "string") {
-            log("error", "Slack edit modal failed - draft not found", { requestId, ticketId, draftId, userId });
+            log("error", "Slack edit modal failed - draft not found", {
+              requestId,
+              ticketId,
+              draftId,
+              userId
+            });
             respond({ ok: false, error: "draft_not_found" }, 200);
             if (channelId && messageTs) {
               await slackApi(
@@ -890,7 +952,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             });
           });
 
-          log("info", "Slack edit modal opening", { requestId, ticketId, draftId, userId, triggerId });
+          log("info", "Slack edit modal opening", {
+            requestId,
+            ticketId,
+            draftId,
+            userId,
+            triggerId
+          });
 
           const { view, trimmedDraft, metadataLength } = buildEditModalView({
             ticketId,
@@ -1049,10 +1117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     if (type === "view_submission" && payload.view?.callback_id === "reject_modal") {
-      const requestId =
-        payload?.view?.id ||
-        payload?.trigger_id ||
-        String(Date.now());
+      const requestId = payload?.view?.id || payload?.trigger_id || String(Date.now());
 
       let metadata: Record<string, string> = {};
       try {

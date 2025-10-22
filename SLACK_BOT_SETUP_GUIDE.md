@@ -14,6 +14,7 @@ Add these to your `.env` file and Vercel environment:
 Your Slack bot MUST have the following OAuth scopes to open modals and handle interactions:
 
 ### Essential Scopes:
+
 - **`chat:write`** - Send messages as the bot
 - **`commands`** - Invoke slash commands
 - **`im:write`** - Send messages in direct messages
@@ -43,11 +44,13 @@ Your Slack bot MUST have the following OAuth scopes to open modals and handle in
 The integration now includes cryptographic signature verification to prevent unauthorized requests.
 
 ### Setup:
+
 1. Go to your Slack app settings > **Basic Information**
 2. Copy the **Signing Secret**
 3. Add it to your environment variables as `SLACK_SIGNING_SECRET`
 
 ### How it works:
+
 - Each request from Slack includes a signature in the `X-Slack-Signature` header
 - The signature is computed using HMAC SHA256 with your signing secret
 - Requests are rejected if:
@@ -55,6 +58,7 @@ The integration now includes cryptographic signature verification to prevent una
   - Timestamp is older than 5 minutes (prevents replay attacks)
 
 ### Troubleshooting:
+
 - If requests are being rejected with `invalid_signature` error, verify:
   - `SLACK_SIGNING_SECRET` matches your Slack app's Signing Secret
   - Your server clock is synchronized (timestamp validation)
@@ -76,6 +80,7 @@ The response should show your bot's capabilities and scopes.
 The integration now uses a persistent database for retry queue management.
 
 ### Migration Required:
+
 Run the database migration to create the `slack_retry_queue` table:
 
 ```bash
@@ -84,6 +89,7 @@ psql $DATABASE_URL -f packages/db/migrations/0001_add_slack_retry_queue.sql
 ```
 
 ### Retry Queue Features:
+
 - **Persistent storage**: Retries survive serverless function cold starts
 - **Exponential backoff**: 5 min, 10 min, 20 min retry intervals
 - **Status tracking**: pending, processing, succeeded, failed
@@ -91,6 +97,7 @@ psql $DATABASE_URL -f packages/db/migrations/0001_add_slack_retry_queue.sql
 - **Max retries**: 3 attempts before marking as failed
 
 ### Monitoring:
+
 - Check retry queue stats at `/api/cron/process-slack-retry` (POST with `CRON_SECRET`)
 - Failed items remain in database for debugging
 

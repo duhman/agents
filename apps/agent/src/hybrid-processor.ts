@@ -1,9 +1,9 @@
 /**
  * Hybrid Email Processor
- * 
+ *
  * Uses deterministic extraction for standard cases (fast, free)
  * Falls back to OpenAI for complex/ambiguous cases (accurate, costs API)
- * 
+ *
  * Flow:
  * 1. Mask PII
  * 2. Try deterministic extraction
@@ -66,7 +66,7 @@ async function extractWithOpenAI(
   logContext: LogContext
 ): Promise<ExtractionResultEnhanced> {
   logInfo("Using OpenAI extraction for complex case", logContext);
-  
+
   const completion = await withRetry(
     async () => {
       return await openai.chat.completions.parse(
@@ -75,7 +75,8 @@ async function extractWithOpenAI(
           messages: [
             {
               role: "system",
-              content: "You are an expert email classifier for Elaway's customer service automation system."
+              content:
+                "You are an expert email classifier for Elaway's customer service automation system."
             },
             {
               role: "user",
@@ -103,9 +104,7 @@ async function extractWithOpenAI(
 /**
  * Hybrid email processor - uses deterministic for standard cases, OpenAI for complex
  */
-export async function processEmailHybrid(
-  params: ProcessEmailParams
-): Promise<ProcessEmailResult> {
+export async function processEmailHybrid(params: ProcessEmailParams): Promise<ProcessEmailResult> {
   const { source, customerEmail, rawEmail } = params;
   const requestId = generateRequestId();
   const startTime = Date.now();
@@ -125,11 +124,13 @@ export async function processEmailHybrid(
     let extractionMethod: "deterministic" | "openai" = "deterministic";
 
     // Determine if we need OpenAI for complex cases
-    const needsOpenAI = 
+    const needsOpenAI =
       !extraction.confidence_factors.standard_case ||
       extraction.confidence_factors.clear_intent === false ||
       extraction.policy_risks.length > 1 ||
-      (extraction.edge_case !== "none" && extraction.edge_case !== "sameie_concern" && extraction.edge_case !== "no_app_access");
+      (extraction.edge_case !== "none" &&
+        extraction.edge_case !== "sameie_concern" &&
+        extraction.edge_case !== "no_app_access");
 
     if (needsOpenAI) {
       try {
@@ -141,10 +142,10 @@ export async function processEmailHybrid(
             edge_case: extraction.edge_case
           }
         });
-        
+
         extraction = await extractWithOpenAI(maskedEmail, logContext);
         extractionMethod = "openai";
-        
+
         // Auto-detect edge case if OpenAI missed it
         if (extraction.edge_case === "none") {
           const detectedEdgeCase = detectEdgeCase(rawEmail, extraction);
@@ -176,7 +177,9 @@ export async function processEmailHybrid(
     // CRITICAL: Validate extraction result
     if (!extraction.is_cancellation) {
       logInfo("Not a cancellation request - no action taken", logContext, {
-        detected_type: isNonCancellationEmail(rawEmail) ? "non_cancellation_pattern" : "no_cancellation_intent"
+        detected_type: isNonCancellationEmail(rawEmail)
+          ? "non_cancellation_pattern"
+          : "no_cancellation_intent"
       });
       return {
         success: true,
@@ -187,7 +190,7 @@ export async function processEmailHybrid(
         error: undefined
       };
     }
-    
+
     // Additional validation: Check confidence factors
     if (extraction.confidence_factors.clear_intent === false) {
       logWarn("Unclear cancellation intent - flagging for review", logContext, {
@@ -223,7 +226,7 @@ export async function processEmailHybrid(
 
     // Get RAG context for enhanced draft generation
     const ragContext = await getVectorStoreContext(extraction, logContext);
-    
+
     logInfo("RAG context retrieved", logContext, {
       contextCount: ragContext.length,
       hasContext: ragContext.length > 0
@@ -244,7 +247,11 @@ export async function processEmailHybrid(
     const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
 
     // Validate policy compliance
-    const validation = validatePolicyCompliance(draftText, extraction.language, extraction.edge_case);
+    const validation = validatePolicyCompliance(
+      draftText,
+      extraction.language,
+      extraction.edge_case
+    );
 
     if (!validation.compliant) {
       logError("Draft failed policy compliance", logContext, {
@@ -278,13 +285,13 @@ export async function processEmailHybrid(
       model: extractionMethod === "openai" ? "gpt-4o-hybrid-v1" : "template-enhanced-v1"
     });
 
-    logInfo("Draft saved", logContext, { 
+    logInfo("Draft saved", logContext, {
       draftId: draft.id,
       confidence
     });
 
     const duration = Date.now() - startTime;
-    
+
     // Record metrics
     metricsCollector.record({
       extraction_method: extractionMethod,
@@ -300,7 +307,7 @@ export async function processEmailHybrid(
       non_cancellation_detected: isNonCancellationEmail(rawEmail),
       subject_analyzed: true
     });
-    
+
     logInfo("Email processing completed successfully", {
       ...logContext,
       duration,

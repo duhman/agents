@@ -9,13 +9,15 @@ import {
 describe("Email Classification", () => {
   describe("Non-Cancellation Detection", () => {
     it("detects feedback request emails", () => {
-      const email = "Subject: How would you rate the received customer service?\n\nInquiry # 493729";
+      const email =
+        "Subject: How would you rate the received customer service?\n\nInquiry # 493729";
       assert.equal(isNonCancellationEmail(email), true);
       assert.equal(detectCancellationIntentEnhanced(email), false);
     });
 
     it("detects general question emails", () => {
-      const email = "Subject: How do I update my payment information?\n\nI need help updating my card.";
+      const email =
+        "Subject: How do I update my payment information?\n\nI need help updating my card.";
       assert.equal(isNonCancellationEmail(email), true);
       assert.equal(detectCancellationIntentEnhanced(email), false);
     });
@@ -27,7 +29,8 @@ describe("Email Classification", () => {
     });
 
     it("detects rating/survey emails", () => {
-      const email = "Subject: Rate our service\n\nPlease rate your experience with our customer service.";
+      const email =
+        "Subject: Rate our service\n\nPlease rate your experience with our customer service.";
       assert.equal(isNonCancellationEmail(email), true);
       assert.equal(detectCancellationIntentEnhanced(email), false);
     });
@@ -59,7 +62,8 @@ describe("Email Classification", () => {
 
   describe("Cancellation Detection", () => {
     it("detects clear cancellation requests", () => {
-      const email = "Subject: Cancellation request\n\nI am moving and want to cancel my subscription.";
+      const email =
+        "Subject: Cancellation request\n\nI am moving and want to cancel my subscription.";
       assert.equal(isNonCancellationEmail(email), false);
       assert.equal(detectCancellationIntentEnhanced(email), true);
     });
@@ -70,12 +74,14 @@ describe("Email Classification", () => {
     });
 
     it("detects English cancellation requests", () => {
-      const email = "Subject: Cancel subscription\n\nI need to cancel my subscription because I am moving.";
+      const email =
+        "Subject: Cancel subscription\n\nI need to cancel my subscription because I am moving.";
       assert.equal(detectCancellationIntentEnhanced(email), true);
     });
 
     it("detects cancellation intent in body with neutral subject", () => {
-      const email = "Subject: Question about my account\n\nI am moving and would like to cancel my subscription.";
+      const email =
+        "Subject: Question about my account\n\nI am moving and would like to cancel my subscription.";
       assert.equal(detectCancellationIntentEnhanced(email), true);
     });
   });
@@ -108,5 +114,4 @@ describe("Email Classification", () => {
       assert.equal(result.hasSubject, true);
     });
   });
-
 });

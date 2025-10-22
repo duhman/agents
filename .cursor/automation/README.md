@@ -5,14 +5,17 @@ This directory contains automation scripts that keep Cursor rules and configurat
 ## Scripts
 
 ### `rules-updater.ts`
+
 Main automation engine that detects changes and updates rules.
 
 **Usage:**
+
 ```bash
 tsx .cursor/automation/rules-updater.ts
 ```
 
 **What it does:**
+
 - Detects schema, prompt, package, architecture changes
 - Updates relevant rule files automatically
 - Syncs `.cursormemory` with latest context
@@ -20,9 +23,11 @@ tsx .cursor/automation/rules-updater.ts
 - Generates automation reports
 
 ### `file-watcher.ts`
+
 Development mode file watcher for real-time updates.
 
 **Usage:**
+
 ```bash
 tsx .cursor/automation/file-watcher.ts
 # or
@@ -30,6 +35,7 @@ pnpm cursor:watch
 ```
 
 **What it does:**
+
 - Monitors critical files during development
 - Automatically triggers rule updates on changes
 - Debounces changes to avoid spam
@@ -38,13 +44,16 @@ pnpm cursor:watch
 ## Output Files
 
 ### `last-run.json`
+
 Contains details of the most recent automation run:
+
 - Timestamp
 - Files updated
 - Changes made
 - Success/failure status
 
 **Example:**
+
 ```json
 {
   "timestamp": "2025-01-03T14:53:00.000Z",
@@ -62,16 +71,19 @@ Contains details of the most recent automation run:
 ## Integration Points
 
 ### 1. Git Hooks
+
 - **Pre-commit**: `.husky/pre-commit` - Runs before commits
 - **Post-merge**: `.husky/post-merge` - Runs after git pull/merge
 
 ### 2. CI/CD
+
 - **GitHub Actions**: `.github/workflows/cursor-rules-sync.yml`
 - Runs on push to main/develop
 - Validates rule sync
 - Auto-commits updates or comments on PRs
 
 ### 3. MCP Servers
+
 - **Configuration**: `.cursor/mcp.json`
 - Defines automation triggers
 - Configures Cursor Rules MCP server
@@ -123,11 +135,13 @@ Then implement the action in `rules-updater.ts`.
 ### Rules not updating
 
 1. Check git diff shows changes:
+
    ```bash
    git diff HEAD~1 HEAD -- <file>
    ```
 
 2. Run automation manually:
+
    ```bash
    tsx .cursor/automation/rules-updater.ts
    ```
@@ -137,6 +151,7 @@ Then implement the action in `rules-updater.ts`.
 ### File watcher not detecting changes
 
 1. Ensure chokidar is installed:
+
    ```bash
    pnpm add -D chokidar
    ```
@@ -148,11 +163,13 @@ Then implement the action in `rules-updater.ts`.
 ### Git hooks not running
 
 1. Ensure husky is installed:
+
    ```bash
    pnpm prepare
    ```
 
 2. Make hooks executable:
+
    ```bash
    chmod +x .husky/pre-commit
    chmod +x .husky/post-merge
@@ -174,4 +191,3 @@ Then implement the action in `rules-updater.ts`.
 ---
 
 **See also:** `documentation/cursor/CURSOR_AUTOMATION.md` for complete guide
-

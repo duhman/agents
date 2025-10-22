@@ -120,11 +120,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "installasjon", "pris"],
         "conversationSummary": "oppseiing - 7 messages between customer and support",
         "participantCount": 4,
         "threadLength": 7,
@@ -263,9 +259,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "SV: Angående drift fra Elaway - 7 messages between customer and support",
         "participantCount": 2,
         "threadLength": 7,
@@ -409,12 +403,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["lader", "installasjon", "feil", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 6 messages between customer and support",
         "participantCount": 4,
         "threadLength": 6,
@@ -546,12 +535,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support", "pris"],
         "conversationSummary": "Bytting av parkeringsplass - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -683,10 +667,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Payment - Ny henvendelse fra kontaktskjema web - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -818,10 +799,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "en",
-        "topicKeywords": [
-          "charging",
-          "charger"
-        ],
+        "topicKeywords": ["charging", "charger"],
         "conversationSummary": "Continued charges - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -953,11 +931,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["lader", "feil", "support"],
         "conversationSummary": "Lader - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -1089,10 +1063,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Avtaler sameiene Tindlund park 1 og 2 - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -1217,10 +1188,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "\tVS: Vestre Sælemyr Borettslag - Tilgang til fellesladere under arbeid i garasje. - 6 messages between customer and support",
         "participantCount": 2,
         "threadLength": 6,
@@ -1359,13 +1327,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "problem",
-          "hjelp",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "problem", "hjelp", "support", "pris"],
         "conversationSummary": "Grimstadgata 28, Oslo. VIKTIG INFORMASJON TIL DE SOM BENYTTER ELBIL LADER I  GARASJEN - Overtakelse av lading i Sameiet Grimstadgata 28 fra  Flowe til Elaway - husk å bestille abonnement - 6 messages between customer and support",
         "participantCount": 4,
         "threadLength": 6,
@@ -1490,10 +1452,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "kostnad",
-          "teknisk"
-        ],
+        "topicKeywords": ["kostnad", "teknisk"],
         "conversationSummary": "[Unpaid Invoice] Inkassovarsel - 6 messages between customer and support",
         "participantCount": 2,
         "threadLength": 6,
@@ -1625,12 +1584,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charger",
-          "error",
-          "support"
-        ],
+        "topicKeywords": ["lader", "charger", "error", "support"],
         "conversationSummary": "Problemer med laderen - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -1755,9 +1709,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Sv: Angående din bestilling hos Elaway - 6 messages between customer and support",
         "participantCount": 2,
         "threadLength": 6,
@@ -1889,11 +1841,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris",
-          "teknisk"
-        ],
+        "topicKeywords": ["charging", "pris", "teknisk"],
         "conversationSummary": "SV: Viktig endring for gjesteladere i deres boligselskap - 6 messages between customer and support",
         "participantCount": 3,
         "threadLength": 6,
@@ -2018,10 +1966,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Oppsigelse ladeabonnement Waldemars Hage Garasjelag - 6 messages between customer and support",
         "participantCount": 2,
         "threadLength": 6,
@@ -2158,9 +2103,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Flytting av abonnement til PlugPay / Jørgen - 5 messages between customer and support",
         "participantCount": 5,
         "threadLength": 5,
@@ -2271,9 +2214,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "SV: Angående din bestilling hos Elaway - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -2606,11 +2547,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "support", "pris"],
         "conversationSummary": "ZPR125503 - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -2728,10 +2665,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Oppkobling av ladeboks - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -2849,12 +2783,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "problem",
-          "hjelp",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "problem", "hjelp", "support"],
         "conversationSummary": "Kjersti saken - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -2965,11 +2894,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "tech"
-        ],
+        "topicKeywords": ["lader", "support", "tech"],
         "conversationSummary": "Lading Tiedemannsfabrikken 2 - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -3087,10 +3012,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "problem",
-          "pris"
-        ],
+        "topicKeywords": ["problem", "pris"],
         "conversationSummary": "Flata Burettslag, 6800 Førde - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -3201,12 +3123,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "feil",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "charging", "feil", "pris"],
         "conversationSummary": "Fwd: Takk for at dere valgte Elaway, som driftsleverandør av ladeanlegget. Her kommer viktig informasjon før Elaway tar over driften av ladeanlegget i Øvre Høybråten Borettslag - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -3317,11 +3234,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support"],
         "conversationSummary": "Ny ladeboks - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -3432,9 +3345,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Utsiktsveien borettslag - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -3559,14 +3470,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "ladeboks",
-          "feil",
-          "support",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "charging", "ladeboks", "feil", "support", "hjelp"],
         "conversationSummary": "FW: Hei! Hvordan klarte vi oss? - 5 messages between customer and support",
         "participantCount": 4,
         "threadLength": 5,
@@ -3677,9 +3581,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Endring av serienummer - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -3797,10 +3699,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Oppsigelse av el bil lader - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -3925,9 +3824,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av ladeavtaler for beboere i Straumsfjellet Panorama Sameie - 5 messages between customer and support",
         "participantCount": 4,
         "threadLength": 5,
@@ -4045,10 +3942,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "kostnad"],
         "conversationSummary": "Oppsigelse av abonnement  - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -4159,11 +4053,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "support", "kostnad"],
         "conversationSummary": "Oppsigelse av abonnement grunnet dødsfall - Erik Petter Weme (19.10.36) - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -4281,9 +4171,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Endre abonnement  - 5 messages between customer and support",
         "participantCount": 3,
         "threadLength": 5,
@@ -4394,11 +4282,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["hjelp", "pris", "kostnad"],
         "conversationSummary": "Oppsigelse - Helsethagan Huseierforeing - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -4509,9 +4393,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris"
-        ],
+        "topicKeywords": ["pris"],
         "conversationSummary": "Ang trekk - 5 messages between customer and support",
         "participantCount": 2,
         "threadLength": 5,
@@ -4710,9 +4592,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lader ikke - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -4809,10 +4689,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Endre epost - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -4916,10 +4793,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "pris"],
         "conversationSummary": "Oversikt Kronstadveien borettslag - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -5016,9 +4890,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Inkassovarsel, min tilbakemelding - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5212,11 +5084,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "support", "pris"],
         "conversationSummary": "Oppsigelse av lader - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5313,10 +5181,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "support"],
         "conversationSummary": "Kobles fra 31. Mai 2025 - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5413,9 +5278,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående din bestilling hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5512,9 +5375,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris"
-        ],
+        "topicKeywords": ["pris"],
         "conversationSummary": "Oppsigelse  - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5618,9 +5479,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse på ladeabonnement - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -5717,10 +5576,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["support", "kostnad"],
         "conversationSummary": "Oppsigelse - Songe - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5817,9 +5673,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Demontere ladebox - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -5923,11 +5777,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "charging",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "charging", "support"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -6121,9 +5971,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Sv: Angående ditt abonnement hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -6324,10 +6172,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Endring av E-post adresse  - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -6521,11 +6366,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support"],
         "conversationSummary": "Eierskifte ladeboks - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -6622,11 +6463,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support"],
         "conversationSummary": "Utleie av ladeboks/p-plass - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -6723,12 +6560,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "hjelp",
-          "support"
-        ],
+        "topicKeywords": ["lader", "feil", "hjelp", "support"],
         "conversationSummary": "Endre e-postadresse - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -6825,11 +6657,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support"],
         "conversationSummary": "Avsluttet abonnement - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -6933,13 +6761,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "hjelp",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "feil", "hjelp", "pris", "kostnad"],
         "conversationSummary": "Gjennoppstart av lading - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -7036,10 +6858,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "problem"
-        ],
+        "topicKeywords": ["lader", "problem"],
         "conversationSummary": "Eierskifte - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -7143,10 +6962,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Oppsigelse - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -7250,12 +7066,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "installasjon",
-          "support"
-        ],
+        "topicKeywords": ["lader", "charging", "installasjon", "support"],
         "conversationSummary": "Re: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -7359,10 +7170,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Gjenopprette elaway abonnement - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -7459,11 +7267,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support"],
         "conversationSummary": "Ny ladeboks i samme garasjelag - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -7560,10 +7364,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -7667,10 +7468,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Oppsigelse av abonnement  - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -7767,10 +7565,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Utestående betaling  - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -7867,10 +7662,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Stoppe abonnement - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -7967,9 +7759,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "kostnad"
-        ],
+        "topicKeywords": ["kostnad"],
         "conversationSummary": "Payment - Ny henvendelse fra kontaktskjema web - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8073,10 +7863,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Fwd: Re: undefined - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -8180,9 +7967,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lader ikke aktiv - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -8279,13 +8064,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "feil",
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "feil", "support", "kostnad"],
         "conversationSummary": "Purring fra boligselskapet Evangtunet 2 - ber om fremdrift i saken - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8389,12 +8168,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "installasjon",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "charging", "installasjon", "kostnad"],
         "conversationSummary": "VS: Bestilling av elbillading for beboerne i Siljeveien Borettslag Easee - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -8491,10 +8265,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Feil på avslutning abonnement igjen - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8591,10 +8362,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Faktura 3/9, 4/9, 9/9 - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8698,9 +8466,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Hei, jeg Murat Agac ønsker å si opp avtalen tilknyttet ladernummer ECZVVEU9 fra og med dato 16.12.2024. Siste bruksdato vil være 15.12.2024.  Vennligst bekreft oppsigelse omgående!  Mvh. Murat Agac - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -8797,9 +8563,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse sendt før 30.11.  - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8896,9 +8660,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Faktura - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -8995,10 +8757,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon"
-        ],
+        "topicKeywords": ["lader", "installasjon"],
         "conversationSummary": "Angrerett - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -9095,9 +8854,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av abonnement - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -9305,10 +9062,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "kostnad"],
         "conversationSummary": "Oppsigelse av kundeforhold. - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -9405,12 +9159,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "problem",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "problem", "support"],
         "conversationSummary": "Koble til en lader til til min bruker - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -9507,9 +9256,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Opprettelse av abonnement  - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -9800,11 +9547,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "en",
-        "topicKeywords": [
-          "charging",
-          "charger",
-          "cost"
-        ],
+        "topicKeywords": ["charging", "charger", "cost"],
         "conversationSummary": "Charging membership - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10109,9 +9852,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående din bestilling hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10208,10 +9949,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "hjelp"
-        ],
+        "topicKeywords": ["feil", "hjelp"],
         "conversationSummary": "Nylænde 17 fellesladere virker ikke på dag 4.  - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10308,12 +10046,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "problem",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "problem", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10410,13 +10143,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "feil",
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "installasjon", "feil", "support", "kostnad"],
         "conversationSummary": "Avslutte abonnement - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10513,9 +10240,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "SV: Informasjon om prisjustering for elbillading - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10612,14 +10337,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "installasjon",
-          "feil",
-          "support",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["charging", "installasjon", "feil", "support", "pris", "kostnad"],
         "conversationSummary": "Sv: Informasjon om prisjustering for elbillading - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10716,9 +10434,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Skal flytte - oppsigelse abo som - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10815,10 +10531,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Endret e-post - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -10915,10 +10628,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "FW: Ladeanlegg fra Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -11022,10 +10732,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "kostnad"
-        ],
+        "topicKeywords": ["ladeboks", "kostnad"],
         "conversationSummary": "Ladeabonnement - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -11122,10 +10829,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Ny adresse - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -11222,9 +10926,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående din bestilling hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -11328,10 +11030,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Lade tilgang - 4 messages between customer and support",
         "participantCount": 3,
         "threadLength": 4,
@@ -11428,9 +11127,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "RE: Angående ditt ladeabonnement hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -11527,9 +11224,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående din bestilling hos Elaway - 4 messages between customer and support",
         "participantCount": 2,
         "threadLength": 4,
@@ -11617,10 +11312,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "VIKTIG - Lader Åmundsleitet borettslag  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -11703,13 +11395,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "problem",
-          "hjelp",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "charging", "problem", "hjelp", "pris"],
         "conversationSummary": "Re: Klar for gode nyheter Braa? Nå er du snart klar for lading⚡ - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -11799,10 +11485,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Oppstart av ladeboks , men ny bruker - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -11885,9 +11568,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående ditt ladeabonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -11970,10 +11651,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Oppsigelse pga flytting  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12056,9 +11734,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Abonnement Fjellhamar Torg - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12148,11 +11824,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "feil"],
         "conversationSummary": "Lader på plass 671 - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -12235,9 +11907,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12320,9 +11990,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Opphør av abonnement Rosenvinge Tårn 4 og 5 - Leilighet 0703 - Tor Nickelsen - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12661,10 +12329,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["charging", "pris"],
         "conversationSummary": "Re: Handling kreves: Viktig informasjon om endelig løsning for gjesteladere - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -12747,10 +12412,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "hjelp"],
         "conversationSummary": "App/login - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12833,9 +12495,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte medlemskap - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -12918,13 +12578,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "installasjon",
-          "feil",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["ladeboks", "installasjon", "feil", "pris", "kostnad"],
         "conversationSummary": "Klage på feilaktig pris og manglende informasjon ved bestilling av ladeboks - Refunder 01.05 - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13007,10 +12661,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "problem"
-        ],
+        "topicKeywords": ["lader", "problem"],
         "conversationSummary": "Re: Angående ditt ladeabonnement hos Elaway  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13093,10 +12744,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Kunde. Tore Kristian Sundstad - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13186,11 +12834,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support"],
         "conversationSummary": "Flytte fra Troldhaugvegen 38a - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -13273,10 +12917,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "support"],
         "conversationSummary": "Oppsigelse av avtale - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13359,9 +13000,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Avslutte abonnementet  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13444,10 +13083,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "support"],
         "conversationSummary": "Oppsigelse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13530,10 +13166,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Avslutting av el-bil lader - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13616,9 +13249,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Thorstein Ellefsen ny mailadresse. - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13784,11 +13415,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "support", "kostnad"],
         "conversationSummary": "Oppsigelse  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -13878,10 +13505,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "pris"],
         "conversationSummary": "Avslutte lastebil - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -13971,10 +13595,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp",
-          "support"
-        ],
+        "topicKeywords": ["hjelp", "support"],
         "conversationSummary": "Abonnement avslutt - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -14057,10 +13678,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "installasjon"
-        ],
+        "topicKeywords": ["ladeboks", "installasjon"],
         "conversationSummary": "Re: (ID:28745) Vs: Oppsigelse av ladeboks - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -14143,9 +13761,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Ny e post - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -14235,12 +13851,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "charging",
-          "installasjon"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "charging", "installasjon"],
         "conversationSummary": "Re: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -14323,10 +13934,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "kostnad"],
         "conversationSummary": "Rabben Borettslag  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -14416,9 +14024,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av abbonement - skal tegnes på ny eier av ladestasjon - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -14584,10 +14190,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -14753,9 +14356,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "RE: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -14928,9 +14529,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Re: Informasjon om nytt kontonr. til Sameiet Rosenborg Park B4 pga. ny forretningsfører - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15013,10 +14612,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15099,9 +14695,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Support ticket - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15184,10 +14778,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "support"],
         "conversationSummary": "Ladeplass 49 i Sameiet Møllehagen - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15270,9 +14861,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "vestskrenten- oppsigelse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15355,9 +14944,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse av abonnement  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15440,9 +15027,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15525,10 +15110,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15611,10 +15193,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15697,9 +15276,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15872,10 +15449,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "problem"
-        ],
+        "topicKeywords": ["feil", "problem"],
         "conversationSummary": "Ja hei men jeg har spørsmål med den faktura jeg har ikke bor i Kløfta nå for lenge siden snart to år hvorfor dere sende til meg faktorer hvor jeg kan kontakte med dere - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -15958,12 +15532,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support", "pris"],
         "conversationSummary": "Angrerett bestilling av leie ladeboks - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16129,10 +15698,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Flere ladebokser - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16222,10 +15788,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "kostnad"],
         "conversationSummary": "Betale for lading  - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -16308,11 +15871,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support",
-          "teknisk",
-          "technical"
-        ],
+        "topicKeywords": ["support", "teknisk", "technical"],
         "conversationSummary": "VB: Elaway AS - Påminnelse 16824 [D642EZ] - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16402,9 +15961,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Bytte mailadresse på abonnement  - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -16487,9 +16044,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Skiftet epostadresse på konto - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16572,13 +16127,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "installasjon",
-          "feil",
-          "support",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["installasjon", "feil", "support", "pris", "kostnad"],
         "conversationSummary": "Mitt abonnement - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16661,9 +16210,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16746,11 +16293,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "support", "kostnad"],
         "conversationSummary": "Overføring av abonnement  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -16840,9 +16383,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse borettslag leieavtale - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -16925,9 +16466,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse av abonnement - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17010,12 +16549,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support", "hjelp"],
         "conversationSummary": "Lader 3106 på Kurlandstien har fått ny eier - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17188,9 +16722,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av ladestasjon på parkeringsplass 7 i Fossumsletta Borettslag - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17273,9 +16805,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Utviklere - Oppsigelse 06. REfusjon - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17531,11 +17061,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "hjelp",
-          "support"
-        ],
+        "topicKeywords": ["lader", "hjelp", "support"],
         "conversationSummary": "Bytte av p-plass - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -17784,13 +17310,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "support",
-          "hjelp",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "installasjon", "support", "hjelp", "pris"],
         "conversationSummary": "Nytt abonnement hos Elaway… [Fwd: Bekreftelse på oppsigelse] - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17873,12 +17393,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "problem",
-          "support"
-        ],
+        "topicKeywords": ["lader", "installasjon", "problem", "support"],
         "conversationSummary": "Bytte av p plass. - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -17968,10 +17483,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Avtale om el-bil lading - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -18054,10 +17566,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Endre epostadresse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -18140,12 +17649,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "problem",
-          "teknisk"
-        ],
+        "topicKeywords": ["lader", "feil", "problem", "teknisk"],
         "conversationSummary": "Kabel - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -18235,10 +17739,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Vedr avslutting av abonnement - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -18321,9 +17822,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Support ticket - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -18496,10 +17995,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "kostnad"
-        ],
+        "topicKeywords": ["feil", "kostnad"],
         "conversationSummary": "Juni måned | Marcel Van Mellaerts - Hansteensgate  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -18665,9 +18161,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Si opp - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -18840,9 +18334,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av parkeringsplasser + salg av elbillader  - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -18925,11 +18417,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support"],
         "conversationSummary": "Eierskifte av bolig og elbil lader ZCS007909 - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19012,9 +18500,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Leie/eie lader Lund Panorama 7089 Heimdal - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19097,9 +18583,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avbestilling av leieavtale - lader - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19182,12 +18666,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "problem",
-          "support"
-        ],
+        "topicKeywords": ["lader", "charging", "problem", "support"],
         "conversationSummary": "Re: I dag avsluttes abonnementet med Hurum Kraft. - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19270,9 +18749,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ladeboks - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19355,9 +18832,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ladeboks ute av funksjon - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19440,10 +18915,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Ladeboks Tribunen sameie - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19526,10 +18998,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support",
-          "hjelp"
-        ],
+        "topicKeywords": ["support", "hjelp"],
         "conversationSummary": "Re: Bekreftelse på oppsigelse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19612,9 +19081,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Avslutte ladeboks  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19697,10 +19164,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Klar for gode nyheter Fredrik Akre? Nå er du snart klar for lading⚡ - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19783,10 +19247,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Etableringskostnad! - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -19876,12 +19337,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "installasjon",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "installasjon", "pris"],
         "conversationSummary": "Bytting av parkeringsplass med lader - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -19964,9 +19420,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av abonnement for Lillebergtunet plass 4 - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20049,9 +19503,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Dobbel trekk - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20134,10 +19586,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "teknisk"
-        ],
+        "topicKeywords": ["lader", "teknisk"],
         "conversationSummary": "Problemer med laderovergang. - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20220,10 +19669,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Klar for gode nyheter Tommy? Nå er du snart klar for lading⚡ - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20313,9 +19759,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "VS: Lader 104 - NYLÆNDE BORETTSLAG - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -20398,13 +19842,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "support",
-          "kostnad",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "installasjon", "support", "kostnad", "pris"],
         "conversationSummary": "Lader i garasje. - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20577,10 +20015,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Flytte av eier - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -20663,13 +20098,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "error",
-          "pris",
-          "technical"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "error", "pris", "technical"],
         "conversationSummary": "VS: Kapasitet og nettleie - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -20752,9 +20181,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående ditt ladeabonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21003,9 +20430,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Bekreftelse på oppsigelse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21171,9 +20596,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Angående din bestilling hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21256,9 +20679,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Rustadgrenda borettslag - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21341,11 +20762,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "feil"],
         "conversationSummary": "Ikke oppsigelse! - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21428,11 +20845,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support"],
         "conversationSummary": "Flytte boks til en annen parkeringsplass  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21515,12 +20928,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "support", "pris"],
         "conversationSummary": "Ny ladeboks - Boligsameiet Nygård Terasse 4 - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21603,10 +21011,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Re: Angående ditt abonnement hos Elaway - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21772,9 +21177,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Spørsmål om abonnement - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21857,10 +21260,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil",
-          "support"
-        ],
+        "topicKeywords": ["feil", "support"],
         "conversationSummary": "Oppsigelse  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -21943,11 +21343,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "charging", "pris"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22030,11 +21426,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "support", "pris"],
         "conversationSummary": "Spørsmål - lader Jordbærsletta BS - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22117,9 +21509,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Oppsigelse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22285,10 +21675,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support"
-        ],
+        "topicKeywords": ["lader", "support"],
         "conversationSummary": "Ny mailadresse - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22371,9 +21758,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Si opp lader - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22539,9 +21924,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Avslutt - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22624,11 +22007,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "problem",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "problem", "kostnad"],
         "conversationSummary": "Vs: Payment Failed For Subscription Sameiet Grenseveien 8-26 - Admin - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22711,9 +22090,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Oppsigelse abonnement  - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22796,9 +22173,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Flyting - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22881,12 +22256,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader",
-          "feil",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "lader", "feil", "pris"],
         "conversationSummary": "Ladeboks - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -22969,12 +22339,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "charging",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "charging", "support"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -23057,13 +22422,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "feil",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "feil", "support", "pris"],
         "conversationSummary": "Alt for MYE strøm forbruk for bare ca 52 prosent lading - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -23153,9 +22512,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Fwd: Viktig oppdatering angående ladeanlegg – Overtakelse fra Circle K - 3 messages between customer and support",
         "participantCount": 3,
         "threadLength": 3,
@@ -23321,9 +22678,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Fwd: Oppsigelse av lade abonnement. Søster Mathildes gate 12-14 sameiet - Lørenskog - 3 messages between customer and support",
         "participantCount": 2,
         "threadLength": 3,
@@ -23487,9 +22842,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av avale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -23558,9 +22911,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Support ticket - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -23629,9 +22980,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Pause el.bil lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -23700,11 +23049,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "charging", "hjelp"],
         "conversationSummary": "Sv: Klar for gode nyheter Dagfinn? Nå er du snart klar for lading⚡ - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -23980,10 +23325,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Oppsigelse av zpr191578 f.o.m. 25/10-2024 - Tangen 6F, 3480 Filtvet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -24052,9 +23394,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "AL Bølerskogen Borettslag- Bistand ved bytte av parkeringsplass - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -24123,9 +23463,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Spørsmål om fastpris ifm lading i borettslag - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -24891,11 +24229,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "problem",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "problem", "hjelp"],
         "conversationSummary": "Trenger hjelp! HASTER - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -25033,9 +24367,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "problem"
-        ],
+        "topicKeywords": ["problem"],
         "conversationSummary": "Lading og abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -25173,10 +24505,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "SV: Sv: Gjestelader/sporadisk lading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -25452,9 +24781,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Betaling de første 12 md. Dovrekvartalet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26075,9 +25402,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "EC5P3R2Z - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26146,9 +25471,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Inkassovarsel - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26355,10 +25678,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Overføring av eierskap - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26427,11 +25747,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "en",
-        "topicKeywords": [
-          "charging",
-          "charger",
-          "help"
-        ],
+        "topicKeywords": ["charging", "charger", "help"],
         "conversationSummary": "Cancel subscription - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26638,9 +25954,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigel av lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26709,9 +26023,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Vestlunveien borttslag - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26849,9 +26161,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris"
-        ],
+        "topicKeywords": ["pris"],
         "conversationSummary": "Hamanglia boligsameie - Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26920,10 +26230,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon"
-        ],
+        "topicKeywords": ["lader", "installasjon"],
         "conversationSummary": "Kontrakt og oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -26992,10 +26299,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Spørsmål om overføring av abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27064,12 +26368,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "installasjon",
-          "feil",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["installasjon", "feil", "pris", "kostnad"],
         "conversationSummary": "Avtale om lading og priser - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27207,10 +26506,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Abonnement i Fantoftvegen 34 5072 Bergen - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27624,10 +26920,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Flytting - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27834,9 +27127,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27905,9 +27196,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Stanse abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -27976,9 +27265,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte abonnementet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28047,10 +27334,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "avslutte abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28119,10 +27403,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28191,10 +27472,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Flytting - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28539,9 +27817,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "problem"
-        ],
+        "topicKeywords": ["problem"],
         "conversationSummary": "Fwd: El-bil ladere i Dovrekvartalet per oktober 2024. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28610,11 +27886,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "charging", "pris"],
         "conversationSummary": "SV: Takk for at dere valgte Elaway, som driftsleverandør av ladeanlegget. Her kommer viktig informasjon før Elaway tar over driften av ladeanlegget i Storhamarg 23 A/L - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -28959,9 +28231,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "oppsigelse av avtale lading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29099,9 +28369,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Sv: Ladeappen oppdateres. Trenger du å gjøre noe? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29308,9 +28576,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "SV: El-bil lading -> Avklaringer rundt ladestasjoner og inngåtte avtaler - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29517,9 +28783,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Ny lader og abonnement til Øvre Frydendal 136 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29588,9 +28852,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29659,9 +28921,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29730,9 +28990,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "avslutte ladeabonement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29801,9 +29059,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "SV: Re:  El-bil lading -> Avklaringer rundt ladestasjoner og inngåtte avtaler - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -29941,10 +29197,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Forespørsel om ladeboks – Neskolltunet Borettslag (kundenr. 1002668) - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30220,9 +29473,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30291,10 +29542,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Defekt lader - skal bestille ny - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30439,9 +29687,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30579,9 +29825,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lader i garasje - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30719,9 +29963,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Re: Bekreftelse på oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -30928,9 +30170,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -31068,9 +30308,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av leieavtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -31277,9 +30515,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -31624,10 +30860,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["charging", "pris"],
         "conversationSummary": "SV: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -31696,9 +30929,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "SV: Sv: Gjestelader/sporadisk lading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -31767,11 +30998,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "charging", "pris"],
         "conversationSummary": "SV: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32047,11 +31274,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "installasjon"
-        ],
+        "topicKeywords": ["lader", "charging", "installasjon"],
         "conversationSummary": "Sv: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32189,9 +31412,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32329,9 +31550,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Automatic reply: Angående ditt abonnement hos Elaway - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32469,10 +31688,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "pris"],
         "conversationSummary": "Installering av ladeboks + pris  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32541,9 +31757,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Avslutte abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32612,9 +31826,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris"
-        ],
+        "topicKeywords": ["pris"],
         "conversationSummary": "Avslutte abonnementet elaway - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32752,9 +31964,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32823,9 +32033,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Skifte eier ladeboks, Boligsameiet Sørhellinga - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32894,9 +32102,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Avslutte abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -32965,9 +32171,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Re: Klar for gode nyheter Ilker? Nå er du snart klar for lading⚡ - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -33174,9 +32378,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Flytting - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -33383,10 +32585,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Endret epost - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -33662,9 +32861,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse elbil lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -33802,9 +32999,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Ladeappen oppdateres. Trenger du å gjøre noe? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -33942,9 +33137,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av leie av lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34013,10 +33206,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Den nye Elaway-appen er her! - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34223,9 +33413,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Ny mailadresse på ett abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34432,9 +33620,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Avslutte abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34572,9 +33758,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Nye ladere - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34712,10 +33896,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["charging", "pris"],
         "conversationSummary": "Fwd: Takk for at dere valgte Elaway, som driftsleverandør av ladeanlegget. Her kommer viktig informasjon før Elaway tar over driften av ladeanlegget i Røedlia Boligsameie - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34853,9 +34034,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse avtale Kantor Terrasse Sameie - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34924,9 +34103,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse abbonement ZPR140221 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -34995,9 +34172,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Avslutte leie av ladeboks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -35073,10 +34248,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Flytting - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -35214,9 +34386,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "problem"
-        ],
+        "topicKeywords": ["problem"],
         "conversationSummary": "Fryse abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -35354,9 +34524,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Flytting og oppsigelse abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -35425,13 +34593,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "charging",
-          "installasjon",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "charging", "installasjon", "pris"],
         "conversationSummary": "SV: Informasjon om prisjustering for installasjonskostnad ved kjøp av ladestasjon - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -35569,9 +34731,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Endre eier - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -35709,9 +34869,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Leie av ladeboks som er montert på plass nummer 9. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36056,9 +35214,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Purrefaktura for 2023 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36265,13 +35421,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "hjelp",
-          "support",
-          "kostnad",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "hjelp", "support", "kostnad", "pris"],
         "conversationSummary": "Sv: Vedrørende din ladestasjon - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36347,11 +35497,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -36489,9 +35635,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "NO0028207PD23-Sameiet Trelastunet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36629,9 +35773,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte kundeforhold - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36700,10 +35842,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Bytte eier av lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36772,10 +35911,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Den nye Elaway-appen er her! - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -36982,9 +36118,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "kontrakt som er gjort feil - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37053,9 +36187,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37124,10 +36256,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Oppsigelse ladeplass - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37196,10 +36325,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Overtakelse av leilighet. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37475,9 +36601,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse abo - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37684,10 +36808,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "hjelp"],
         "conversationSummary": "Nye brukere - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37894,10 +37015,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Spørsmål om oppstartskostnaden - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -37966,10 +37084,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["charging", "pris"],
         "conversationSummary": "FW: Takk for at dere valgte Elaway, som driftsleverandør av ladeanlegget. Her kommer viktig informasjon før Elaway tar over driften av ladeanlegget i Sameiet Skullerudhagen Parkering - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38038,10 +37153,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Skifte av eier av boks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38110,9 +37222,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Elaway oppsigelse fra 01.12.2024 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38181,9 +37291,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Salg av leilighet og lader? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38252,9 +37360,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "re oppsigelse lading Kirkeveien 38 3300 Hokksund - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38392,9 +37498,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Eierskifte ladeplass - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38532,10 +37636,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Ec097709 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38604,9 +37705,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ladeboks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38882,9 +37981,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "FW: RE: Takk for at du kontaktet oss. Vi har mottatt din henvendelse.  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -38960,9 +38057,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Fwd: Bekreftelse på oppsigelse - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -39100,10 +38195,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Overføring av elbillader – Apeltunvegen 3 - Nesttunhallen. Plass nummer 34. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -39517,9 +38609,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ladeboks fjernet fra appen - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -39657,11 +38747,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "teknisk"
-        ],
+        "topicKeywords": ["lader", "feil", "teknisk"],
         "conversationSummary": "Vedr. inkasso. / Ladehjelp - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -39730,10 +38816,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support",
-          "hjelp"
-        ],
+        "topicKeywords": ["support", "hjelp"],
         "conversationSummary": "Vs: Bekreftelse på oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -39802,9 +38885,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Feil oppsigelse  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -39942,11 +39023,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40015,9 +39092,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Mottatt sms - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40086,9 +39161,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Feilaktig oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40295,9 +39368,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Etter arbeid etter Sommer 2025 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40366,9 +39437,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Support ticket - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40437,10 +39506,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "en",
-        "topicKeywords": [
-          "issue",
-          "support"
-        ],
+        "topicKeywords": ["issue", "support"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40578,9 +39644,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Endring av eier elbillader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40649,9 +39713,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40796,9 +39858,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "VS: Jon Otto Brødholt / Nedre Holmenkollen Boligsameie - flytter og Elaway trenger serienummer på lader - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -40867,9 +39927,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av ladeavtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -40938,9 +39996,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Si opp abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41009,10 +40065,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Flytting - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41081,10 +40134,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Haster: Reparatør har byttet lader, nå er abonnement blitt kansellert (ikke av meg) - får ikke ladet (ladehjelp tar ikke tlf) - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41153,10 +40203,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Avslutning av abonnement ( midlertidig ( - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41225,10 +40272,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "lader"
-        ],
+        "topicKeywords": ["ladeboks", "lader"],
         "conversationSummary": "Installere ladeboks pga flytting av parkering - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41297,10 +40341,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Vedr .appen til elaway - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41369,10 +40410,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil"
-        ],
+        "topicKeywords": ["lader", "feil"],
         "conversationSummary": "Sameiet Tiller Hageby B1 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41510,11 +40548,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "en",
-        "topicKeywords": [
-          "charging",
-          "charger",
-          "help"
-        ],
+        "topicKeywords": ["charging", "charger", "help"],
         "conversationSummary": "Cancel subscription from October - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -41721,9 +40755,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av ladeabonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42068,9 +41100,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ny bruker  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42208,10 +41238,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Info til beboere om hva de bør huske på ved eierskifte - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42418,9 +41445,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Endre mail adr - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42489,9 +41514,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av ladeboks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42560,9 +41583,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Feil med Reg. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42631,10 +41652,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["charging", "hjelp"],
         "conversationSummary": "Re: Den nye Elaway-appen er her! - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42703,10 +41721,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Nyinflyttet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42844,9 +41859,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte avtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -42915,9 +41928,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -43331,10 +42342,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "installasjon",
-          "pris"
-        ],
+        "topicKeywords": ["installasjon", "pris"],
         "conversationSummary": "Økning i pris på ettermonteringer - Elaway - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -43472,9 +42480,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Aktivere lader uten bindingstid? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -43543,9 +42549,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avkobling? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -43683,9 +42687,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Bytter parkeringsplass - ny lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44030,9 +43032,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse sv abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44101,11 +43101,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "support", "pris"],
         "conversationSummary": "Ønsker informasjon og tilbud på ladesystem til Togrenda 1 Boligsameie - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44243,9 +43239,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Payment - Ny henvendelse fra kontaktskjema web - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44728,9 +43722,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Si opp - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44799,9 +43791,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp"
-        ],
+        "topicKeywords": ["hjelp"],
         "conversationSummary": "Avslutte abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44870,10 +43860,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "teknisk",
-          "technical"
-        ],
+        "topicKeywords": ["teknisk", "technical"],
         "conversationSummary": "Abonnent - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -44942,12 +43929,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "installasjon",
-          "feil",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["installasjon", "feil", "pris", "kostnad"],
         "conversationSummary": "Opprinnelig kontrakt  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45085,10 +44067,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "installasjon"
-        ],
+        "topicKeywords": ["charging", "installasjon"],
         "conversationSummary": "VS: Velkommen til Elaway! ⚡🚗 Hva skjer nå  Frøydis? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45157,9 +44136,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lading Sandslikollen boligsameie - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45297,10 +44274,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Ladeabonnement Ortuvann - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45369,9 +44343,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte abonnementet - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45440,10 +44412,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "pris"],
         "conversationSummary": "Forespørsel leie ladestasjon - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45512,10 +44481,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Vs: Sv: Verifiser din email-adresse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45653,9 +44619,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Fryse abonnement? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45731,9 +44695,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Fwd: Re: Fwd: Svar på din henvendelse - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -45871,10 +44833,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon"
-        ],
+        "topicKeywords": ["lader", "installasjon"],
         "conversationSummary": "Angrerett - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -45943,10 +44902,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris",
-          "technical"
-        ],
+        "topicKeywords": ["pris", "technical"],
         "conversationSummary": "Re: Tilbud fra Elaway på ladeløsning - Scandic Voss - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -46084,9 +45040,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "installasjon"
-        ],
+        "topicKeywords": ["installasjon"],
         "conversationSummary": "Prosess ved flytting - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -46224,9 +45178,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Leie av el-billader Hansaparkering AS - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -46433,9 +45385,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -46642,9 +45592,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse av abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -46989,10 +45937,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Ny eier - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47130,9 +46075,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Bytte eier på ladeabonnoment - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47201,9 +46144,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Min lader i Innspurten 10A - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47410,12 +46351,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "charging",
-          "installasjon"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "charging", "installasjon"],
         "conversationSummary": "Svar: Velkommen til Elaway! ⚡🚗 Hva skjer nå  Lene Heimdal? - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47484,10 +46420,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging"
-        ],
+        "topicKeywords": ["lader", "charging"],
         "conversationSummary": "Re: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47632,9 +46565,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ønske om oppsigelse av abonnement  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47841,10 +46772,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "kostnad"
-        ],
+        "topicKeywords": ["lader", "kostnad"],
         "conversationSummary": "Oppsigelse lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -47913,9 +46841,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Lade abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48398,9 +47324,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Payment - Ny henvendelse fra kontaktskjema web - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48469,10 +47393,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging"
-        ],
+        "topicKeywords": ["lader", "charging"],
         "conversationSummary": "Re: Ordrebekreftelse fra Elaway. Takk for bestilling av ladeløsning! ⚡🚗 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48541,9 +47462,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte abonnement og lader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48681,10 +47600,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Overføre lader avtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48753,11 +47669,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "charging", "hjelp"],
         "conversationSummary": "Re: Klar for gode nyheter elbileier? Nå er du snart klar for lading⚡ - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -48826,11 +47738,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "installasjon",
-          "pris"
-        ],
+        "topicKeywords": ["ladeboks", "installasjon", "pris"],
         "conversationSummary": "Silkeføret boligsameie - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49037,9 +47945,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ny ladeboks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49177,9 +48083,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Fjerne ordre. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49386,10 +48290,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Bytte av garasje innen Nøklevann garasjelag - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49458,9 +48359,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Fjerne ordre - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49605,12 +48504,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "hjelp",
-          "support",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "hjelp", "support", "pris"],
         "conversationSummary": "Vs: Grimstadgata 28, Oslo. VIKTIG INFORMASJON TIL DE SOM BENYTTER ELBIL LADER I  GARASJEN - Overtakelse av lading i Sameiet Grimstadgata 28 fra  Flowe til Elaway - husk å bestille abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49679,10 +48573,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["charging", "pris"],
         "conversationSummary": "SV: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49751,10 +48642,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "support"
-        ],
+        "topicKeywords": ["ladeboks", "support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -49823,9 +48711,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50032,9 +48918,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avbestilling el lader  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50103,9 +48987,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50174,9 +49056,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50314,9 +49194,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Support ticket - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50454,10 +49332,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "hjelp",
-          "kostnad"
-        ],
+        "topicKeywords": ["hjelp", "kostnad"],
         "conversationSummary": " Kontaktdetaljer og spørsmål Hafjell Front Konglen - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50526,9 +49401,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av abonnement - Sameiet Jonnemann - plass # 64, Lader ID ZCS015111 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50597,9 +49470,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Oppsigelse ladeboks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50806,9 +49677,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutting av plass - elveparken - Hønefoss  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -50877,10 +49746,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "pris"],
         "conversationSummary": "Demontering av lader i borettslag og oppsigelse av abbonoment. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51018,9 +49884,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Vedr boks - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51089,9 +49953,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51160,14 +50022,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks",
-          "charging",
-          "installasjon",
-          "feil",
-          "pris",
-          "kostnad"
-        ],
+        "topicKeywords": ["ladeboks", "charging", "installasjon", "feil", "pris", "kostnad"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51374,9 +50229,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Elbil - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51514,9 +50367,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51654,9 +50505,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "charging"
-        ],
+        "topicKeywords": ["charging"],
         "conversationSummary": "Re: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51725,11 +50574,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "pris"
-        ],
+        "topicKeywords": ["lader", "charging", "pris"],
         "conversationSummary": "SV: Informasjon om prisjustering for elbillading - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -51936,11 +50781,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "charging", "hjelp"],
         "conversationSummary": "Re: Klar for gode nyheter Martin? Nå er du snart klar for lading⚡ - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52009,9 +50850,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52287,9 +51126,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte ladeavtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52703,9 +51540,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Support ticket - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52843,9 +51678,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Ny e-postadresse - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52914,10 +51747,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Bytte ladepunkt Sagtomtveien 21/31 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -52986,10 +51816,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Hafjell front - Storsteinvegen 216E - (K302) - Billader - garasje plass 54 og 55  - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -53065,9 +51892,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "support"
-        ],
+        "topicKeywords": ["support"],
         "conversationSummary": "Support - Ny henvendelse fra skjema på nettsiden - 2 messages between customer and support",
         "participantCount": 3,
         "threadLength": 2,
@@ -53343,9 +52168,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Endre E-rpost - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -53690,11 +52513,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks",
-          "charging"
-        ],
+        "topicKeywords": ["lader", "ladeboks", "charging"],
         "conversationSummary": "AVSLUTNING AV ABONNEMENT / VIDEREFØRING TIL NY EIER - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -53901,9 +52720,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Ladebrikker - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -53972,9 +52789,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Avslutte mitt kort på lading. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54043,9 +52858,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54114,11 +52927,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "charging",
-          "hjelp"
-        ],
+        "topicKeywords": ["lader", "charging", "hjelp"],
         "conversationSummary": "Re: Klar for gode nyheter Bjørn? Nå er du snart klar for lading⚡ - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54256,9 +53065,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "FW: SV: Oppsigelse av lader EC065821 - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54327,9 +53134,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse av abonnement. - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54467,9 +53272,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Avslutte leieavtale - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54538,9 +53341,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Elaway EL-billader - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54678,10 +53479,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Bilkraft hjemmelader, iOS (4.6.5) - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54750,9 +53548,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse abonnement - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -54821,9 +53617,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Sv: Bestilling mottatt - Elaway - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -55099,11 +53893,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "installasjon",
-          "support"
-        ],
+        "topicKeywords": ["lader", "installasjon", "support"],
         "conversationSummary": "AVBESTILLING - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -55310,10 +54100,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "ladeboks"
-        ],
+        "topicKeywords": ["lader", "ladeboks"],
         "conversationSummary": "Leietaker - 2 messages between customer and support",
         "participantCount": 2,
         "threadLength": 2,
@@ -55497,9 +54284,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "kostnad"
-        ],
+        "topicKeywords": ["kostnad"],
         "conversationSummary": "Support ticket - 1 messages between customer and support",
         "participantCount": 2,
         "threadLength": 1,
@@ -55547,9 +54332,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "pris"
-        ],
+        "topicKeywords": ["pris"],
         "conversationSummary": "Vs: Oppsigelse - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -55645,9 +54428,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Vs: Installasjons ID - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -55853,9 +54634,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "ladeboks"
-        ],
+        "topicKeywords": ["ladeboks"],
         "conversationSummary": "Ladeboks Zaptec Munkedamsveien 79bcd plass nr 9 - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56143,9 +54922,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Sales - Ny henvendelse fra kontaktskjema web - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56296,12 +55073,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader",
-          "feil",
-          "problem",
-          "support"
-        ],
+        "topicKeywords": ["lader", "feil", "problem", "support"],
         "conversationSummary": "Pd: Re: Fwd: Angående din laddare - 1 messages between customer and support",
         "participantCount": 2,
         "threadLength": 1,
@@ -56397,9 +55169,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Hvorfor er avtalen oppsagt? - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56495,9 +55265,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "feil med reg. - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56545,9 +55313,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Feil med Reg. - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56691,9 +55457,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse abonnement Elaway Akebakkeskogen 1B - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56844,9 +55608,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "feil"
-        ],
+        "topicKeywords": ["feil"],
         "conversationSummary": "Fwd: Bekreftelse på oppsigelse - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,
@@ -56894,9 +55656,7 @@
       "metadata": null,
       "ragContext": {
         "primaryLanguage": "no",
-        "topicKeywords": [
-          "lader"
-        ],
+        "topicKeywords": ["lader"],
         "conversationSummary": "Oppsigelse Abonnement  - 1 messages between customer and support",
         "participantCount": 1,
         "threadLength": 1,

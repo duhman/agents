@@ -6,30 +6,33 @@ This directory contains project-specific rules for Cursor AI in modern `.mdc` fo
 
 ### Root Rules (`.cursor/rules/`)
 
-| Rule File                | Type          | Lines | Description                                                    | Applies To                                      |
-| ------------------------ | ------------- | ----- | -------------------------------------------------------------- | ----------------------------------------------- |
-| `core-principles.mdc`    | Always        | ~125  | Privacy, policy, hybrid strategy, schema-driven development    | All files                                       |
-| `ai-processing.mdc`      | Auto-Attached | ~520  | Hybrid deterministic/AI processing, OpenAI patterns, classification | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts` |
-| `database.mdc`           | Auto-Attached | ~135  | Drizzle ORM patterns, retry queues, migrations                 | `packages/db/**/*.ts`                           |
-| `slack-integration.mdc`  | Auto-Attached | ~290  | Slack HITM workflow, modals, security, error handling          | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`   |
-| `vercel-serverless.mdc`  | Auto-Attached | ~440  | Serverless patterns, webhooks, logging, database pooling       | `api/**/*.ts`, `vercel.json`                    |
-| `monorepo.mdc`           | Auto-Attached | ~155  | pnpm/Turbo workspace standards and build pipelines             | `package.json`, `pnpm-workspace.yaml`, `turbo.json` |
+| Rule File               | Type          | Lines | Description                                                         | Applies To                                          |
+| ----------------------- | ------------- | ----- | ------------------------------------------------------------------- | --------------------------------------------------- |
+| `core-principles.mdc`   | Always        | ~125  | Privacy, policy, hybrid strategy, schema-driven development         | All files                                           |
+| `ai-processing.mdc`     | Auto-Attached | ~520  | Hybrid deterministic/AI processing, OpenAI patterns, classification | `apps/agent/**/*.ts`, `packages/prompts/**/*.ts`    |
+| `database.mdc`          | Auto-Attached | ~135  | Drizzle ORM patterns, retry queues, migrations                      | `packages/db/**/*.ts`                               |
+| `slack-integration.mdc` | Auto-Attached | ~290  | Slack HITM workflow, modals, security, error handling               | `apps/slack-bot/**/*.ts`, `api/slack/**/*.ts`       |
+| `vercel-serverless.mdc` | Auto-Attached | ~440  | Serverless patterns, webhooks, logging, database pooling            | `api/**/*.ts`, `vercel.json`                        |
+| `monorepo.mdc`          | Auto-Attached | ~155  | pnpm/Turbo workspace standards and build pipelines                  | `package.json`, `pnpm-workspace.yaml`, `turbo.json` |
 
 **Total**: 6 files, ~1,665 lines (down from 9 files, ~1,900 lines)
 
 ### Consolidation Benefits (January 2025)
 
 ✅ **Eliminated Redundancy**:
+
 - `waitUntil` pattern now in one place (was in 3 files)
 - Error handling consolidated (was in 4 files)
 - Request ID tracking unified (was in 2 files)
 
 ✅ **Better Organization**:
+
 - Related patterns grouped together
 - AI processing and classification combined
 - Serverless patterns (webhooks, logging, deployment) unified
 
 ✅ **Improved Performance**:
+
 - Fewer files to load and process
 - More context per rule (better AI understanding)
 - All files under 500 lines (best practice)

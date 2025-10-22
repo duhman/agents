@@ -8,20 +8,10 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
-    "types": [
-      "node",
-      "react",
-      "react-dom"
-    ],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "types": ["node", "react", "react-dom"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "noEmit": true,
     "isolatedModules": true,
     "plugins": [
@@ -30,15 +20,6 @@
       }
     ]
   },
-  "include": [
-    "**/*.mdx",
-    "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["**/*.mdx", "**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

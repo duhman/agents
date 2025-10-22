@@ -127,7 +127,10 @@ describe("Slack retry behaviour", () => {
         updates.push({ id, data });
         return { ...queueItem, ...data };
       },
-      postReview: async (_params: PostReviewParams, options: PostReviewOptions): Promise<PostReviewResult> => {
+      postReview: async (
+        _params: PostReviewParams,
+        options: PostReviewOptions
+      ): Promise<PostReviewResult> => {
         await options.onRateLimited?.(10);
         return { ok: false, error: "rate_limited", retryAfterSeconds: 10 };
       }

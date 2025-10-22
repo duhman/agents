@@ -1,6 +1,6 @@
 /**
  * Metrics Collection Module
- * 
+ *
  * Tracks agent performance metrics for monitoring and optimization
  */
 
@@ -71,7 +71,7 @@ class MetricsCollector {
     exclusion_pattern_matched?: string;
   }) {
     this.metrics.total_processed++;
-    
+
     if (data.is_cancellation) {
       this.metrics.cancellations_detected++;
     }
@@ -83,7 +83,7 @@ class MetricsCollector {
     }
 
     if (data.edge_case !== "none") {
-      this.metrics.edge_cases_handled[data.edge_case] = 
+      this.metrics.edge_cases_handled[data.edge_case] =
         (this.metrics.edge_cases_handled[data.edge_case] || 0) + 1;
     }
 
@@ -96,23 +96,23 @@ class MetricsCollector {
     if (data.policy_compliant) {
       this.policyComplianceCount++;
     }
-    this.metrics.policy_compliance_rate = 
-      this.policyComplianceCount / this.metrics.total_processed;
+    this.metrics.policy_compliance_rate = this.policyComplianceCount / this.metrics.total_processed;
 
     // Track language distribution
-    this.metrics.language_distribution[data.language] = 
+    this.metrics.language_distribution[data.language] =
       (this.metrics.language_distribution[data.language] || 0) + 1;
 
     // Track RAG metrics
     if (data.rag_context_used) {
       this.metrics.rag_queries_total++;
       this.metrics.rag_queries_successful++;
-      this.metrics.rag_context_usage_rate = 
+      this.metrics.rag_context_usage_rate =
         this.metrics.rag_queries_successful / this.metrics.total_processed;
-      
+
       if (data.rag_context_count) {
-        this.metrics.avg_rag_context_count = 
-          (this.metrics.avg_rag_context_count * (this.metrics.rag_queries_successful - 1) + data.rag_context_count) / 
+        this.metrics.avg_rag_context_count =
+          (this.metrics.avg_rag_context_count * (this.metrics.rag_queries_successful - 1) +
+            data.rag_context_count) /
           this.metrics.rag_queries_successful;
       }
     }
@@ -132,13 +132,13 @@ class MetricsCollector {
     }
 
     if (data.exclusion_pattern_matched) {
-      this.metrics.exclusion_pattern_matched[data.exclusion_pattern_matched] = 
+      this.metrics.exclusion_pattern_matched[data.exclusion_pattern_matched] =
         (this.metrics.exclusion_pattern_matched[data.exclusion_pattern_matched] || 0) + 1;
     }
   }
 
   getMetrics(): ProcessingMetrics {
-    return { 
+    return {
       ...this.metrics,
       // Ensure all RAG metrics are included
       rag_queries_total: this.metrics.rag_queries_total || 0,
@@ -182,4 +182,3 @@ class MetricsCollector {
 }
 
 export const metricsCollector = new MetricsCollector();
-

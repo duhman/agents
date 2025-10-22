@@ -63,6 +63,8 @@ const BadSchema = z.object({
 });
 ```
 
+**Note:** Currently using Zod v3.22.0 due to OpenAI SDK compatibility. Zod v4 upgrade blocked by `openai/helpers/zod` expecting v3 types and vendored `zod-to-json-schema` importing removed `ZodFirstPartyTypeKind`. See `openai/openai-node#1576` for upstream progress.
+
 ## 4. Hybrid Architecture
 
 - **Deterministic first**: Pattern matching for standard cases (fast, free)

@@ -113,17 +113,18 @@ export function logWarn(message: string, context: LogContext, data?: any) {
 /**
  * Webhook request validation schema
  */
-export const webhookRequestSchema = z.object({
-  source: z.string().min(1),
-  customerEmail: z.string().email(),
-  // Accept either rawEmail (legacy) OR subject+body (new webhook approach)
-  rawEmail: z.string().min(1).optional(),
-  subject: z.string().optional(),
-  body: z.string().optional()
-}).refine(
-  data => data.rawEmail || (data.subject || data.body),
-  { message: "Either rawEmail or subject/body must be provided" }
-);
+export const webhookRequestSchema = z
+  .object({
+    source: z.string().min(1),
+    customerEmail: z.string().email(),
+    // Accept either rawEmail (legacy) OR subject+body (new webhook approach)
+    rawEmail: z.string().min(1).optional(),
+    subject: z.string().optional(),
+    body: z.string().optional()
+  })
+  .refine(data => data.rawEmail || data.subject || data.body, {
+    message: "Either rawEmail or subject/body must be provided"
+  });
 
 export type WebhookRequest = z.infer<typeof webhookRequestSchema>;
 

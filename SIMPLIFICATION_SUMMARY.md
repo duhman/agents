@@ -9,6 +9,7 @@ Successfully refactored the email processing system from a complex multi-agent a
 ## What Changed
 
 ### Before: Complex Multi-Agent System
+
 - **5 AI Agents**: emailProcessingAgent, triageAgent, cancellationAgent, extractionAgent, draftingAgent
 - **Agent handoffs**: Complex orchestration between agents
 - **OpenAI API calls**: Every email required multiple AI inference calls
@@ -19,6 +20,7 @@ Successfully refactored the email processing system from a complex multi-agent a
 - **Cost**: OpenAI API usage for every request
 
 ### After: Hybrid Deterministic/AI System
+
 - **Hybrid Processing**: Deterministic for standard cases, OpenAI for complex cases
 - **Intelligent routing**: Automatically detects when AI is needed
 - **Minimal OpenAI usage**: Only for complex/ambiguous cases (10-20% of volume)
@@ -33,9 +35,10 @@ Successfully refactored the email processing system from a complex multi-agent a
 ## Architecture Comparison
 
 ### Old Flow
+
 ```
-Webhook → emailProcessingAgent 
-  → triageAgent (AI) 
+Webhook → emailProcessingAgent
+  → triageAgent (AI)
   → cancellationAgent (AI)
     → extractionAgent (AI)
     → vectorStoreSearch (optional, not working)
@@ -47,6 +50,7 @@ Webhook → emailProcessingAgent
 ```
 
 ### New Flow (Hybrid)
+
 ```
 Webhook → Deterministic Extract
   → {Standard Case: Templates | Complex Case: OpenAI}
@@ -64,17 +68,20 @@ Webhook → Deterministic Extract
 The initial plan was to create a purely deterministic system, but research and testing revealed that a hybrid approach provides better results:
 
 ### Research Findings
+
 - **25-30% of tickets** follow predictable patterns (perfect for deterministic)
 - **10-20% of tickets** have edge cases requiring nuanced understanding (AI needed)
 - **Edge cases** include: sameie concerns, app access issues, future move dates, payment disputes
 
 ### Hybrid Benefits
+
 - **Best of both worlds**: Deterministic reliability + AI accuracy
 - **Cost effective**: 80-90% of cases use free deterministic processing
 - **Future-proof**: Can handle new edge cases without code changes
 - **Quality**: 95%+ accuracy vs 85% with pure deterministic
 
 ### Decision Process
+
 1. **Started with pure simplification** (as documented in this file)
 2. **Discovered edge cases** during testing that needed AI understanding
 3. **Implemented hybrid routing** to get reliability + accuracy
@@ -85,9 +92,11 @@ The initial plan was to create a purely deterministic system, but research and t
 ## Key Improvements
 
 ### 1. Deterministic Extraction
+
 **Before**: AI agent analyzed email for cancellation intent, language, dates, etc.
 
 **After**: Pattern matching with regex
+
 ```typescript
 const signals = analyzeCancellationSignals(email);
 const subjectNonCancellation = isNonCancellation(subject);
@@ -106,6 +115,7 @@ const intentDetected =
 ```
 
 **Benefits**:
+
 - Instant processing
 - Predictable results
 - No API costs
@@ -113,9 +123,11 @@ const intentDetected =
 - Robust false-positive guards (login issues, charging control, installers)
 
 ### 2. Template-Based Drafts
+
 **Before**: AI agent generated responses, required validation, sometimes violated policy
 
 **After**: Pre-approved templates with variable insertion
+
 ```typescript
 function generateDraft({ language, reason, moveDate }) {
   if (language === "no") {
@@ -130,41 +142,45 @@ function generateDraft({ language, reason, moveDate }) {
 ```
 
 **Benefits**:
+
 - 100% policy compliant (always includes end-of-month, self-service)
 - No AI hallucinations
 - Consistent tone
 - Instant generation
 
 ### 3. Removed Unused Features
+
 - ❌ **vectorStoreSearchTool**: Not implemented, required manual setup
 - ❌ **postToSlackTool**: Webhook already handles Slack posting
 - ❌ **Confidence calculation**: Not used for decisions
 - ❌ **Multi-agent orchestration**: Unnecessary complexity
 
 ### 4. Single Processing Function
+
 All logic consolidated in `simplified-processor.ts`:
+
 ```typescript
 export async function processEmailSimplified(params) {
   // 1. Mask PII
   const masked = maskPII(email);
-  
+
   // 2. Extract data (deterministic)
   const extraction = extractEmailData(email);
-  
+
   // 3. Only process well-formed cancellations
   if (!extraction.is_cancellation || !extraction.confidence_factors.clear_intent || extraction.reason === "unknown") {
     return { success: true };
   }
-  
+
   // 4. Create ticket
   const ticket = await createTicket({...});
-  
+
   // 5. Generate draft (template)
   const draftText = generateDraft({...});
-  
+
   // 6. Save draft
   const draft = await createDraft({...});
-  
+
   return { success: true, ticket, draft, extraction };
 }
 ```
@@ -188,11 +204,13 @@ export async function processEmailSimplified(params) {
 All core functionality tests **PASSED** ✅
 
 ### Test 1: PII Masking
+
 - ✅ Email addresses masked
 - ✅ Phone numbers masked
 - ✅ Addresses masked
 
 ### Test 2: Email Extraction
+
 - ✅ Norwegian cancellation detected
 - ✅ English cancellation detected
 - ✅ Moving reason identified
@@ -201,6 +219,7 @@ All core functionality tests **PASSED** ✅
 - ✅ Non-cancellations filtered (login issues, charging session control, installer/backend updates)
 
 ### Test 3: Draft Generation
+
 - ✅ Norwegian templates work
 - ✅ English templates work
 - ✅ Policy requirements met (end-of-month, self-service)
@@ -208,6 +227,7 @@ All core functionality tests **PASSED** ✅
 - ✅ Professional tone maintained
 
 ### Performance
+
 - ⚡ Processing time: <500ms (was 2-5s)
 - 💰 Cost: $0 per request (was ~$0.01-0.02)
 - 📊 Success rate: 100% (was ~95% with fallback)
@@ -217,18 +237,21 @@ All core functionality tests **PASSED** ✅
 ## Files Changed
 
 ### New Files
+
 - `apps/agent/src/simplified-processor.ts` - New simplified processor
 - `test-simplified.ts` - Test script
 - `TEST_SUCCESS_CRITERIA.md` - Testing documentation
 - `SIMPLIFICATION_SUMMARY.md` - This file
 
 ### Modified Files
+
 - `apps/agent/src/index.ts` - Now uses simplified processor
   - Removed multi-agent imports
   - Removed legacy helper functions (triageEmail, handleCancellation, etc.)
   - Updated to call `processEmailSimplified()`
 
 ### Unchanged Files (Backward Compatible)
+
 - `api/webhook.ts` - Still works with same API
 - `packages/db/*` - Database operations unchanged
 - `packages/prompts/src/templates.ts` - Templates still used
@@ -240,14 +263,18 @@ All core functionality tests **PASSED** ✅
 ## Migration Notes
 
 ### No Breaking Changes
+
 The simplified system maintains the same external API:
+
 - Same webhook endpoint
 - Same request/response format
 - Same database schema
 - Same Slack notification format
 
 ### Optional Cleanup (Future)
+
 Can remove if desired:
+
 - `packages/agents-runtime/*` - Multi-agent code no longer used
 - OpenAI Agents SDK dependency - No longer needed
 - Vector store configuration - Not implemented anyway
@@ -257,18 +284,21 @@ Can remove if desired:
 ## User Benefits
 
 ### For Support Team
+
 - ✅ Faster response drafts (instant vs 2-5s)
 - ✅ More reliable (100% vs 95% success)
 - ✅ Same quality drafts (policy-compliant templates)
 - ✅ Same Slack workflow
 
 ### For Developers
+
 - ✅ Simpler codebase (200 lines vs 400+)
 - ✅ Easier to debug (deterministic)
 - ✅ Faster to modify (no AI prompts)
 - ✅ No AI costs
 
 ### For Business
+
 - ✅ Lower operational costs ($0 vs $0.01-0.02/email)
 - ✅ Faster processing (better UX)
 - ✅ More predictable (no AI surprises)
@@ -279,6 +309,7 @@ Can remove if desired:
 ## Future Enhancements (Optional)
 
 If AI enhancement is desired later, can add:
+
 1. **Optional AI polish**: Use AI to enhance template drafts (optional flag)
 2. **Smart date parsing**: AI to handle complex date formats
 3. **Sentiment analysis**: Detect customer frustration

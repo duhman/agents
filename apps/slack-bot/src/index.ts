@@ -107,24 +107,24 @@ interface RetryProcessorDependencies {
 
 async function testSlackConnectivity(token: string): Promise<SlackHealthCheck> {
   const startTime = Date.now();
-  
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    
+
     const res = await fetch("https://slack.com/api/auth.test", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
       signal: controller.signal
     });
-    
+
     clearTimeout(timeout);
     const responseTime = Date.now() - startTime;
     const result = await res.json();
-    
+
     return {
       reachable: result.ok === true,
       responseTime,
@@ -167,25 +167,29 @@ async function queueSlackRetry(
       nextRetryAt
     });
 
-    console.log(JSON.stringify({
-      level: "info",
-      message: "Queued Slack post for retry in database",
-      timestamp: new Date().toISOString(),
-      ticketId: params.ticketId,
-      draftId: params.draftId,
-      retryCount,
-      reason: options.reason || "automatic_retry",
-      nextRetryAt: nextRetryAt.toISOString()
-    }));
+    console.log(
+      JSON.stringify({
+        level: "info",
+        message: "Queued Slack post for retry in database",
+        timestamp: new Date().toISOString(),
+        ticketId: params.ticketId,
+        draftId: params.draftId,
+        retryCount,
+        reason: options.reason || "automatic_retry",
+        nextRetryAt: nextRetryAt.toISOString()
+      })
+    );
   } catch (error: any) {
-    console.error(JSON.stringify({
-      level: "error",
-      message: "Failed to queue Slack retry to database",
-      timestamp: new Date().toISOString(),
-      ticketId: params.ticketId,
-      draftId: params.draftId,
-      error: error?.message || String(error)
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "Failed to queue Slack retry to database",
+        timestamp: new Date().toISOString(),
+        ticketId: params.ticketId,
+        draftId: params.draftId,
+        error: error?.message || String(error)
+      })
+    );
   }
 }
 
@@ -194,12 +198,14 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
     try {
       const itemsToRetry = await deps.getItemsToProcess(deps.maxRetries);
 
-      console.log(JSON.stringify({
-        level: "info",
-        message: "Processing Slack retry queue from database",
-        timestamp: new Date().toISOString(),
-        itemCount: itemsToRetry.length
-      }));
+      console.log(
+        JSON.stringify({
+          level: "info",
+          message: "Processing Slack retry queue from database",
+          timestamp: new Date().toISOString(),
+          itemCount: itemsToRetry.length
+        })
+      );
 
       for (const pendingItem of itemsToRetry) {
         const item = await deps.claimItem(pendingItem.id);
@@ -209,14 +215,16 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
 
         const retryCount = parseInt(item.retryCount.toString());
 
-        console.log(JSON.stringify({
-          level: "info",
-          message: "Processing Slack retry queue item",
-          timestamp: new Date().toISOString(),
-          ticketId: item.ticketId,
-          draftId: item.draftId,
-          retryCount
-        }));
+        console.log(
+          JSON.stringify({
+            level: "info",
+            message: "Processing Slack retry queue item",
+            timestamp: new Date().toISOString(),
+            ticketId: item.ticketId,
+            draftId: item.draftId,
+            retryCount
+          })
+        );
 
         const params: PostReviewParams = {
           ticketId: item.ticketId,
@@ -240,15 +248,17 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
               lastError: errorMessage
             });
 
-            console.error(JSON.stringify({
-              level: "error",
-              message: "Slack retry exhausted - marked as failed",
-              timestamp: new Date().toISOString(),
-              ticketId: item.ticketId,
-              draftId: item.draftId,
-              finalRetryCount: newRetryCount,
-              error: errorMessage
-            }));
+            console.error(
+              JSON.stringify({
+                level: "error",
+                message: "Slack retry exhausted - marked as failed",
+                timestamp: new Date().toISOString(),
+                ticketId: item.ticketId,
+                draftId: item.draftId,
+                finalRetryCount: newRetryCount,
+                error: errorMessage
+              })
+            );
           } else {
             const nextRetryAt = new Date(Date.now() + delayMs);
             await deps.updateItem(item.id, {
@@ -258,28 +268,30 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
               lastError: errorMessage
             });
 
-            console.log(JSON.stringify({
-              level: "info",
-              message: "Slack retry rescheduled",
-              timestamp: new Date().toISOString(),
-              ticketId: item.ticketId,
-              draftId: item.draftId,
-              retryCount: newRetryCount,
-              nextRetryAt: nextRetryAt.toISOString(),
-              error: errorMessage
-            }));
+            console.log(
+              JSON.stringify({
+                level: "info",
+                message: "Slack retry rescheduled",
+                timestamp: new Date().toISOString(),
+                ticketId: item.ticketId,
+                draftId: item.draftId,
+                retryCount: newRetryCount,
+                nextRetryAt: nextRetryAt.toISOString(),
+                error: errorMessage
+              })
+            );
           }
         };
 
         let handled = false;
 
         const result = await deps.postReview(params, {
-          onRateLimited: async (delaySeconds) => {
+          onRateLimited: async delaySeconds => {
             handled = true;
             const delayMs = Math.max(delaySeconds * 1000, deps.defaultRetryDelayMs);
             await scheduleRetry("Slack rate limited", delayMs);
           },
-          onSoftFailure: async (errorMessage) => {
+          onSoftFailure: async errorMessage => {
             handled = true;
             await scheduleRetry(errorMessage, deps.computeBackoffMs(retryCount + 1));
           }
@@ -294,14 +306,16 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
             status: "succeeded"
           });
 
-          console.log(JSON.stringify({
-            level: "info",
-            message: "Slack retry successful - marked as succeeded",
-            timestamp: new Date().toISOString(),
-            ticketId: item.ticketId,
-            draftId: item.draftId,
-            retryCount
-          }));
+          console.log(
+            JSON.stringify({
+              level: "info",
+              message: "Slack retry successful - marked as succeeded",
+              timestamp: new Date().toISOString(),
+              ticketId: item.ticketId,
+              draftId: item.draftId,
+              retryCount
+            })
+          );
         } else {
           const errorMessage = result.error || "non_retryable_error";
           await deps.updateItem(item.id, {
@@ -310,24 +324,28 @@ export function createSlackRetryProcessor(deps: RetryProcessorDependencies) {
             lastError: errorMessage
           });
 
-          console.error(JSON.stringify({
-            level: "error",
-            message: "Slack retry failed without recovery",
-            timestamp: new Date().toISOString(),
-            ticketId: item.ticketId,
-            draftId: item.draftId,
-            retryCount,
-            error: errorMessage
-          }));
+          console.error(
+            JSON.stringify({
+              level: "error",
+              message: "Slack retry failed without recovery",
+              timestamp: new Date().toISOString(),
+              ticketId: item.ticketId,
+              draftId: item.draftId,
+              retryCount,
+              error: errorMessage
+            })
+          );
         }
       }
     } catch (error: any) {
-      console.error(JSON.stringify({
-        level: "error",
-        message: "Failed to process Slack retry queue",
-        timestamp: new Date().toISOString(),
-        error: error?.message || String(error)
-      }));
+      console.error(
+        JSON.stringify({
+          level: "error",
+          message: "Failed to process Slack retry queue",
+          timestamp: new Date().toISOString(),
+          error: error?.message || String(error)
+        })
+      );
     }
   };
 }
@@ -362,36 +380,46 @@ export async function postReview(
   const language = typeof extraction?.language === "string" ? extraction.language : "unknown";
   const paymentConcerns = Array.isArray(extraction?.payment_concerns)
     ? extraction.payment_concerns
-        .filter((value: unknown) => value !== undefined && value !== null && String(value).trim().length > 0)
+        .filter(
+          (value: unknown) =>
+            value !== undefined && value !== null && String(value).trim().length > 0
+        )
         .map((value: unknown) => escapeMrkdwn(String(value)))
     : [];
   const customerConcerns = Array.isArray(extraction?.customer_concerns)
     ? extraction.customer_concerns
-        .filter((value: unknown) => value !== undefined && value !== null && String(value).trim().length > 0)
+        .filter(
+          (value: unknown) =>
+            value !== undefined && value !== null && String(value).trim().length > 0
+        )
         .map((value: unknown) => escapeMrkdwn(String(value)))
     : [];
 
-  console.log(JSON.stringify({
-    level: "debug",
-    message: "postReview: Slack message construction started",
-    timestamp: new Date().toISOString(),
-    ticketId,
-    draftId,
-    channel,
-    hasHubSpotUrl: !!hubspotTicketUrl,
-    hubspotTicketUrl
-  }));
+  console.log(
+    JSON.stringify({
+      level: "debug",
+      message: "postReview: Slack message construction started",
+      timestamp: new Date().toISOString(),
+      ticketId,
+      draftId,
+      channel,
+      hasHubSpotUrl: !!hubspotTicketUrl,
+      hubspotTicketUrl
+    })
+  );
 
-  console.log(JSON.stringify({
-    level: "info",
-    message: "postReview called",
-    timestamp: new Date().toISOString(),
-    ticketId,
-    draftId,
-    channel,
-    confidence,
-    draftTextLength: draftText?.length || 0
-  }));
+  console.log(
+    JSON.stringify({
+      level: "info",
+      message: "postReview called",
+      timestamp: new Date().toISOString(),
+      ticketId,
+      draftId,
+      channel,
+      confidence,
+      draftTextLength: draftText?.length || 0
+    })
+  );
 
   const env = getEnv();
   if (!env.SLACK_BOT_TOKEN) {
@@ -400,29 +428,33 @@ export async function postReview(
 
   const slackHealth = await testSlackConnectivity(env.SLACK_BOT_TOKEN);
 
-  console.log(JSON.stringify({
-    level: "info",
-    message: "Slack API health check",
-    timestamp: new Date().toISOString(),
-    ticketId,
-    draftId,
-    reachable: slackHealth.reachable,
-    responseTime: slackHealth.responseTime,
-    statusCode: slackHealth.statusCode,
-    error: slackHealth.error
-  }));
+  console.log(
+    JSON.stringify({
+      level: "info",
+      message: "Slack API health check",
+      timestamp: new Date().toISOString(),
+      ticketId,
+      draftId,
+      reachable: slackHealth.reachable,
+      responseTime: slackHealth.responseTime,
+      statusCode: slackHealth.statusCode,
+      error: slackHealth.error
+    })
+  );
 
   if (!slackHealth.reachable) {
     const errorMessage = `Slack unreachable${slackHealth.error ? `: ${slackHealth.error}` : ""}`;
 
-    console.error(JSON.stringify({
-      level: "error",
-      message: "Slack API is not reachable - queuing for retry",
-      timestamp: new Date().toISOString(),
-      ticketId,
-      draftId,
-      healthCheck: slackHealth
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "Slack API is not reachable - queuing for retry",
+        timestamp: new Date().toISOString(),
+        ticketId,
+        draftId,
+        healthCheck: slackHealth
+      })
+    );
 
     if (options.onSoftFailure) {
       await options.onSoftFailure(errorMessage);
@@ -433,16 +465,20 @@ export async function postReview(
     return { ok: false, error: "slack_unreachable" };
   }
 
-  const subjectLine = originalEmailSubject ?? (originalEmail?.split("\n")[0] ?? "");
+  const subjectLine = originalEmailSubject ?? originalEmail?.split("\n")[0] ?? "";
   const subjectBlockText = escapeMrkdwn(subjectLine.slice(0, SUBJECT_MAX_LENGTH));
 
   const rawBody = originalEmailBody ?? originalEmail ?? "";
   const trimmedBody =
-    rawBody.length > BODY_BLOCK_MAX_LENGTH ? `${rawBody.slice(0, BODY_BLOCK_MAX_LENGTH)}\n…[truncated]` : rawBody;
+    rawBody.length > BODY_BLOCK_MAX_LENGTH
+      ? `${rawBody.slice(0, BODY_BLOCK_MAX_LENGTH)}\n…[truncated]`
+      : rawBody;
   const bodyBlockText = sanitizeForCodeBlock(trimmedBody);
 
   const trimmedDraft =
-    draftText.length > DRAFT_BLOCK_MAX_LENGTH ? `${draftText.slice(0, DRAFT_BLOCK_MAX_LENGTH)}\n…[truncated]` : draftText;
+    draftText.length > DRAFT_BLOCK_MAX_LENGTH
+      ? `${draftText.slice(0, DRAFT_BLOCK_MAX_LENGTH)}\n…[truncated]`
+      : draftText;
   const draftBlockText = sanitizeForCodeBlock(trimmedDraft);
 
   const confidencePercent = Number.isFinite(confidence) ? Math.round(confidence * 100) : 0;
@@ -458,14 +494,16 @@ export async function postReview(
   ];
 
   if (hubspotTicketUrl) {
-    console.log(JSON.stringify({
-      level: "debug",
-      message: "postReview: Including HubSpot ticket link block",
-      timestamp: new Date().toISOString(),
-      ticketId,
-      draftId,
-      url: hubspotTicketUrl
-    }));
+    console.log(
+      JSON.stringify({
+        level: "debug",
+        message: "postReview: Including HubSpot ticket link block",
+        timestamp: new Date().toISOString(),
+        ticketId,
+        draftId,
+        url: hubspotTicketUrl
+      })
+    );
     blocks.push({
       type: "section",
       text: {
@@ -474,14 +512,16 @@ export async function postReview(
       }
     });
   } else {
-    console.log(JSON.stringify({
-      level: "debug",
-      message: "postReview: Skipping HubSpot link - no URL provided",
-      timestamp: new Date().toISOString(),
-      ticketId,
-      draftId,
-      reason: "hubspotTicketUrl is falsy"
-    }));
+    console.log(
+      JSON.stringify({
+        level: "debug",
+        message: "postReview: Skipping HubSpot link - no URL provided",
+        timestamp: new Date().toISOString(),
+        ticketId,
+        draftId,
+        reason: "hubspotTicketUrl is falsy"
+      })
+    );
   }
 
   if (paymentConcerns.length > 0) {
@@ -572,7 +612,10 @@ export async function postReview(
   const maxAttempts = 2;
   const baseDelayMs = 500;
 
-  const parseRetryAfterSeconds = (header: string | null, fallback?: unknown): number | undefined => {
+  const parseRetryAfterSeconds = (
+    header: string | null,
+    fallback?: unknown
+  ): number | undefined => {
     if (header) {
       const parsed = parseInt(header, 10);
       if (!Number.isNaN(parsed) && parsed > 0) {
@@ -580,7 +623,11 @@ export async function postReview(
       }
     }
     const fallbackNumber =
-      typeof fallback === "number" ? fallback : typeof fallback === "string" ? parseInt(fallback, 10) : undefined;
+      typeof fallback === "number"
+        ? fallback
+        : typeof fallback === "string"
+          ? parseInt(fallback, 10)
+          : undefined;
     if (fallbackNumber && fallbackNumber > 0) {
       return fallbackNumber;
     }
@@ -609,15 +656,17 @@ export async function postReview(
       if (response.status === 429) {
         const retryAfterSeconds = parseRetryAfterSeconds(retryAfterHeader) ?? 60;
 
-        console.error(JSON.stringify({
-          level: "error",
-          message: "Slack rate limited response received",
-          timestamp: new Date().toISOString(),
-          ticketId,
-          draftId,
-          channel,
-          retryAfterSeconds
-        }));
+        console.error(
+          JSON.stringify({
+            level: "error",
+            message: "Slack rate limited response received",
+            timestamp: new Date().toISOString(),
+            ticketId,
+            draftId,
+            channel,
+            retryAfterSeconds
+          })
+        );
 
         if (options.onRateLimited) {
           await options.onRateLimited(retryAfterSeconds);
@@ -642,17 +691,20 @@ export async function postReview(
         const error = json.error || "unknown_error";
 
         if (error === "rate_limited" || error === "ratelimited") {
-          const retryAfterSeconds = parseRetryAfterSeconds(retryAfterHeader, json.retry_after) ?? 60;
+          const retryAfterSeconds =
+            parseRetryAfterSeconds(retryAfterHeader, json.retry_after) ?? 60;
 
-          console.error(JSON.stringify({
-            level: "error",
-            message: "Slack rate limited response body",
-            timestamp: new Date().toISOString(),
-            ticketId,
-            draftId,
-            channel,
-            retryAfterSeconds
-          }));
+          console.error(
+            JSON.stringify({
+              level: "error",
+              message: "Slack rate limited response body",
+              timestamp: new Date().toISOString(),
+              ticketId,
+              draftId,
+              channel,
+              retryAfterSeconds
+            })
+          );
 
           if (options.onRateLimited) {
             await options.onRateLimited(retryAfterSeconds);
@@ -668,16 +720,18 @@ export async function postReview(
 
         const errorMessage = `Slack API error: ${error}`;
 
-        console.error(JSON.stringify({
-          level: "error",
-          message: "Slack API error response",
-          timestamp: new Date().toISOString(),
-          ticketId,
-          draftId,
-          channel,
-          error,
-          response: json
-        }));
+        console.error(
+          JSON.stringify({
+            level: "error",
+            message: "Slack API error response",
+            timestamp: new Date().toISOString(),
+            ticketId,
+            draftId,
+            channel,
+            error,
+            response: json
+          })
+        );
 
         if (options.onSoftFailure) {
           await options.onSoftFailure(errorMessage);
@@ -688,47 +742,54 @@ export async function postReview(
         return { ok: false, error };
       }
 
-      console.log(JSON.stringify({
-        level: "info",
-        message: "Slack postReview successful",
-        timestamp: new Date().toISOString(),
-        ticketId,
-        draftId,
-        channel,
-        messageTs: json.ts,
-        attempt,
-        includedHubSpotLink: !!hubspotTicketUrl
-      }));
+      console.log(
+        JSON.stringify({
+          level: "info",
+          message: "Slack postReview successful",
+          timestamp: new Date().toISOString(),
+          ticketId,
+          draftId,
+          channel,
+          messageTs: json.ts,
+          attempt,
+          includedHubSpotLink: !!hubspotTicketUrl
+        })
+      );
 
       return { ok: true };
     } catch (e: any) {
       const msg = e?.data?.error || e?.message || String(e);
       const isAbort = e?.name === "AbortError" || msg.includes("aborted");
-      const canRetry = isAbort || /fetch failed|ECONNRESET|ENOTFOUND|EAI_AGAIN|TLS|ETIMEDOUT/i.test(msg);
+      const canRetry =
+        isAbort || /fetch failed|ECONNRESET|ENOTFOUND|EAI_AGAIN|TLS|ETIMEDOUT/i.test(msg);
 
-      console.error(JSON.stringify({
-        level: "error",
-        message: "Slack postReview attempt failed",
-        timestamp: new Date().toISOString(),
-        error: msg,
-        ticketId,
-        draftId,
-        attempt,
-        canRetry,
-        isAbort
-      }));
+      console.error(
+        JSON.stringify({
+          level: "error",
+          message: "Slack postReview attempt failed",
+          timestamp: new Date().toISOString(),
+          error: msg,
+          ticketId,
+          draftId,
+          attempt,
+          canRetry,
+          isAbort
+        })
+      );
 
       if (canRetry && attempt < maxAttempts) {
         const delay = baseDelayMs * Math.pow(2, attempt - 1);
-        console.log(JSON.stringify({
-          level: "info",
-          message: "Retrying Slack postReview",
-          timestamp: new Date().toISOString(),
-          ticketId,
-          draftId,
-          attempt: attempt + 1,
-          delayMs: delay
-        }));
+        console.log(
+          JSON.stringify({
+            level: "info",
+            message: "Retrying Slack postReview",
+            timestamp: new Date().toISOString(),
+            ticketId,
+            draftId,
+            attempt: attempt + 1,
+            delayMs: delay
+          })
+        );
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -741,27 +802,32 @@ export async function postReview(
         await queueSlackRetry(params, { reason: "soft_failure" });
       }
 
-      console.error(JSON.stringify({
-        level: "error",
-        message: "Slack postReview failed after all retries - continuing without Slack notification",
-        timestamp: new Date().toISOString(),
-        error: msg,
-        ticketId,
-        draftId,
-        finalAttempt: attempt
-      }));
+      console.error(
+        JSON.stringify({
+          level: "error",
+          message:
+            "Slack postReview failed after all retries - continuing without Slack notification",
+          timestamp: new Date().toISOString(),
+          error: msg,
+          ticketId,
+          draftId,
+          finalAttempt: attempt
+        })
+      );
 
       return { ok: false, error: "soft_failure" };
     }
   }
 
-  console.error(JSON.stringify({
-    level: "error",
-    message: "Slack postReview exhausted retries - continuing without Slack notification",
-    timestamp: new Date().toISOString(),
-    ticketId,
-    draftId
-  }));
+  console.error(
+    JSON.stringify({
+      level: "error",
+      message: "Slack postReview exhausted retries - continuing without Slack notification",
+      timestamp: new Date().toISOString(),
+      ticketId,
+      draftId
+    })
+  );
 
   return { ok: false, error: "unknown_failure" };
 }
@@ -783,12 +849,14 @@ export async function getSlackRetryQueueStatus(): Promise<{
   try {
     return await getSlackRetryQueueStats();
   } catch (error: any) {
-    console.error(JSON.stringify({
-      level: "error",
-      message: "Failed to get Slack retry queue stats",
-      timestamp: new Date().toISOString(),
-      error: error?.message || String(error)
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        message: "Failed to get Slack retry queue stats",
+        timestamp: new Date().toISOString(),
+        error: error?.message || String(error)
+      })
+    );
     return {
       count: 0,
       pending: 0,

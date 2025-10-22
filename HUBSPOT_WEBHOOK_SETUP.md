@@ -17,20 +17,20 @@ This guide explains how to configure HubSpot to send ticket data directly to the
 1. Add a new "Send webhook" action to your workflow
 2. Configure the webhook URL: `https://your-app.vercel.app/api/webhook`
 3. Set request method: **POST**
-4. ~~Set content type: **application/json**~~ *(HubSpot automatically sets this to `application/json`)*
+4. ~~Set content type: **application/json**~~ _(HubSpot automatically sets this to `application/json`)_
 
 ### Step 3: Configure Webhook Payload
 
 1. Select **"Customize request body"** (not "Include all ticket properties")
 2. Add these key-value pairs using the "Add property" button:
 
-| Key | Value |
-|-----|-------|
-| `source` | `hubspot` |
-| `customerEmail` | `{{email}}` |
-| `subject` | `{{subject}}` |
-| `body` | `{{content}}` |
-| `ticketID` | `{{hs_ticket_id}}` |
+| Key             | Value              |
+| --------------- | ------------------ |
+| `source`        | `hubspot`          |
+| `customerEmail` | `{{email}}`        |
+| `subject`       | `{{subject}}`      |
+| `body`          | `{{content}}`      |
+| `ticketID`      | `{{hs_ticket_id}}` |
 
 **Important:** Make sure you're using the **internal property names** (`subject` and `content`), not the display labels. In HubSpot's property picker, you may see labels like "Ticket name" or "Ticket description", but the internal API names are `subject` and `content`.
 
@@ -46,9 +46,10 @@ Ensure these HubSpot properties are correctly mapped:
 - **`{{subject}}`** → Ticket's subject field (standard property: `subject`)
 - **`{{content}}`** → Ticket's content/body field (standard property: `content`)
 
-**Important:** These property names are based on the [official HubSpot CRM API documentation](https://developers.hubspot.com/docs/api-reference/crm-tickets-v3/guide). 
+**Important:** These property names are based on the [official HubSpot CRM API documentation](https://developers.hubspot.com/docs/api-reference/crm-tickets-v3/guide).
 
 **Note:** If you're working with email engagements rather than tickets, you might need to use:
+
 - `hs_email_subject` for email subject
 - `hs_email_text` for email body content
 

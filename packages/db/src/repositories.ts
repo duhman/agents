@@ -97,12 +97,15 @@ export async function claimSlackRetryQueueItem(id: string) {
   return item ?? null;
 }
 
-export async function updateSlackRetryQueueItem(id: string, data: {
-  retryCount?: string;
-  nextRetryAt?: Date;
-  lastError?: string;
-  status?: string;
-}) {
+export async function updateSlackRetryQueueItem(
+  id: string,
+  data: {
+    retryCount?: string;
+    nextRetryAt?: Date;
+    lastError?: string;
+    status?: string;
+  }
+) {
   const [item] = await db
     .update(slackRetryQueue)
     .set({ ...data, updatedAt: new Date() })

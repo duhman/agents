@@ -10,5 +10,3 @@ export const primaryLinks: NavLink[] = [
   { title: "Policies", href: "/docs/policies" },
   { title: "Operations", href: "/docs/operations" }
 ];
-
-

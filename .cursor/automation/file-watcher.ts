@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * File Watcher for Development Mode
- * 
+ *
  * Monitors key files and automatically triggers rule updates
  * when changes are detected during development.
  */
@@ -31,7 +31,7 @@ const automation = new CursorRulesAutomation();
 const runAutomation = debounce(async (path: string) => {
   console.log(`\n🔄 Change detected: ${path}`);
   console.log("Running automation...\n");
-  
+
   try {
     await automation.run();
     console.log("✅ Automation complete. Watching for changes...\n");
@@ -47,9 +47,9 @@ const watcher = watch(WATCH_PATTERNS, {
 });
 
 watcher
-  .on("change", (path) => runAutomation(path))
-  .on("add", (path) => runAutomation(path))
-  .on("error", (error) => console.error("Watcher error:", error));
+  .on("change", path => runAutomation(path))
+  .on("add", path => runAutomation(path))
+  .on("error", error => console.error("Watcher error:", error));
 
 console.log("✅ File watcher started. Press Ctrl+C to stop.\n");
 
@@ -59,4 +59,3 @@ process.on("SIGINT", () => {
   watcher.close();
   process.exit(0);
 });
-

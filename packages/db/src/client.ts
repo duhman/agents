@@ -2,7 +2,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema.js";
 
-const logStructured = (level: "info" | "warn" | "error", message: string, data?: Record<string, any>) => {
+const logStructured = (
+  level: "info" | "warn" | "error",
+  message: string,
+  data?: Record<string, any>
+) => {
   const payload = {
     level,
     message,
@@ -36,9 +40,16 @@ if (!connectionString) {
 
 try {
   const { host } = new URL(connectionString);
-  logStructured("info", "Database connection string resolved", { requestId: "db-init", host, isServerless });
+  logStructured("info", "Database connection string resolved", {
+    requestId: "db-init",
+    host,
+    isServerless
+  });
 } catch (error) {
-  logStructured("warn", "Invalid database connection string", { requestId: "db-init", isServerless });
+  logStructured("warn", "Invalid database connection string", {
+    requestId: "db-init",
+    isServerless
+  });
   throw error;
 }
 

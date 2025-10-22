@@ -8,7 +8,6 @@ import { processEmail } from "../apps/agent/dist/index.js";
 import { postReview } from "../apps/slack-bot/dist/index.js";
 import { maskPII } from "@agents/core";
 
-
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
 type LogLevel = "info" | "warn" | "error" | "debug";
@@ -46,11 +45,7 @@ interface PostReviewParams {
 const parseErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-const log = (
-  level: LogLevel,
-  message: string,
-  data: Record<string, unknown> = {}
-): void => {
+const log = (level: LogLevel, message: string, data: Record<string, unknown> = {}): void => {
   const payload = JSON.stringify({
     level,
     message,
@@ -108,10 +103,10 @@ const buildHubSpotTicketUrl = (ticketId?: string): string | null => {
     log("debug", "buildHubSpotTicketUrl: no ticketId provided");
     return null;
   }
-  
+
   const portalId = process.env.HUBSPOT_PORTAL_ID;
   const baseUrl = process.env.HUBSPOT_PORTAL_BASE_URL;
-  
+
   if (!portalId || !baseUrl) {
     log("warn", "buildHubSpotTicketUrl: missing HubSpot config", {
       hasPortalId: !!portalId,
@@ -124,22 +119,18 @@ const buildHubSpotTicketUrl = (ticketId?: string): string | null => {
   const trimmedBase = baseUrl.replace(/\/+$/, "");
   const encodedTicketId = encodeURIComponent(ticketId);
   const generatedUrl = `${trimmedBase}/contacts/${portalId}/record/0-5/${encodedTicketId}`;
-  
+
   log("debug", "buildHubSpotTicketUrl: URL constructed", {
     ticketId,
     baseUrl: trimmedBase,
     portalId,
     generatedUrl
   });
-  
+
   return generatedUrl;
 };
 
-
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-): Promise<void> {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   // Start timing for monitoring
   const startTime = Date.now();
   const requestId = randomUUID();
@@ -159,7 +150,7 @@ export default async function handler(
 
   try {
     // Minimal validation (avoid zod/types at edge)
-    const rawPayload = typeof req.body === "string" ? JSON.parse(req.body) : req.body ?? {};
+    const rawPayload = typeof req.body === "string" ? JSON.parse(req.body) : (req.body ?? {});
     const body = (rawPayload ?? {}) as WebhookPayload;
     const source = typeof body.source === "string" && body.source ? body.source : "hubspot";
     const customerEmail =
@@ -180,34 +171,34 @@ export default async function handler(
         ? body.ticketID.trim()
         : undefined;
     const bodyText = normalizeEmailBody(rawEmailBody);
-    
+
     if (!subject && !bodyText) {
-      res.status(400).json({ 
+      res.status(400).json({
         error: "validation: subject and body are required",
-        request_id: requestId 
+        request_id: requestId
       });
       return;
     }
-    
+
     // Construct rawEmail format for internal processing only
     const rawEmail = subject ? `Subject: ${subject}\n\n${bodyText}` : bodyText;
-    
-    log("info", "Request validation successful", { 
-      source, 
+
+    log("info", "Request validation successful", {
+      source,
       requestId,
       subjectLength: subject.length,
       bodyLength: bodyText.length,
-      bodySource: typeof body.body === "string" && body.body.trim()
-        ? "body"
-        : typeof body.content === "string" && body.content.trim()
-          ? "content"
-          : "none",
+      bodySource:
+        typeof body.body === "string" && body.body.trim()
+          ? "body"
+          : typeof body.content === "string" && body.content.trim()
+            ? "content"
+            : "none",
       subjectPreview: subject.slice(0, 50),
       bodyPreview: bodyText.slice(0, 50),
       hasTicketId: !!hubspotTicketId,
       ticketId: hubspotTicketId
     });
-
 
     // Process email through hybrid processor
     log("info", "Processing email through hybrid processor", { requestId });
@@ -228,7 +219,7 @@ export default async function handler(
           draftId: result.draft.id,
           confidence: result.confidence
         });
-        
+
         // Fire and forget - don't await Slack posting to stay under 5s
         const extraction =
           typeof result.extraction === "object" && result.extraction !== null
@@ -240,7 +231,10 @@ export default async function handler(
         const displaySubject = subject;
         const displayBody = bodyText;
 
-        const slackPayload: PostReviewParams & { originalEmailSubject?: string; originalEmailBody?: string } = {
+        const slackPayload: PostReviewParams & {
+          originalEmailSubject?: string;
+          originalEmailBody?: string;
+        } = {
           ticketId: result.ticket.id,
           draftId: result.draft.id,
           originalEmail: maskedRawEmail,
