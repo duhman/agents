@@ -38,13 +38,10 @@ async function searchVectorStoreDirect(
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // Use Responses API with file_search tool attached to the vector store.
-    // Casting to any to avoid SDK type churn while keeping runtime behavior.
-    const response: any = await (openai as any).responses.create({
+    // Use Assistants API with file_search tool attached to the vector store
+    const assistant = await openai.beta.assistants.create({
       model: "gpt-4o-2024-08-06",
-      input:
-        `Return up to ${maxResults} short bullet snippets from the most relevant HubSpot tickets for this query. ` +
-        `Each snippet should be concise and directly useful for drafting a reply. Query: ${query}`,
+      instructions: `Return up to ${maxResults} short bullet snippets from the most relevant HubSpot tickets for this query. Each snippet should be concise and directly useful for drafting a reply.`,
       tools: [{ type: "file_search" }],
       tool_resources: {
         file_search: {
@@ -53,10 +50,26 @@ async function searchVectorStoreDirect(
       }
     });
 
-    // Extract text output; if structured citations are available, prefer them.
-    let outputText: string = response?.output_text || "";
-    if (!outputText && response?.choices?.[0]?.message?.content) {
-      outputText = String(response.choices[0].message.content);
+    // Create a thread and run the assistant
+    const thread = await openai.beta.threads.create({
+      messages: [{
+        role: "user",
+        content: query
+      }]
+    });
+
+    const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+      assistant_id: assistant.id
+    });
+
+    // Get the messages from the thread
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    const response = messages.data[0];
+
+    // Extract text output from the assistant response
+    let outputText: string = "";
+    if (response?.content && response.content[0]?.type === "text") {
+      outputText = response.content[0].text.value;
     }
 
     const results = outputText
