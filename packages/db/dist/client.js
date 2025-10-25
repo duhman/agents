@@ -45,7 +45,7 @@ catch (error) {
 // For migrations
 export const migrationClient = postgres(connectionString, { max: 1 });
 const createQueryClient = (context) => {
-    const connectTimeoutSeconds = isServerless ? 30 : 10;
+    const connectTimeoutSeconds = 10;
     const client = postgres(connectionString, {
         prepare: isServerless ? false : undefined,
         max: isServerless ? 1 : 10,

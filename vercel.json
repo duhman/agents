@@ -7,8 +7,17 @@
     }
   ],
   "functions": {
-    "api/**/*.ts": {
+    "api/webhook.ts": {
       "maxDuration": 30
+    },
+    "api/health.ts": {
+      "maxDuration": 10
+    },
+    "api/slack/*.ts": {
+      "maxDuration": 30
+    },
+    "api/cron/*.ts": {
+      "maxDuration": 300
     }
   }
 }

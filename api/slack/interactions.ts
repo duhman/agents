@@ -922,7 +922,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             actionId: "edit"
           });
 
-          if (!draft || typeof draft.draftText !== "string") {
+          if (!draft || typeof draft.draftText !== "string" || !draft.draftText) {
             log("error", "Slack edit modal failed - draft not found", {
               requestId,
               ticketId,
@@ -945,6 +945,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           }
 
           // Start token validation but don't await - run in background
+          // This optimizes latency while ensuring we open the modal within 3s window
           void validateSlackToken(requestId).catch((error: any) => {
             log("warn", "Background token validation failed", {
               requestId,
@@ -1013,6 +1014,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             responseKeys: Object.keys(result || {})
           });
 
+          // IMPORTANT: Only respond after views.open succeeds
+          // Responding first would invalidate the trigger_id and prevent modal from opening
           respondOk();
         } catch (error: any) {
           const errMsg = error?.message || String(error);

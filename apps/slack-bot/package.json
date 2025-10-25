@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@agents/core": "workspace:*",
+    "@agents/db": "workspace:*",
     "dotenv": "^16.3.0"
   },
   "devDependencies": {

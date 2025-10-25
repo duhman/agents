@@ -578,6 +578,8 @@ export async function postReview(
           },
           style: "primary",
           action_id: "approve",
+          // NOTE: Button values are limited to 2KB. Only store IDs here, not draft text.
+          // Draft text is retrieved server-side via getDraftById() to avoid size limits.
           value: JSON.stringify({ ticketId, draftId })
         },
         {

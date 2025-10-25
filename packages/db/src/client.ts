@@ -62,7 +62,7 @@ declare global {
 }
 
 const createQueryClient = (context: "init" | "reset") => {
-  const connectTimeoutSeconds = isServerless ? 30 : 10;
+  const connectTimeoutSeconds = 10;
   const client = postgres(connectionString, {
     prepare: isServerless ? false : undefined,
     max: isServerless ? 1 : 10,
