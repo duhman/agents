@@ -146,6 +146,9 @@ importers:
       '@agents/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@agents/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       dotenv:
         specifier: ^16.3.0
         version: 16.6.1
