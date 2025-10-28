@@ -14,7 +14,7 @@ interface AssistantSetupConfig {
 
 const extractionConfig: AssistantSetupConfig = {
   name: "Elaway Cancellation Extraction Assistant",
-  model: "gpt-5-mini",
+  model: "gpt-4.1",
   temperature: 0,
   instructions: `You are an expert email analyzer for Elaway's customer service automation system.
 
@@ -59,7 +59,7 @@ QUALITY CHECKS:
 
 const responseConfig: AssistantSetupConfig = {
   name: "Elaway Customer Response Assistant",
-  model: "gpt-5-mini",
+  model: "gpt-4.1",
   temperature: 0.3,
   instructions: `You are Elaway's customer service assistant for subscription cancellations.
 

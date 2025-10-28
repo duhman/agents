@@ -10,7 +10,7 @@ Successfully migrated from creating OpenAI assistants on every cold start to cre
 
 Programmatically creates both persistent assistants with full control over model and tools:
 
-- **Model**: `gpt-5-mini` (supports full API capabilities)
+- **Model**: `gpt-4.1` (required for Assistants API compatibility with file_search tool)
 - **Tools**: `file_search` for automatic vector store retrieval
 - **Idempotent**: Updates existing assistants if IDs provided in environment
 
@@ -22,7 +22,7 @@ Key features:
 
 **Usage:**
 ```bash
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 ```
 
 ### 2. Updated Environment Schema (`packages/core/src/index.ts`)
@@ -152,7 +152,7 @@ No linter errors in modified files.
 
 1. **Run setup script** to create persistent assistants:
    ```bash
-   tsx scripts/setup-assistants.ts
+   pnpm tsx scripts/setup-assistants.ts
    ```
 
 2. **Save assistant IDs** to `.env` and production environment
@@ -185,7 +185,7 @@ Optional (unchanged):
 ## Troubleshooting
 
 **Error: OPENAI_EXTRACTION_ASSISTANT_ID environment variable is required**
-- Run: `tsx scripts/setup-assistants.ts`
+- Run: `pnpm tsx scripts/setup-assistants.ts`
 - Save output IDs to `.env`
 
 **Error: Failed to create assistant**

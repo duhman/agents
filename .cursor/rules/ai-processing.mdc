@@ -19,6 +19,19 @@ The system uses **persistent reusable assistants** created once and reused acros
 5. **Thread Management**: Conversations managed via threads and runs
 6. **Zero Cold Start Overhead**: Assistants created once, reused forever – no runtime creation cost
 
+## Model Requirements
+
+**CRITICAL: Always use `gpt-4.1` model for OpenAI Assistants**
+
+- `gpt-4.1` is the ONLY model that supports Assistants API with file_search tool
+- This model MUST be used in:
+  - `scripts/setup-assistants.ts` - extraction and response assistant configs
+  - Any dynamic assistant creation code
+- Do NOT use: gpt-5-mini, gpt-4o-mini, or other models for assistants
+- File_search tool only works with gpt-4.1 in Assistants API
+
+Reference: https://platform.openai.com/docs/models/gpt-4.1
+
 ## Core Components
 
 ### 1. Setup Script (`scripts/setup-assistants.ts`)
@@ -27,7 +40,7 @@ Create persistent assistants programmatically with full control over model and t
 
 ```bash
 # Run once to create assistants
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 
 # Outputs:
 # OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
@@ -37,7 +50,7 @@ tsx scripts/setup-assistants.ts
 ```
 
 **Key Features:**
-- Creates both assistants with `gpt-5-mini` model
+- Creates both assistants with `gpt-4.1` model (required for Assistants API compatibility)
 - Configures `file_search` tool with vector store
 - Updates existing assistants if IDs provided (idempotent)
 - Full control over temperature, instructions, and tools
@@ -110,7 +123,7 @@ async function extractWithAssistant(maskedEmail: string, logContext: LogContext)
 
 ```bash
 # Once (via setup script)
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 # OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc...
 # OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz...
 
@@ -132,12 +145,12 @@ Creating assistants during request processing wastes API calls and loses perform
 
 ```bash
 # Create new assistants
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 
 # Update existing assistants (provide IDs in .env)
 export OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc...
 export OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz...
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 # Script updates them instead of creating new ones
 ```
 
@@ -286,7 +299,7 @@ OPENAI_VECTOR_STORE_ID=vs_...
 
 1. **Run setup script once:**
    ```bash
-   tsx scripts/setup-assistants.ts
+   pnpm tsx scripts/setup-assistants.ts
    ```
 
 2. **Save output IDs to environment:**
@@ -365,7 +378,7 @@ expect(response.toLowerCase()).toContain("elaway");
 
 ```
 Error: OPENAI_EXTRACTION_ASSISTANT_ID environment variable is required.
-Run: tsx scripts/setup-assistants.ts
+Run: pnpm tsx scripts/setup-assistants.ts
 ```
 
 **Solution:** Run setup script and save IDs to environment variables.

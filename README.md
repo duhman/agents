@@ -26,6 +26,28 @@ Optional for full HITM loop:
 2. Run `pnpm --filter @agents/slack-bot build`.
 3. Deploy `api/webhook.ts` and `api/slack/interactions.ts` (Vercel-ready).
 
+## Setup Workflow
+
+```bash
+# One-time setup (or when updating config)
+pnpm tsx scripts/setup-assistants.ts
+
+# Script outputs:
+# ✓ Extraction Assistant created: asst_abc123...
+# ✓ Response Assistant created: asst_xyz789...
+# 
+# Add to .env:
+# OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+# OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+
+# Update Vercel environment variables
+vercel env add OPENAI_EXTRACTION_ASSISTANT_ID
+vercel env add OPENAI_RESPONSE_ASSISTANT_ID
+
+# Deploy
+vercel --prod
+```
+
 ## Initial Setup: Create Persistent Assistants
 
 The system uses **persistent reusable assistants** created once and reused across all requests. This ensures consistency, enables performance tracking, and avoids cold-start overhead.
@@ -36,7 +58,7 @@ Run the setup script to create both assistants programmatically:
 
 ```bash
 # Ensure you have OPENAI_API_KEY and OPENAI_VECTOR_STORE_ID in .env
-tsx scripts/setup-assistants.ts
+pnpm tsx scripts/setup-assistants.ts
 ```
 
 The script will output:
@@ -91,7 +113,7 @@ The system uses two persistent assistants created once and reused across all req
 - Analyzes customer emails to extract structured cancellation data
 - Automatically searches the vector store for similar customer cases
 - Returns structured JSON with: is_cancellation, reason, move_date, language, edge_case, confidence_factors
-- Model: `gpt-5-mini`
+- Model: `gpt-4.1` (Assistants API compatible, higher intelligence)
 - Temperature: 0 (deterministic, consistent extraction)
 
 ### Response Assistant
@@ -100,8 +122,8 @@ The system uses two persistent assistants created once and reused across all req
 - Automatically searches the vector store for similar resolved cases and policies
 - Generates responses in the customer's language with full policy compliance
 - Uses streaming for real-time response generation
-- Model: `gpt-5-mini`
-- Temperature: 0.3 (controlled creativity, natural language)
+- Model: `gpt-4.1` (Assistants API compatible, higher intelligence)
+- Temperature: 0.3 (controlled creativity, personalization)
 
 ### Vector Store Integration
 
@@ -162,7 +184,7 @@ HUBSPOT_WEBHOOK_SECRET=...
 
 ### Assistant Management
 
-- `tsx scripts/setup-assistants.ts` – Create or update persistent assistants.
+- `pnpm tsx scripts/setup-assistants.ts` – Create or update persistent assistants.
 
 ## Documentation
 
@@ -214,47 +236,4 @@ The integration is configured via `.cursor/rules/ai-processing.mdc` and `.cursor
 
 - `HUBSPOT_WEBHOOK_SETUP.md` – HubSpot workflow configuration.
 - `SLACK_BOT_SETUP_GUIDE.md` – Slack app credentials and review channel wiring.
-- `SLACK_INTEGRATION_ENHANCEMENTS.md` – Detailed Slack reliability improvements.
-- `SIMPLIFICATION_SUMMARY.md` – Previous architecture evolution documentation.
-- `ZOD_UPGRADE_NOTES.md` – Zod v4 upgrade constraints and current v3 requirements.
-
-## Deployment Notes
-
-- `api/webhook.ts` and `api/slack/interactions.ts` are standard Vercel Node runtimes.
-- `api/cron/process-slack-retry.ts` processes queued Slack posts (protect with `CRON_SECRET`).
-- Ensure all required environment variables are set in production (see Environment Variables section).
-- Run the setup script once to create assistants, then store their IDs as environment variables in Vercel/production.
-- Assistants are persistent and reused across all requests – no creation overhead at runtime.
-
-## Dependencies
-
-- **Zod v3**: Currently using Zod v3.22.0 across all packages. Zod v4 upgrade blocked by OpenAI SDK compatibility (see `openai/openai-node#1576`).
-- **OpenAI SDK**: v6.2.0 with Assistants API for structured outputs and file_search tool integration
-- **Database**: Drizzle ORM with Postgres
-- **Runtime**: Node.js 20+ with TypeScript strict mode
-
-## Key Features
-
-- **Persistent Assistants**: Same assistants reused across all requests for consistency and performance tracking
-- **Dynamic Responses**: AI generates personalized responses for each customer, not using fixed templates
-- **Vector Store Integration**: Automatic semantic search across customer documentation and policies
-- **Multilingual Support**: Norwegian (default), English, Swedish support with language-aware responses
-- **Edge Case Handling**: Specialized handling for payment issues, app access problems, corporate accounts, etc.
-- **PII Masking**: All sensitive data masked before any AI processing
-- **Streaming Responses**: Real-time response generation for faster user feedback
-- **Hybrid Validation**: Clear intent detection before automated response generation
-- **Metrics Collection**: Comprehensive tracking of processing methods, performance, and quality
-
-## Status
-
-The system has been migrated to use **persistent reusable assistants** created once and reused across all requests. This enables:
-
-- Consistent processing across all requests (same assistant for all emails)
-- Performance tracking over time via OpenAI Dashboard
-- Zero cold-start overhead – no assistant creation during request processing
-- Easy updates – modify instructions by re-running the setup script
-- More accurate contextual analysis of customer requests
-- Personalized, context-aware responses instead of templates
-- Automatic vector store retrieval for policy and example guidance
-- Streaming support for real-time response generation
-- Maintained human-in-the-middle review for quality assurance
+- `SLACK_INTEGRATION_ENHANCEMENTS.md`
