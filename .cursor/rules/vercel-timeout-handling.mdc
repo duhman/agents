@@ -1,0 +1,148 @@
+---
+description: Vercel serverless timeout handling patterns for long-running OpenAI Assistants API operations
+globs: apps/agent/src/**/*.ts, api/**/*.ts
+alwaysApply: true
+---
+
+- **Vercel Timeout Constraints**
+  - Webhook endpoints timeout at ~30 seconds (HubSpot default)
+  - Function timeout on Pro/Enterprise: 60 seconds
+  - Assistants API with vector store search: 15-30+ seconds
+  - Problem: `createAndPoll()` and streaming block indefinitely, exceeding limits
+
+- **Timeout Safety Pattern**
+  - Always wrap blocking OpenAI operations in `Promise.race()` with timeout
+  - Set conservative timeout limits with safety buffers
+
+```typescript
+const EXTRACTION_TIMEOUT_MS = 20000; // 20s max (leave 10s buffer)
+const RESPONSE_TIMEOUT_MS = 15000;   // 15s max (leave 15s buffer)
+
+function createTimeoutPromise<T>(ms: number, operationName: string): Promise<T> {
+  return new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`${operationName} timed out after ${ms}ms`)),
+      ms
+    )
+  );
+}
+
+// ✅ DO: Wrap createAndPoll with timeout
+const runPromise = openai.beta.threads.runs.createAndPoll(thread.id, {
+  assistant_id: assistantId
+});
+
+const run = await Promise.race([
+  runPromise,
+  createTimeoutPromise(EXTRACTION_TIMEOUT_MS, "Extraction run")
+]);
+
+if (run.status !== "completed") {
+  throw new Error(`Extraction run failed with status: ${run.status}`);
+}
+
+// ✅ DO: Wrap streaming with timeout and graceful degradation
+let fullResponse = "";
+try {
+  const streamPromise = (async () => {
+    const stream = openai.beta.threads.runs.stream(thread.id, {
+      assistant_id: responseAssistantId
+    });
+
+    for await (const event of stream) {
+      if (event.event === "thread.message.delta") {
+        fullResponse += extractTextContent(event.data.delta);
+      }
+    }
+  })();
+
+  await Promise.race([
+    streamPromise,
+    createTimeoutPromise(RESPONSE_TIMEOUT_MS, "Response streaming")
+  ]);
+} catch (error: any) {
+  if (error.message.includes("timed out") && fullResponse.length > 50) {
+    // Use partial response if we got something meaningful
+    return fullResponse.trim();
+  }
+  throw error;
+}
+```
+
+- **Reduce Retry Aggressiveness**
+  - Extraction: 3 retries with 1s backoff (can retry on timeout)
+  - Response: 2 retries with 500ms backoff (less tolerance for timeouts)
+
+```typescript
+// ✅ DO: Reduced retries for response to stay within timeout
+try {
+  const draftText = await withRetry(
+    async () => generateResponseWithAssistant(extraction, maskedEmail, logContext, ticketId),
+    2,    // Reduce retries
+    500   // Shorter backoff
+  );
+} catch (error: any) {
+  logError("Response generation failed", logContext, error);
+  // Fallback response in customer's language
+  draftText = `Vi har mottatt din oppsigelse og vil håndtere denne snarest.`;
+}
+```
+
+- **Graceful Fallbacks**
+  - Partial responses are acceptable (better than timeout errors)
+  - Use language-appropriate fallback responses for response generation timeouts
+  - Always log timeout events for monitoring
+
+```typescript
+// ✅ DO: Log timeouts for observability
+logInfo("Response streaming timed out - using partial response", logContext, {
+  partialLength: fullResponse.length,
+  wordCount: fullResponse.split(/\s+/).length,
+  timeoutMs: RESPONSE_TIMEOUT_MS
+});
+
+// ✅ DO: Language-appropriate fallback
+const fallbackResponse: Record<string, string> = {
+  "no": "Vi har mottatt din oppsigelse og vil håndtele denne snarest.",
+  "en": "We have received your cancellation request and will process it shortly.",
+  "sv": "Vi har mottagit din uppsägning och behandlar den snart."
+};
+
+const draftText = fallbackResponse[extraction.language] || fallbackResponse["no"];
+```
+
+- **Monitoring & Metrics**
+  - Track processing time in metrics
+  - Alert on processing times approaching timeout limits
+  - Monitor timeout failure rates
+
+```typescript
+metricsCollector.record({
+  extraction_method: "assistants-api",
+  processing_time_ms: duration,
+  timed_out: duration > EXTRACTION_TIMEOUT_MS,
+  language: extraction.language
+});
+```
+
+- **Anti-Patterns**
+  - ❌ DON'T: Assume Assistants API calls complete quickly
+  - ❌ DON'T: Use 3+ retries for response generation (cumulative timeout risk)
+  - ❌ DON'T: Ignore partial/incomplete responses in streaming
+  - ❌ DON'T: Deploy without timeout protection to Vercel
+
+- **Testing**
+  - Test with network throttling to simulate slow Assistants API
+  - Verify fallbacks work correctly on timeout
+  - Monitor production logs for actual timeout events
+
+```bash
+# Simulate slow network (via Vercel logs)
+# Look for "timed out" errors and verify graceful fallbacks
+pnpm logs --tail 50 | grep -i "timeout"
+```
+
+- **References**
+  - Vercel timeout limits: https://vercel.com/docs/functions/serverless-functions/limitations
+  - OpenAI Assistants: https://platform.openai.com/docs/assistants
+  - Promise.race() docs: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race

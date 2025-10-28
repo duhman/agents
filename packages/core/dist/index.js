@@ -3,6 +3,8 @@ export const envSchema = z.object({
     DATABASE_URL: z.string().url(),
     OPENAI_API_KEY: z.string().min(1),
     OPENAI_VECTOR_STORE_ID: z.string().optional(),
+    OPENAI_EXTRACTION_ASSISTANT_ID: z.string().min(1),
+    OPENAI_RESPONSE_ASSISTANT_ID: z.string().min(1),
     SLACK_BOT_TOKEN: z.string().optional(),
     SLACK_SIGNING_SECRET: z.string().optional(),
     CRON_SECRET: z.string().optional(),

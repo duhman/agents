@@ -1,148 +1,156 @@
 ---
-description: OpenAI Assistants API for dynamic extraction and response generation with vector store retrieval
-globs: apps/agent/**/*.ts, packages/prompts/**/*.ts
+description: OpenAI Assistants API for dynamic extraction and response generation with persistent reusable assistants and vector store retrieval
+globs: apps/agent/**/*.ts, packages/prompts/**/*.ts, scripts/setup-assistants.ts
 alwaysApply: false
 ---
 
-# OpenAI Assistants API Processing
+# OpenAI Assistants API with Persistent Reusable Assistants
 
-This rule documents the Assistants API architecture for email extraction and dynamic response generation with automatic vector store retrieval.
+This rule documents the Assistants API architecture for email extraction and dynamic response generation using persistent reusable assistants created once and reused across all requests.
 
 ## Architecture Overview
 
-The system uses **OpenAI Assistants API** for both extraction and response generation:
+The system uses **persistent reusable assistants** created once and reused across all requests:
 
 1. **Extraction Assistant**: Analyzes emails and extracts structured cancellation data
 2. **Response Assistant**: Generates dynamic, personalized customer responses
 3. **Automatic RAG**: Both assistants automatically search the vector store via `file_search` tool
 4. **Streaming Responses**: Response generation uses streaming for real-time output
 5. **Thread Management**: Conversations managed via threads and runs
+6. **Zero Cold Start Overhead**: Assistants created once, reused forever – no runtime creation cost
 
 ## Core Components
 
-### 1. Assistant Configuration (`assistant-config.ts`)
+### 1. Setup Script (`scripts/setup-assistants.ts`)
 
-Define assistants with system instructions and vector store configuration:
+Create persistent assistants programmatically with full control over model and tools:
+
+```bash
+# Run once to create assistants
+tsx scripts/setup-assistants.ts
+
+# Outputs:
+# OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+# OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+
+# Save IDs to environment variables for reuse
+```
+
+**Key Features:**
+- Creates both assistants with `gpt-5-mini` model
+- Configures `file_search` tool with vector store
+- Updates existing assistants if IDs provided (idempotent)
+- Full control over temperature, instructions, and tools
+
+### 2. Assistant Configuration (`assistant-config.ts`)
+
+Configuration functions used **only by setup script**, not at runtime:
 
 ```typescript
+/**
+ * IMPORTANT: Used only by setup script to create/update assistants.
+ * At runtime, use OPENAI_EXTRACTION_ASSISTANT_ID from environment.
+ */
 export function getExtractionAssistantConfig(): AssistantConfig {
   return {
     name: "Elaway Cancellation Extraction Assistant",
-    model: "gpt-4o-2024-08-06",
-    temperature: 0, // Deterministic
+    model: "gpt-5-mini",  // Full model control via API
+    temperature: 0,        // Deterministic
     tools: [{ type: "file_search" }],
     tool_resources: {
       file_search: {
         vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
       }
     },
-    instructions: `You are an expert email analyzer...
-    
-ALWAYS search the vector store for similar cases before extraction.
-...`
-  };
-}
-
-export function getResponseAssistantConfig(): AssistantConfig {
-  return {
-    name: "Elaway Customer Response Assistant",
-    model: "gpt-4o-2024-08-06",
-    temperature: 0.3, // Creative but controlled
-    tools: [{ type: "file_search" }],
-    tool_resources: {
-      file_search: {
-        vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
-      }
-    },
-    instructions: `You are Elaway's customer service assistant...
-    
-ALWAYS search the vector store for similar cases and policy information.
-...`
+    instructions: `You are an expert email analyzer...`
   };
 }
 ```
 
-### 2. Assistants Processor (`assistants-processor.ts`)
+### 3. Assistants Processor (`assistants-processor.ts`)
 
-Implement the core workflow:
+Use environment variables directly – no creation logic:
 
 ```typescript
-// Cache assistants to avoid recreation
-let extractionAssistantId: string | null = null;
-let responseAssistantId: string | null = null;
+// Load persistent assistant IDs from environment
+const extractionAssistantId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID;
+const responseAssistantId = process.env.OPENAI_RESPONSE_ASSISTANT_ID;
+
+// Validate they exist
+if (!extractionAssistantId || !responseAssistantId) {
+  throw new Error(
+    "Assistant IDs not configured. Run setup script: " +
+    "pnpm --filter @agents/agent exec tsx scripts/setup-assistants.ts"
+  );
+}
 
 async function extractWithAssistant(maskedEmail: string, logContext: LogContext): Promise<ExtractionResultEnhanced> {
-  // Get or create extraction assistant
-  extractionAssistantId = await getOrCreateAssistant(
-    getExtractionAssistantConfig(),
-    extractionAssistantId,
-    logContext
-  );
-
   // Create thread with email
   const thread = await openai.beta.threads.create({
     messages: [{
       role: "user",
-      content: `Analyze this customer email and extract structured information as JSON:\n\n${maskedEmail}`
+      content: `Analyze this customer email...\n\n${maskedEmail}`
     }]
   });
 
-  // Run assistant (automatically uses file_search)
+  // Run the PERSISTENT assistant
   const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
-    assistant_id: extractionAssistantId
+    assistant_id: extractionAssistantId  // Reuse same assistant
   });
 
-  if (run.status !== "completed") {
-    throw new Error(`Extraction run failed with status: ${run.status}`);
-  }
-
-  // Get response and parse JSON
-  const messages = await openai.beta.threads.messages.list(thread.id);
-  const assistantMessage = messages.data[0];
-  
-  const textContent = assistantMessage.content.find(c => c.type === "text");
-  const responseText = textContent.text.value;
-  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-  
-  return extractionSchemaEnhanced.parse(JSON.parse(jsonMatch[0]));
-}
-
-async function generateResponseWithAssistant(extraction: ExtractionResultEnhanced, maskedEmail: string, logContext: LogContext): Promise<string> {
-  // Get or create response assistant
-  responseAssistantId = await getOrCreateAssistant(
-    getResponseAssistantConfig(),
-    responseAssistantId,
-    logContext
-  );
-
-  // Create thread
-  const thread = await openai.beta.threads.create({
-    messages: [{
-      role: "user",
-      content: `Generate a professional customer response for this cancellation request...`
-    }]
-  });
-
-  // Stream the response
-  const stream = openai.beta.threads.runs.stream(thread.id, {
-    assistant_id: responseAssistantId
-  });
-
-  let fullResponse = "";
-  for await (const event of stream) {
-    if (event.event === "thread.message.delta") {
-      const delta = event.data.delta;
-      if (delta.content?.[0]?.type === "text") {
-        fullResponse += delta.content[0].text.value;
-      }
-    }
-  }
-
-  return fullResponse.trim();
+  // Process response...
 }
 ```
 
 ## Best Practices
+
+### Assistant Lifecycle
+
+✅ **DO:** Create assistants once, reuse forever
+
+```bash
+# Once (via setup script)
+tsx scripts/setup-assistants.ts
+# OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc...
+# OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz...
+
+# Store IDs in environment
+OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc...
+OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz...
+
+# Runtime: Always use the same assistants
+const extractionAssistantId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID;
+```
+
+❌ **DON'T:** Create assistants dynamically on each request
+
+Creating assistants during request processing wastes API calls and loses performance history.
+
+### Setup Script Usage
+
+✅ **DO:** Use setup script to create or update assistants
+
+```bash
+# Create new assistants
+tsx scripts/setup-assistants.ts
+
+# Update existing assistants (provide IDs in .env)
+export OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc...
+export OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz...
+tsx scripts/setup-assistants.ts
+# Script updates them instead of creating new ones
+```
+
+❌ **DON'T:** Call config functions at runtime
+
+```typescript
+// ❌ WRONG: This is for setup only
+const config = getExtractionAssistantConfig();
+const assistant = await openai.beta.assistants.create(config);
+
+// ✅ RIGHT: Use environment variable
+const assistantId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID;
+```
 
 ### Vector Store Integration
 
@@ -234,9 +242,11 @@ Customer Email
     ↓
 [PII Masking]
     ↓
+[Load Persistent Assistants from Environment]
+    ↓
 [Extract with Assistants API]
   - Create thread
-  - Run extraction assistant
+  - Run extraction assistant (reused)
   - Auto-search vector store via file_search
   - Parse JSON extraction
     ↓
@@ -249,7 +259,7 @@ Customer Email
     ↓
 [Generate Response with Assistants API]
   - Create thread
-  - Run response assistant
+  - Run response assistant (reused)
   - Stream response output
   - Auto-search vector store for similar cases
     ↓
@@ -263,38 +273,46 @@ Customer Email
 ### Environment Variables
 
 ```bash
-# Required
-OPENAI_API_KEY=sk-...
-OPENAI_VECTOR_STORE_ID=vs_...
-
-# Optional: Pre-configured assistant IDs (auto-creates if not provided)
+# Required: Persistent assistant IDs from setup script
 OPENAI_EXTRACTION_ASSISTANT_ID=asst_...
 OPENAI_RESPONSE_ASSISTANT_ID=asst_...
+
+# Required for setup script
+OPENAI_API_KEY=sk-...
+OPENAI_VECTOR_STORE_ID=vs_...
 ```
 
-### Assistant Templates
+### Setup Workflow
 
-Extraction assistant instructions should include:
-- Task description
-- Required extraction fields
-- Classification rules
-- Quality checks
-- Vector store search guidance
+1. **Run setup script once:**
+   ```bash
+   tsx scripts/setup-assistants.ts
+   ```
 
-Response assistant instructions should include:
-- Policy guidelines
-- Tone and style requirements
-- Response structure
-- Language support
-- Edge case handling
-- Vector store search guidance
+2. **Save output IDs to environment:**
+   ```bash
+   OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+   OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+   ```
+
+3. **Use in runtime (via env vars):**
+   - No code changes needed
+   - Assistants automatically loaded from environment
+   - Same assistants used for all requests
+
+4. **To update assistants:**
+   - Modify instructions in `assistant-config.ts`
+   - Re-run setup script with existing IDs
+   - Script updates instead of creating new ones
 
 ## Performance Considerations
 
+- **Zero Cold Start Overhead**: No assistant creation during request processing
+- **Consistent Processing**: Same assistant ID for all requests enables OpenAI Dashboard tracking
 - **Latency**: Assistants API + vector store search adds ~3-5 seconds per request
-- **Cost**: Higher API usage (both extraction and generation use Assistants API)
+- **Cost**: Efficient – no wasted creation API calls
 - **Reliability**: Automatic retry logic with exponential backoff (3 retries, 1s base delay)
-- **Scaling**: Thread cleanup is automatic; assistants are cached per request lifecycle
+- **Persistence**: Assistants persist in OpenAI Dashboard for lifetime tracking
 
 ## Monitoring & Metrics
 
@@ -314,11 +332,22 @@ metricsCollector.record({
 });
 ```
 
+**Benefits of Persistent Assistants:**
+- Track performance over time via same assistant ID
+- Identify patterns and improvements in OpenAI Dashboard
+- Measure impact of instruction updates
+
 ## Testing
 
-Test both assistants independently:
+Test both assistants (IDs required in environment):
 
 ```typescript
+// Validate configuration
+it("should have assistant IDs configured", () => {
+  expect(process.env.OPENAI_EXTRACTION_ASSISTANT_ID).toBeDefined();
+  expect(process.env.OPENAI_RESPONSE_ASSISTANT_ID).toBeDefined();
+});
+
 // Test extraction
 const extractionResult = await extractWithAssistant(maskedEmail, logContext);
 expect(extractionResult.is_cancellation).toBe(true);
@@ -331,6 +360,15 @@ expect(response.toLowerCase()).toContain("elaway");
 ```
 
 ## Troubleshooting
+
+### Missing Assistant IDs
+
+```
+Error: OPENAI_EXTRACTION_ASSISTANT_ID environment variable is required.
+Run: tsx scripts/setup-assistants.ts
+```
+
+**Solution:** Run setup script and save IDs to environment variables.
 
 ### Run fails with status "requires_action"
 
@@ -357,8 +395,10 @@ Check that:
 
 ## References
 
-- `apps/agent/src/assistant-config.ts` - Assistant configurations
+- `scripts/setup-assistants.ts` - Setup script for creating/updating assistants
+- `apps/agent/src/assistant-config.ts` - Assistant configurations (setup only)
 - `apps/agent/src/assistants-processor.ts` - Main processor implementation
 - `apps/agent/src/tests/assistants-processor.test.ts` - Comprehensive tests
+- `README.md` - Initial setup instructions
 - OpenAI Assistants API: https://platform.openai.com/docs/assistants
 - Vector Stores: https://platform.openai.com/docs/assistants/tools/file-search

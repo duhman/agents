@@ -3,6 +3,8 @@ export declare const envSchema: z.ZodObject<{
     DATABASE_URL: z.ZodString;
     OPENAI_API_KEY: z.ZodString;
     OPENAI_VECTOR_STORE_ID: z.ZodOptional<z.ZodString>;
+    OPENAI_EXTRACTION_ASSISTANT_ID: z.ZodString;
+    OPENAI_RESPONSE_ASSISTANT_ID: z.ZodString;
     SLACK_BOT_TOKEN: z.ZodOptional<z.ZodString>;
     SLACK_SIGNING_SECRET: z.ZodOptional<z.ZodString>;
     CRON_SECRET: z.ZodOptional<z.ZodString>;
@@ -12,6 +14,8 @@ export declare const envSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     DATABASE_URL: string;
     OPENAI_API_KEY: string;
+    OPENAI_EXTRACTION_ASSISTANT_ID: string;
+    OPENAI_RESPONSE_ASSISTANT_ID: string;
     OPENAI_VECTOR_STORE_ID?: string | undefined;
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;
@@ -22,6 +26,8 @@ export declare const envSchema: z.ZodObject<{
 }, {
     DATABASE_URL: string;
     OPENAI_API_KEY: string;
+    OPENAI_EXTRACTION_ASSISTANT_ID: string;
+    OPENAI_RESPONSE_ASSISTANT_ID: string;
     OPENAI_VECTOR_STORE_ID?: string | undefined;
     SLACK_BOT_TOKEN?: string | undefined;
     SLACK_SIGNING_SECRET?: string | undefined;

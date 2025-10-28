@@ -1,41 +1,22 @@
-import type OpenAI from "openai";
+import "dotenv/config";
+import OpenAI from "openai";
 
-export interface AssistantConfig {
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+interface AssistantSetupConfig {
   name: string;
-  instructions: string;
   model: string;
-  tools: Array<{ type: "file_search" }>;
-  tool_resources?: {
-    file_search?: {
-      vector_store_ids: string[];
-    };
-  };
   temperature: number;
+  instructions: string;
 }
 
-/**
- * Get extraction assistant configuration.
- * 
- * IMPORTANT: This is used only by the setup script (scripts/setup-assistants.ts)
- * to create or update the persistent extraction assistant.
- * 
- * At runtime, the assistant is retrieved by ID from the environment variable
- * OPENAI_EXTRACTION_ASSISTANT_ID. Do NOT call this function in production code.
- * 
- * @returns Configuration object for creating/updating the extraction assistant
- */
-export function getExtractionAssistantConfig(): AssistantConfig {
-  return {
-    name: "Elaway Cancellation Extraction Assistant",
-    model: "gpt-5-mini",
-    temperature: 0,
-    tools: [{ type: "file_search" }],
-    tool_resources: {
-      file_search: {
-        vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
-      }
-    },
-    instructions: `You are an expert email analyzer for Elaway's customer service automation system.
+const extractionConfig: AssistantSetupConfig = {
+  name: "Elaway Cancellation Extraction Assistant",
+  model: "gpt-5-mini",
+  temperature: 0,
+  instructions: `You are an expert email analyzer for Elaway's customer service automation system.
 
 TASK: Extract structured information from subscription cancellation emails with high accuracy.
 
@@ -74,32 +55,13 @@ QUALITY CHECKS:
 - Look for context clues in customer language and tone
 - Identify any policy compliance risks
 - Note incomplete information that should be flagged`
-  };
-}
+};
 
-/**
- * Get response assistant configuration.
- * 
- * IMPORTANT: This is used only by the setup script (scripts/setup-assistants.ts)
- * to create or update the persistent response assistant.
- * 
- * At runtime, the assistant is retrieved by ID from the environment variable
- * OPENAI_RESPONSE_ASSISTANT_ID. Do NOT call this function in production code.
- * 
- * @returns Configuration object for creating/updating the response assistant
- */
-export function getResponseAssistantConfig(): AssistantConfig {
-  return {
-    name: "Elaway Customer Response Assistant",
-    model: "gpt-5-mini",
-    temperature: 0.3,
-    tools: [{ type: "file_search" }],
-    tool_resources: {
-      file_search: {
-        vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
-      }
-    },
-    instructions: `You are Elaway's customer service assistant for subscription cancellations.
+const responseConfig: AssistantSetupConfig = {
+  name: "Elaway Customer Response Assistant",
+  model: "gpt-5-mini",
+  temperature: 0.3,
+  instructions: `You are Elaway's customer service assistant for subscription cancellations.
 
 CRITICAL POLICY GUIDELINES:
 1. Cancellations take effect at the end of the current month
@@ -149,5 +111,112 @@ DO NOT:
 - Make promises about timing beyond "end of current month"
 - Include signature with personal name (use "Elaway Support")
 - Use template phrases - customize each response based on customer context`
-  };
+};
+
+async function getOrCreateAssistant(
+  config: AssistantSetupConfig,
+  vectorStoreId: string,
+  existingId?: string
+): Promise<string> {
+  // If ID provided, update existing assistant
+  if (existingId) {
+    console.log(`\nUpdating existing assistant: ${existingId}`);
+    try {
+      const updated = await openai.beta.assistants.update(existingId, {
+        name: config.name,
+        model: config.model,
+        temperature: config.temperature,
+        instructions: config.instructions,
+        tools: [{ type: "file_search" }],
+        tool_resources: {
+          file_search: {
+            vector_store_ids: [vectorStoreId]
+          }
+        }
+      });
+      console.log(`✓ Assistant updated: ${updated.id}`);
+      return updated.id;
+    } catch (error: any) {
+      console.error(`✗ Failed to update assistant: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // Create new assistant
+  console.log(`\nCreating assistant: ${config.name}`);
+  try {
+    const assistant = await openai.beta.assistants.create({
+      name: config.name,
+      model: config.model,
+      temperature: config.temperature,
+      instructions: config.instructions,
+      tools: [{ type: "file_search" }],
+      tool_resources: {
+        file_search: {
+          vector_store_ids: [vectorStoreId]
+        }
+      }
+    });
+    console.log(`✓ Assistant created: ${assistant.id}`);
+    return assistant.id;
+  } catch (error: any) {
+    console.error(`✗ Failed to create assistant: ${error.message}`);
+    throw error;
+  }
 }
+
+async function main() {
+  console.log("=".repeat(60));
+  console.log("OpenAI Assistants Setup");
+  console.log("=".repeat(60));
+
+  // Validate environment variables
+  const apiKey = process.env.OPENAI_API_KEY;
+  const vectorStoreId = process.env.OPENAI_VECTOR_STORE_ID;
+
+  if (!apiKey) {
+    console.error("✗ OPENAI_API_KEY environment variable is required");
+    process.exit(1);
+  }
+
+  if (!vectorStoreId) {
+    console.error("✗ OPENAI_VECTOR_STORE_ID environment variable is required");
+    process.exit(1);
+  }
+
+  // Check for existing assistant IDs (for updates)
+  const existingExtractionId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID;
+  const existingResponseId = process.env.OPENAI_RESPONSE_ASSISTANT_ID;
+
+  try {
+    // Create/update extraction assistant
+    const extractionId = await getOrCreateAssistant(
+      extractionConfig,
+      vectorStoreId,
+      existingExtractionId
+    );
+
+    // Create/update response assistant
+    const responseId = await getOrCreateAssistant(
+      responseConfig,
+      vectorStoreId,
+      existingResponseId
+    );
+
+    console.log("\n" + "=".repeat(60));
+    console.log("Setup Complete!");
+    console.log("=".repeat(60));
+    console.log("\nAdd these environment variables to your .env file:\n");
+    console.log(`OPENAI_EXTRACTION_ASSISTANT_ID=${extractionId}`);
+    console.log(`OPENAI_RESPONSE_ASSISTANT_ID=${responseId}`);
+    console.log("\nFor production deployment, add to Vercel environment:\n");
+    console.log("vercel env add OPENAI_EXTRACTION_ASSISTANT_ID");
+    console.log("vercel env add OPENAI_RESPONSE_ASSISTANT_ID");
+    console.log("\n" + "=".repeat(60));
+  } catch (error: any) {
+    console.error("\n✗ Setup failed:", error.message);
+    process.exit(1);
+  }
+}
+
+main();

@@ -2,6 +2,15 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { processEmailWithAssistants } from "../assistants-processor.js";
 
 describe("Assistants API Processor", () => {
+  describe("Configuration", () => {
+    it("should have assistant IDs configured via environment variables", () => {
+      expect(process.env.OPENAI_EXTRACTION_ASSISTANT_ID).toBeDefined();
+      expect(process.env.OPENAI_RESPONSE_ASSISTANT_ID).toBeDefined();
+      expect(process.env.OPENAI_EXTRACTION_ASSISTANT_ID).toMatch(/^asst_/);
+      expect(process.env.OPENAI_RESPONSE_ASSISTANT_ID).toMatch(/^asst_/);
+    });
+  });
+
   describe("Email Classification", () => {
     it("should detect cancellation requests", async () => {
       const result = await processEmailWithAssistants({

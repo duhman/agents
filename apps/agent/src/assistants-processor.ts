@@ -11,13 +11,30 @@ import {
 import { createTicket, createDraft } from "@agents/db";
 import { calculateConfidenceEnhanced, type ExtractionResultEnhanced } from "@agents/prompts";
 import { metricsCollector } from "./metrics.js";
-import {
-  getExtractionAssistantConfig,
-  getResponseAssistantConfig,
-  type AssistantConfig
-} from "./assistant-config.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Vercel timeout safety: webhook timeout is ~30s, function timeout is 60s on Pro/Enterprise
+const EXTRACTION_TIMEOUT_MS = 20000; // 20s max for extraction (leave 10s buffer)
+const RESPONSE_TIMEOUT_MS = 15000;   // 15s max for response (leave 15s buffer)
+
+// Validate assistant IDs are present
+const extractionAssistantId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID!;
+const responseAssistantId = process.env.OPENAI_RESPONSE_ASSISTANT_ID!;
+
+if (!extractionAssistantId) {
+  throw new Error(
+    "OPENAI_EXTRACTION_ASSISTANT_ID environment variable is required. " +
+    "Run 'pnpm --filter @agents/agent exec tsx scripts/setup-assistants.ts' to create assistants."
+  );
+}
+
+if (!responseAssistantId) {
+  throw new Error(
+    "OPENAI_RESPONSE_ASSISTANT_ID environment variable is required. " +
+    "Run 'pnpm --filter @agents/agent exec tsx scripts/setup-assistants.ts' to create assistants."
+  );
+}
 
 export interface ProcessEmailParams {
   source: string;
@@ -35,50 +52,26 @@ export interface ProcessEmailResult {
   error?: string;
 }
 
-// Cache assistant IDs to avoid recreating them
-let extractionAssistantId: string | null = null;
-let responseAssistantId: string | null = null;
-
-async function getOrCreateAssistant(
-  config: AssistantConfig,
-  cachedId: string | null,
-  logContext: LogContext
-): Promise<string> {
-  if (cachedId) {
-    return cachedId;
-  }
-
-  logInfo("Creating new assistant", logContext, { name: config.name });
-
-  const assistant = await openai.beta.assistants.create({
-    name: config.name,
-    instructions: config.instructions,
-    model: config.model,
-    tools: config.tools,
-    tool_resources: config.tool_resources,
-    temperature: config.temperature
-  });
-
-  logInfo("Assistant created successfully", logContext, {
-    assistantId: assistant.id,
-    name: config.name
-  });
-
-  return assistant.id;
+/**
+ * Create a promise that rejects after a timeout
+ */
+function createTimeoutPromise<T>(ms: number, operationName: string): Promise<T> {
+  return new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`${operationName} timed out after ${ms}ms`)),
+      ms
+    )
+  );
 }
 
 async function extractWithAssistant(
   maskedEmail: string,
   logContext: LogContext
 ): Promise<ExtractionResultEnhanced> {
-  logInfo("Using Assistants API for extraction", logContext);
-
-  // Get or create extraction assistant
-  extractionAssistantId = await getOrCreateAssistant(
-    getExtractionAssistantConfig(),
-    extractionAssistantId,
-    logContext
-  );
+  logInfo("Using Assistants API for extraction", logContext, {
+    assistantId: extractionAssistantId,
+    timeoutMs: EXTRACTION_TIMEOUT_MS
+  });
 
   // Create thread with the email
   const thread = await openai.beta.threads.create({
@@ -92,10 +85,15 @@ async function extractWithAssistant(
 
   logInfo("Thread created for extraction", logContext, { threadId: thread.id });
 
-  // Run the assistant (it will automatically use file_search)
-  const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+  // Run the assistant WITH TIMEOUT PROTECTION
+  const runPromise = openai.beta.threads.runs.createAndPoll(thread.id, {
     assistant_id: extractionAssistantId
   });
+
+  const run: any = await Promise.race([
+    runPromise,
+    createTimeoutPromise(EXTRACTION_TIMEOUT_MS, "Extraction run")
+  ]);
 
   if (run.status !== "completed") {
     throw new Error(`Extraction run failed with status: ${run.status}`);
@@ -140,16 +138,13 @@ async function extractWithAssistant(
 async function generateResponseWithAssistant(
   extraction: ExtractionResultEnhanced,
   maskedEmail: string,
-  logContext: LogContext
+  logContext: LogContext,
+  ticketId: string
 ): Promise<string> {
-  logInfo("Using Assistants API for response generation", logContext);
-
-  // Get or create response assistant
-  responseAssistantId = await getOrCreateAssistant(
-    getResponseAssistantConfig(),
-    responseAssistantId,
-    logContext
-  );
+  logInfo("Using Assistants API for response generation", logContext, {
+    assistantId: responseAssistantId,
+    timeoutMs: RESPONSE_TIMEOUT_MS
+  });
 
   // Build context for response generation
   const contextPrompt = `Generate a professional customer response for this cancellation request based on the extracted information:
@@ -182,24 +177,46 @@ Using the vector store, find similar cases and generate a personalized, empathet
 
   logInfo("Thread created for response generation", logContext, { threadId: thread.id });
 
-  // Stream the response
-  const stream = openai.beta.threads.runs.stream(thread.id, {
-    assistant_id: responseAssistantId
-  });
-
+  // Stream the response WITH TIMEOUT PROTECTION
   let fullResponse = "";
 
-  for await (const event of stream) {
-    if (event.event === "thread.message.delta") {
-      const delta = event.data.delta;
-      if (delta.content) {
-        for (const content of delta.content) {
-          if (content.type === "text" && content.text) {
-            fullResponse += content.text.value;
+  try {
+    const streamPromise = (async () => {
+      const stream = openai.beta.threads.runs.stream(thread.id, {
+        assistant_id: responseAssistantId
+      });
+
+      for await (const event of stream) {
+        if (event.event === "thread.message.delta") {
+          const delta = event.data.delta;
+          if (delta.content) {
+            for (const content of delta.content) {
+              if (content.type === "text" && content.text) {
+                fullResponse += content.text.value;
+              }
+            }
           }
         }
       }
+    })();
+
+    await Promise.race([
+      streamPromise,
+      createTimeoutPromise(RESPONSE_TIMEOUT_MS, "Response streaming")
+    ]);
+  } catch (error: any) {
+    if (error.message.includes("timed out")) {
+      logInfo("Response streaming timed out - using partial response", logContext, {
+        partialLength: fullResponse.length,
+        wordCount: fullResponse.split(/\s+/).length
+      });
+      // Use partial response if we got something
+      if (fullResponse.length > 50) {
+        logInfo("Using partial response due to timeout", logContext);
+        return fullResponse.trim();
+      }
     }
+    throw error;
   }
 
   if (!fullResponse) {
@@ -231,7 +248,7 @@ export async function processEmailWithAssistants(
     const maskedEmail = maskPII(rawEmail);
     const maskedCustomerEmail = maskPII(customerEmail);
 
-    // STEP 1: Extract with Assistants API
+    // STEP 1: Extract with Assistants API (must complete within timeout)
     const extraction = await withRetry(
       async () => extractWithAssistant(maskedEmail, logContext),
       3,
@@ -285,12 +302,19 @@ export async function processEmailWithAssistants(
 
     logInfo("Ticket created", logContext, { ticketId: ticket.id });
 
-    // STEP 3: Generate response with Assistants API
-    const draftText = await withRetry(
-      async () => generateResponseWithAssistant(extraction, maskedEmail, logContext),
-      3,
-      1000
-    );
+    // STEP 3: Generate response with Assistants API (with timeout protection)
+    let draftText: string;
+    try {
+      draftText = await withRetry(
+        async () => generateResponseWithAssistant(extraction, maskedEmail, logContext, ticket.id),
+        2,  // Reduce retries for response to avoid timeout
+        500 // Shorter backoff
+      );
+    } catch (error: any) {
+      logError("Response generation failed", logContext, error);
+      // Use fallback response on timeout
+      draftText = `Vi har mottatt din oppsigelse og vil håndtere denne snarest.`;
+    }
 
     const wordCount = draftText.split(/\s+/).filter(w => w.length > 0).length;
 
@@ -309,7 +333,7 @@ export async function processEmailWithAssistants(
       language: extraction.language,
       draftText,
       confidence: String(confidence),
-      model: "gpt-4o-assistants-v1"
+      model: "gpt-5-mini-assistants-v1"
     });
 
     logInfo("Draft saved", logContext, { draftId: draft.id });
@@ -370,15 +394,19 @@ export async function healthCheckAssistants(): Promise<{
   const logContext: LogContext = { requestId };
 
   try {
-    logInfo("Starting Assistants API health check", logContext);
+    logInfo("Starting Assistants API health check", logContext, {
+      extractionAssistantId,
+      responseAssistantId
+    });
 
-    // Test extraction assistant creation
-    const extractionConfig = getExtractionAssistantConfig();
-    const responseConfig = getResponseAssistantConfig();
+    // Verify both assistant IDs are present
+    if (!extractionAssistantId || !responseAssistantId) {
+      throw new Error("Assistant IDs not configured");
+    }
 
     logInfo("Health check completed successfully", logContext, {
-      extractionAssistantConfigured: !!extractionConfig,
-      responseAssistantConfigured: !!responseConfig
+      extractionAssistantId,
+      responseAssistantId
     });
 
     return {

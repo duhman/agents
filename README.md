@@ -26,6 +26,53 @@ Optional for full HITM loop:
 2. Run `pnpm --filter @agents/slack-bot build`.
 3. Deploy `api/webhook.ts` and `api/slack/interactions.ts` (Vercel-ready).
 
+## Initial Setup: Create Persistent Assistants
+
+The system uses **persistent reusable assistants** created once and reused across all requests. This ensures consistency, enables performance tracking, and avoids cold-start overhead.
+
+### Step 1: Create Assistants
+
+Run the setup script to create both assistants programmatically:
+
+```bash
+# Ensure you have OPENAI_API_KEY and OPENAI_VECTOR_STORE_ID in .env
+tsx scripts/setup-assistants.ts
+```
+
+The script will output:
+
+```
+============================================================
+Setup Complete!
+============================================================
+
+Add these environment variables to your .env file:
+
+OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+```
+
+### Step 2: Save Assistant IDs
+
+Add the output IDs to your `.env` file:
+
+```bash
+OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+```
+
+### Step 3: Verify Configuration
+
+Tests will validate that the assistant IDs are present:
+
+```bash
+pnpm test
+```
+
+### Updating Assistants
+
+To update assistant instructions or settings in the future, re-run the setup script with existing assistant IDs in `.env`. The script will update them instead of creating new ones.
+
 ## Core Services
 
 - **api/webhook.ts** – HubSpot-facing endpoint. Validates payloads, calls the Assistants API processor, and queues Slack review posts.
@@ -37,13 +84,14 @@ Optional for full HITM loop:
 
 ## Architecture: OpenAI Assistants API
 
-The system uses two specialized assistants:
+The system uses two persistent assistants created once and reused across all requests:
 
 ### Extraction Assistant
 
 - Analyzes customer emails to extract structured cancellation data
 - Automatically searches the vector store for similar customer cases
 - Returns structured JSON with: is_cancellation, reason, move_date, language, edge_case, confidence_factors
+- Model: `gpt-5-mini`
 - Temperature: 0 (deterministic, consistent extraction)
 
 ### Response Assistant
@@ -52,6 +100,7 @@ The system uses two specialized assistants:
 - Automatically searches the vector store for similar resolved cases and policies
 - Generates responses in the customer's language with full policy compliance
 - Uses streaming for real-time response generation
+- Model: `gpt-5-mini`
 - Temperature: 0.3 (controlled creativity, natural language)
 
 ### Vector Store Integration
@@ -73,6 +122,7 @@ packages/prompts/  Extraction schemas, templates, policy validation
 packages/db/       Postgres schema & repositories using Drizzle ORM
 infra/             Docker Compose for local Postgres
 public/index.html  Minimal API landing page
+scripts/           Setup and utility scripts
 ```
 
 ## Environment Variables
@@ -83,15 +133,13 @@ Required:
 OPENAI_API_KEY=sk-...
 OPENAI_VECTOR_STORE_ID=vs_...
 DATABASE_URL=postgresql://...
+OPENAI_EXTRACTION_ASSISTANT_ID=asst_...
+OPENAI_RESPONSE_ASSISTANT_ID=asst_...
 ```
 
 Optional:
 
 ```bash
-# Pre-configured assistant IDs (auto-created if not provided)
-OPENAI_EXTRACTION_ASSISTANT_ID=asst_...
-OPENAI_RESPONSE_ASSISTANT_ID=asst_...
-
 # Slack integration
 SLACK_BOT_TOKEN=xoxb-...
 SLACK_SIGNING_SECRET=...
@@ -111,6 +159,10 @@ HUBSPOT_WEBHOOK_SECRET=...
 - `pnpm test` – Run agent tests (Assistants API processor).
 - `pnpm lint` – Lint all workspaces.
 - `pnpm format` – Prettier for TypeScript/JavaScript/JSON/Markdown.
+
+### Assistant Management
+
+- `tsx scripts/setup-assistants.ts` – Create or update persistent assistants.
 
 ## Documentation
 
@@ -170,8 +222,9 @@ The integration is configured via `.cursor/rules/ai-processing.mdc` and `.cursor
 
 - `api/webhook.ts` and `api/slack/interactions.ts` are standard Vercel Node runtimes.
 - `api/cron/process-slack-retry.ts` processes queued Slack posts (protect with `CRON_SECRET`).
-- Ensure `DATABASE_URL`, `OPENAI_API_KEY`, `OPENAI_VECTOR_STORE_ID`, `SLACK_*`, and optional `HUBSPOT_*` env vars are set in production.
-- Assistants are created on first use and cached for subsequent requests (no assistant ID management needed unless using existing assistants).
+- Ensure all required environment variables are set in production (see Environment Variables section).
+- Run the setup script once to create assistants, then store their IDs as environment variables in Vercel/production.
+- Assistants are persistent and reused across all requests – no creation overhead at runtime.
 
 ## Dependencies
 
@@ -182,6 +235,7 @@ The integration is configured via `.cursor/rules/ai-processing.mdc` and `.cursor
 
 ## Key Features
 
+- **Persistent Assistants**: Same assistants reused across all requests for consistency and performance tracking
 - **Dynamic Responses**: AI generates personalized responses for each customer, not using fixed templates
 - **Vector Store Integration**: Automatic semantic search across customer documentation and policies
 - **Multilingual Support**: Norwegian (default), English, Swedish support with language-aware responses
@@ -193,8 +247,12 @@ The integration is configured via `.cursor/rules/ai-processing.mdc` and `.cursor
 
 ## Status
 
-The system has been fully migrated from hybrid deterministic/AI processing to OpenAI Assistants API for both extraction and response generation. This enables:
+The system has been migrated to use **persistent reusable assistants** created once and reused across all requests. This enables:
 
+- Consistent processing across all requests (same assistant for all emails)
+- Performance tracking over time via OpenAI Dashboard
+- Zero cold-start overhead – no assistant creation during request processing
+- Easy updates – modify instructions by re-running the setup script
 - More accurate contextual analysis of customer requests
 - Personalized, context-aware responses instead of templates
 - Automatic vector store retrieval for policy and example guidance
