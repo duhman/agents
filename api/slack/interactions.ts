@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHumanReview, resetDbClient, getDraftById } from "@agents/db";
 import { createHmac, timingSafeEqual } from "crypto";
+import { parseRetryAfterSeconds, isRateLimitError } from "../../apps/slack-bot/src/slack-utils.js";
 
 export const config = { runtime: "nodejs", regions: ["fra1"] };
 
@@ -44,14 +45,19 @@ async function getRawBody(req: VercelRequest): Promise<Buffer> {
 
 /**
  * Verify Slack request signature to prevent unauthorized requests
- * https://api.slack.com/authentication/verifying-requests-from-slack
+ * Reference: https://docs.slack.dev/authentication/verifying-requests-from-slack
  */
 function verifySlackSignature(req: VercelRequest, requestBody: string): boolean {
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
 
   if (!signingSecret) {
-    log("error", "SLACK_SIGNING_SECRET not configured - signature verification disabled");
-    return true; // Allow in development, but log warning
+    // Require explicit opt-in bypass in development
+    if (process.env.ALLOW_INSECURE_SLACK_DEV !== "true") {
+      log("error", "SLACK_SIGNING_SECRET not configured and ALLOW_INSECURE_SLACK_DEV not set");
+      return false;
+    }
+    log("warn", "Slack signature verification disabled via ALLOW_INSECURE_SLACK_DEV");
+    return true;
   }
 
   const slackSignature = req.headers["x-slack-signature"] as string | undefined;
@@ -276,7 +282,7 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // Increased to 10 seconds
+    const timeout = setTimeout(() => controller.abort(), 10000);
     try {
       log("info", "Slack API request started", { method, attempt, requestId });
       const res = await fetch(`https://slack.com/api/${method}`, {
@@ -381,7 +387,7 @@ async function slackApi(method: string, body: Record<string, unknown>, requestId
         }
 
         if (error === "rate_limited" || error === "ratelimited") {
-          const retryAfter = json.retry_after || 60;
+          const retryAfter = parseRetryAfterSeconds(res.headers, json.retry_after) || 60;
           log("error", "Slack rate limited", {
             method,
             attempt,

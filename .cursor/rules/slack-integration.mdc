@@ -6,9 +6,17 @@ alwaysApply: false
 
 # Slack HITM (Human-in-the-Middle) Patterns
 
+For the latest Slack platform documentation, reference [docs.slack.dev](https://docs.slack.dev) instead of the legacy `api.slack.com`. Key resources:
+- [Slack App Manifest](https://docs.slack.dev/elements/manifests)
+- [Block Kit Reference](https://docs.slack.dev/reference/block-kit)
+- [Interactivity & Shortcuts](https://docs.slack.dev/surfaces/modals)
+- [OAuth Scopes](https://docs.slack.dev/authentication/oauth-v2/scopes)
+- [Web API Methods](https://docs.slack.dev/methods)
+
 ## Performance Constraints
 
 ⚠️ **Critical:** Slack webhooks timeout at 3 seconds
+- Reference: [Interactivity best practices](https://docs.slack.dev/surfaces/modals#best-practices)
 
 ✅ **DO:** Acknowledge immediately, process async
 
@@ -260,6 +268,8 @@ try {
 
 ✅ **DO:** Verify Slack signature for all webhook requests
 
+Reference: [Request signing verification](https://docs.slack.dev/authentication/verifying-requests-from-slack)
+
 ```typescript
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -267,8 +277,13 @@ function verifySlackSignature(req: VercelRequest, requestBody: string): boolean 
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
 
   if (!signingSecret) {
-    log("error", "SLACK_SIGNING_SECRET not configured");
-    return true; // Allow in dev
+    // Require explicit opt-in bypass in development
+    if (process.env.ALLOW_INSECURE_SLACK_DEV !== "true") {
+      log("error", "SLACK_SIGNING_SECRET not configured and ALLOW_INSECURE_SLACK_DEV not set");
+      return false;
+    }
+    log("warn", "Slack signature verification disabled via ALLOW_INSECURE_SLACK_DEV");
+    return true;
   }
 
   const slackSignature = req.headers["x-slack-signature"] as string | undefined;
@@ -291,10 +306,42 @@ function verifySlackSignature(req: VercelRequest, requestBody: string): boolean 
 }
 ```
 
+## Rate Limiting
+
+Properly handle Slack rate limits by respecting the `Retry-After` header:
+
+```typescript
+// Parse retry-after from headers or response body
+function parseRetryAfterSeconds(
+  headers: Headers,
+  bodyRetryAfter?: unknown
+): number | undefined {
+  const headerValue = headers.get("retry-after");
+  if (headerValue) {
+    const parsed = parseInt(headerValue, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+
+  const fallbackNumber =
+    typeof bodyRetryAfter === "number"
+      ? bodyRetryAfter
+      : typeof bodyRetryAfter === "string"
+        ? parseInt(bodyRetryAfter, 10)
+        : undefined;
+
+  if (fallbackNumber && fallbackNumber > 0) return fallbackNumber;
+  return undefined;
+}
+```
+
+Reference: [Rate limiting](https://docs.slack.dev/apis/rate-limiting)
+
 ## References
 
 - @apps/slack-bot/src/index.ts - HITM implementation
+- @apps/slack-bot/manifest.json - App manifest configuration
 - @packages/db/src/repositories.ts - Human review storage
 - @api/slack/interactions.ts - Modal + response handling
 - @documentation/project/policies.md - Review policies
 - SLACK_BOT_SETUP_GUIDE.md - Setup documentation
+- [Slack Developer Docs](https://docs.slack.dev) - Official platform documentation

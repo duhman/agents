@@ -8,6 +8,7 @@ import {
   getSlackRetryQueueStats,
   claimSlackRetryQueueItem
 } from "@agents/db";
+import { parseRetryAfterSeconds, isRateLimitError } from "./slack-utils";
 
 const SUBJECT_MAX_LENGTH = 250;
 const BODY_BLOCK_MAX_LENGTH = 2900;
@@ -614,28 +615,6 @@ export async function postReview(
   const maxAttempts = 2;
   const baseDelayMs = 500;
 
-  const parseRetryAfterSeconds = (
-    header: string | null,
-    fallback?: unknown
-  ): number | undefined => {
-    if (header) {
-      const parsed = parseInt(header, 10);
-      if (!Number.isNaN(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-    const fallbackNumber =
-      typeof fallback === "number"
-        ? fallback
-        : typeof fallback === "string"
-          ? parseInt(fallback, 10)
-          : undefined;
-    if (fallbackNumber && fallbackNumber > 0) {
-      return fallbackNumber;
-    }
-    return undefined;
-  };
-
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const controller = new AbortController();
@@ -656,7 +635,7 @@ export async function postReview(
       const retryAfterHeader = response.headers.get("retry-after");
 
       if (response.status === 429) {
-        const retryAfterSeconds = parseRetryAfterSeconds(retryAfterHeader) ?? 60;
+        const retryAfterSeconds = parseRetryAfterSeconds(response.headers) ?? 60;
 
         console.error(
           JSON.stringify({
@@ -692,9 +671,8 @@ export async function postReview(
       if (!json.ok) {
         const error = json.error || "unknown_error";
 
-        if (error === "rate_limited" || error === "ratelimited") {
-          const retryAfterSeconds =
-            parseRetryAfterSeconds(retryAfterHeader, json.retry_after) ?? 60;
+        if (isRateLimitError(error)) {
+          const retryAfterSeconds = parseRetryAfterSeconds(response.headers, json.retry_after) ?? 60;
 
           console.error(
             JSON.stringify({

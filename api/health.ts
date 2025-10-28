@@ -1,61 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSlackRetryQueueStatus, processSlackRetryQueue } from "../apps/slack-bot/dist/index.js";
+import { checkSlackCapabilities } from "../apps/slack-bot/src/slack-utils";
 
 export const config = { runtime: "nodejs", regions: ["iad1"] };
-
-async function checkSlackAPIHealth(): Promise<{
-  reachable: boolean;
-  responseTime: number;
-  error?: string;
-  statusCode?: number;
-  timestamp: number;
-}> {
-  const startTime = Date.now();
-
-  try {
-    const token = process.env.SLACK_BOT_TOKEN;
-    if (!token) {
-      return {
-        reachable: false,
-        responseTime: Date.now() - startTime,
-        error: "SLACK_BOT_TOKEN not configured",
-        timestamp: Date.now()
-      };
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const res = await fetch("https://slack.com/api/auth.test", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-    const responseTime = Date.now() - startTime;
-    const result = await res.json();
-
-    return {
-      reachable: result.ok === true,
-      responseTime,
-      statusCode: res.status,
-      timestamp: Date.now(),
-      error: result.ok ? undefined : result.error
-    };
-  } catch (error: any) {
-    const responseTime = Date.now() - startTime;
-    return {
-      reachable: false,
-      responseTime,
-      timestamp: Date.now(),
-      error: error?.message || String(error)
-    };
-  }
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== "GET") {
@@ -64,8 +11,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
-    const [slackHealth, retryQueueStatus] = await Promise.all([
-      checkSlackAPIHealth(),
+    const startTime = Date.now();
+    const [slackCapabilities, retryQueueStatus] = await Promise.all([
+      checkSlackCapabilities(),
       Promise.resolve(getSlackRetryQueueStatus())
     ]);
 
@@ -78,22 +26,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       }
     }
 
+    const duration = Date.now() - startTime;
+    const isHealthy =
+      slackCapabilities.hasValidToken &&
+      slackCapabilities.hasRequiredScopes;
+
     const health = {
-      status: "healthy",
+      status: isHealthy ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
+      duration_ms: duration,
       services: {
         slack: {
-          reachable: slackHealth.reachable,
-          responseTime: slackHealth.responseTime,
-          statusCode: slackHealth.statusCode,
-          error: slackHealth.error,
-          lastChecked: new Date(slackHealth.timestamp).toISOString()
+          status: slackCapabilities.hasValidToken ? "ok" : "error",
+          hasValidToken: slackCapabilities.hasValidToken,
+          hasRequiredScopes: slackCapabilities.hasRequiredScopes,
+          canOpenModals: slackCapabilities.canOpenModals,
+          error: slackCapabilities.error
         }
       },
       retryQueue: retryQueueStatus
     };
 
-    res.status(200).json(health);
+    const statusCode = isHealthy ? 200 : 503;
+    res.status(statusCode).json(health);
   } catch (error: any) {
     console.error("Health check error:", error);
     res.status(500).json({
