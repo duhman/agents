@@ -142,8 +142,32 @@ async function getOrCreateAssistant(
     }
   }
 
+  // Check if assistant with same name already exists to prevent duplicates
+  console.log(`\nChecking for existing assistant: ${config.name}`);
+  try {
+    const existingAssistants = await openai.beta.assistants.list();
+    const duplicate = existingAssistants.data.find(a => a.name === config.name);
+    
+    if (duplicate) {
+      console.log(`⚠ Found existing assistant with same name: ${duplicate.id}`);
+      console.log(`\nTo update this assistant, set the environment variable:`);
+      console.log(`export OPENAI_${config.name.toUpperCase().replace(/\s/g, '_')}_ASSISTANT_ID=${duplicate.id}`);
+      console.log(`Then re-run this script.\n`);
+      throw new Error(
+        `Assistant "${config.name}" already exists with ID: ${duplicate.id}. ` +
+        `To reuse it, set OPENAI_EXTRACTION_ASSISTANT_ID or OPENAI_RESPONSE_ASSISTANT_ID environment variable.`
+      );
+    }
+  } catch (error: any) {
+    if (error.message.includes("already exists")) {
+      throw error;
+    }
+    // Continue if list fails (might be permission issue), proceed to create
+    console.log(`⚠ Could not check existing assistants: ${error.message}`);
+  }
+
   // Create new assistant
-  console.log(`\nCreating assistant: ${config.name}`);
+  console.log(`Creating assistant: ${config.name}`);
   try {
     const assistant = await openai.beta.assistants.create({
       name: config.name,
@@ -169,6 +193,8 @@ async function main() {
   console.log("=".repeat(60));
   console.log("OpenAI Assistants Setup");
   console.log("=".repeat(60));
+  console.log("\nThis script creates persistent assistants (one-time setup).");
+  console.log("If assistants already exist, they will NOT be recreated.\n");
 
   // Validate environment variables
   const apiKey = process.env.OPENAI_API_KEY;
@@ -187,6 +213,13 @@ async function main() {
   // Check for existing assistant IDs (for updates)
   const existingExtractionId = process.env.OPENAI_EXTRACTION_ASSISTANT_ID;
   const existingResponseId = process.env.OPENAI_RESPONSE_ASSISTANT_ID;
+
+  if (existingExtractionId || existingResponseId) {
+    console.log("Found existing assistant IDs in environment:");
+    if (existingExtractionId) console.log(`  - Extraction: ${existingExtractionId}`);
+    if (existingResponseId) console.log(`  - Response: ${existingResponseId}`);
+    console.log("These will be updated with new configurations.\n");
+  }
 
   try {
     // Create/update extraction assistant
@@ -212,6 +245,10 @@ async function main() {
     console.log("\nFor production deployment, add to Vercel environment:\n");
     console.log("vercel env add OPENAI_EXTRACTION_ASSISTANT_ID");
     console.log("vercel env add OPENAI_RESPONSE_ASSISTANT_ID");
+    console.log("\nDuplicate Prevention:");
+    console.log("- These assistant IDs are persistent and reused forever");
+    console.log("- Running this script again will UPDATE, not recreate assistants");
+    console.log("- New assistants will NOT be created if these IDs are set");
     console.log("\n" + "=".repeat(60));
   } catch (error: any) {
     console.error("\n✗ Setup failed:", error.message);

@@ -32,6 +32,44 @@ The system uses **persistent reusable assistants** created once and reused acros
 
 Reference: https://platform.openai.com/docs/models/gpt-4.1
 
+## Duplicate Prevention
+
+**CRITICAL: Never create duplicate assistants in OpenAI account**
+
+The setup script prevents duplicate creation by:
+
+✅ **DO: Reuse persistent assistant IDs**
+
+```bash
+# Set environment variables from first run
+export OPENAI_EXTRACTION_ASSISTANT_ID=asst_abc123...
+export OPENAI_RESPONSE_ASSISTANT_ID=asst_xyz789...
+
+# Subsequent runs UPDATE existing assistants
+pnpm tsx scripts/setup-assistants.ts
+```
+
+❌ **DON'T: Run setup script without environment variables**
+
+Running the script multiple times without IDs set will try to create new assistants.
+
+**Assistant Lifecycle:**
+1. First run: Creates extraction + response assistants → save IDs
+2. Save IDs: Set `OPENAI_*_ASSISTANT_ID` environment variables
+3. Reuse: Script checks for duplicates and updates instead of creating
+4. Never: Duplicate assistants are created when IDs are set
+
+**Key Pattern:**
+```typescript
+// Setup script checks by name to prevent duplicates
+const existingAssistants = await openai.beta.assistants.list();
+const duplicate = existingAssistants.data.find(a => a.name === config.name);
+
+if (duplicate && !existingId) {
+  throw new Error(`Assistant already exists: ${duplicate.id}`);
+}
+```
+
 ## Core Components
 
 ### 1. Setup Script (`scripts/setup-assistants.ts`)

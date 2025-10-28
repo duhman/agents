@@ -111,6 +111,26 @@ pnpm tsx scripts/setup-assistants.ts
 # OPENAI_RESPONSE_ASSISTANT_ID=asst_...
 ```
 
+### Duplicate Prevention
+
+The setup script includes built-in duplicate prevention:
+
+**Checks:**
+- Looks for existing assistants by name
+- If found, asks you to set environment variables instead of creating new ones
+- Prevents accidental duplicate assistant creation
+
+**Workflow:**
+1. First run: Creates both assistants
+2. Subsequent runs: Updates existing assistants (if IDs in environment)
+3. Never creates: Duplicate assistants with same names
+
+**Important:**
+- Always save the returned assistant IDs
+- Set `OPENAI_EXTRACTION_ASSISTANT_ID` and `OPENAI_RESPONSE_ASSISTANT_ID` environment variables
+- Reusing IDs prevents accidental duplicates
+- Running the script multiple times with IDs set UPDATES, not RECREATES
+
 ### Updating Assistants
 
 To update assistant configurations:
