@@ -8,7 +8,7 @@ import {
   getSlackRetryQueueStats,
   claimSlackRetryQueueItem
 } from "@agents/db";
-import { parseRetryAfterSeconds, isRateLimitError } from "./slack-utils";
+import { parseRetryAfterSeconds, isRateLimitError } from "./slack-utils.js";
 
 const SUBJECT_MAX_LENGTH = 250;
 const BODY_BLOCK_MAX_LENGTH = 2900;
