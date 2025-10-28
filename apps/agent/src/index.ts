@@ -2,11 +2,11 @@ import "dotenv/config";
 import { envSchema } from "@agents/core";
 
 import {
-  processEmailHybrid,
-  healthCheckHybrid,
+  processEmailWithAssistants,
+  healthCheckAssistants,
   type ProcessEmailParams,
   type ProcessEmailResult
-} from "./hybrid-processor.js";
+} from "./assistants-processor.js";
 
 const env = envSchema.parse(process.env);
 
@@ -14,18 +14,18 @@ export type { ProcessEmailParams, ProcessEmailResult };
 
 /**
  * Main email processing function.
- * Uses the hybrid processor that combines deterministic extraction with
- * selective OpenAI fallback for complex cases.
+ * Uses OpenAI Assistants API for both extraction and response generation with
+ * automatic vector store retrieval and dynamic response creation.
  */
 export async function processEmail(params: ProcessEmailParams): Promise<ProcessEmailResult> {
-  return processEmailHybrid(params);
+  return processEmailWithAssistants(params);
 }
 
 /**
  * Health check function
  */
 export async function healthCheck() {
-  return healthCheckHybrid();
+  return healthCheckAssistants();
 }
 
 // Example usage (for local testing)
@@ -39,7 +39,7 @@ Mvh,
 Ole
   `;
 
-  console.log("Testing hybrid processor...");
+  console.log("Testing Assistants API processor...");
 
   processEmail({
     source: "test",

@@ -52,10 +52,12 @@ async function searchVectorStoreDirect(
 
     // Create a thread and run the assistant
     const thread = await openai.beta.threads.create({
-      messages: [{
-        role: "user",
-        content: query
-      }]
+      messages: [
+        {
+          role: "user",
+          content: query
+        }
+      ]
     });
 
     const run = await openai.beta.threads.runs.createAndPoll(thread.id, {

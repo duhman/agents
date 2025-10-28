@@ -9,6 +9,7 @@ export interface ProcessingMetrics {
   cancellations_detected: number;
   deterministic_extractions: number;
   openai_extractions: number;
+  assistants_api_extractions: number;
   edge_cases_handled: Record<string, number>;
   avg_confidence: number;
   avg_processing_time_ms: number;
@@ -32,6 +33,7 @@ class MetricsCollector {
     cancellations_detected: 0,
     deterministic_extractions: 0,
     openai_extractions: 0,
+    assistants_api_extractions: 0,
     edge_cases_handled: {},
     avg_confidence: 0,
     avg_processing_time_ms: 0,
@@ -54,7 +56,7 @@ class MetricsCollector {
   private policyComplianceCount = 0;
 
   record(data: {
-    extraction_method: "deterministic" | "openai";
+    extraction_method: "deterministic" | "openai" | "assistants-api";
     is_cancellation: boolean;
     edge_case: string;
     confidence: number;
@@ -78,8 +80,10 @@ class MetricsCollector {
 
     if (data.extraction_method === "deterministic") {
       this.metrics.deterministic_extractions++;
-    } else {
+    } else if (data.extraction_method === "openai") {
       this.metrics.openai_extractions++;
+    } else if (data.extraction_method === "assistants-api") {
+      this.metrics.assistants_api_extractions++;
     }
 
     if (data.edge_case !== "none") {
@@ -159,6 +163,7 @@ class MetricsCollector {
       cancellations_detected: 0,
       deterministic_extractions: 0,
       openai_extractions: 0,
+      assistants_api_extractions: 0,
       edge_cases_handled: {},
       avg_confidence: 0,
       avg_processing_time_ms: 0,

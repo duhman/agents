@@ -1,492 +1,364 @@
 ---
-description: Hybrid deterministic/AI processing with OpenAI best practices and email classification patterns
+description: OpenAI Assistants API for dynamic extraction and response generation with vector store retrieval
 globs: apps/agent/**/*.ts, packages/prompts/**/*.ts
 alwaysApply: false
 ---
 
-# AI Processing & Email Classification
+# OpenAI Assistants API Processing
 
-This rule consolidates the hybrid deterministic/AI processing architecture with OpenAI best practices and email classification patterns.
+This rule documents the Assistants API architecture for email extraction and dynamic response generation with automatic vector store retrieval.
 
 ## Architecture Overview
 
-The system uses a **deterministic-first, AI-fallback** strategy:
+The system uses **OpenAI Assistants API** for both extraction and response generation:
 
-1. **Deterministic Processing**: Fast, free pattern matching for standard cases
-2. **AI Fallback**: OpenAI for complex/ambiguous cases that need nuanced understanding
-3. **Metrics Collection**: Track processing methods and performance
-4. **Edge Case Detection**: Handle special scenarios with enhanced logic
+1. **Extraction Assistant**: Analyzes emails and extracts structured cancellation data
+2. **Response Assistant**: Generates dynamic, personalized customer responses
+3. **Automatic RAG**: Both assistants automatically search the vector store via `file_search` tool
+4. **Streaming Responses**: Response generation uses streaming for real-time output
+5. **Thread Management**: Conversations managed via threads and runs
 
-## Email Classification Principles
+## Core Components
 
-**CRITICAL: Always check exclusion patterns BEFORE inclusion patterns**
+### 1. Assistant Configuration (`assistant-config.ts`)
 
-### Non-Cancellation Patterns (Must be excluded)
-
-- Feedback requests: "rate", "rating", "survey", "how would you rate"
-- General questions: "how do i", "what is", "where can"
-- Support requests: "help with", "problem with", "not working"
-- Inquiry notifications: "Inquiry #"
-
-### Classification Flow
-
-1. **First**: Check if email matches non-cancellation patterns → return false
-2. **Then**: Check if email matches cancellation patterns → return true
-3. **Finally**: Analyze subject and body separately for context
+Define assistants with system instructions and vector store configuration:
 
 ```typescript
-export function detectCancellationIntent(email: string): boolean {
-  // CRITICAL: Check exclusions first
-  if (isNonCancellationEmail(email)) {
-    return false;
-  }
+export function getExtractionAssistantConfig(): AssistantConfig {
+  return {
+    name: "Elaway Cancellation Extraction Assistant",
+    model: "gpt-4o-2024-08-06",
+    temperature: 0, // Deterministic
+    tools: [{ type: "file_search" }],
+    tool_resources: {
+      file_search: {
+        vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
+      }
+    },
+    instructions: `You are an expert email analyzer...
+    
+ALWAYS search the vector store for similar cases before extraction.
+...`
+  };
+}
 
-  // Then check for cancellation patterns
-  return hasCancellationPatterns(email);
+export function getResponseAssistantConfig(): AssistantConfig {
+  return {
+    name: "Elaway Customer Response Assistant",
+    model: "gpt-4o-2024-08-06",
+    temperature: 0.3, // Creative but controlled
+    tools: [{ type: "file_search" }],
+    tool_resources: {
+      file_search: {
+        vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!]
+      }
+    },
+    instructions: `You are Elaway's customer service assistant...
+    
+ALWAYS search the vector store for similar cases and policy information.
+...`
+  };
 }
 ```
 
-## OpenAI API Best Practices (v5 - January 2025)
+### 2. Assistants Processor (`assistants-processor.ts`)
 
-✅ **DO:** Use main namespace (latest)
-
-```typescript
-import { zodResponseFormat } from "openai/helpers/zod";
-
-const completion = await openai.chat.completions.parse({
-  model: "gpt-4o-2024-08-06",
-  messages: [/* ... */],
-  response_format: zodResponseFormat(extractionSchema, "extraction"),
-  temperature: 0, // Deterministic for policy-critical tasks
-  timeout: 30000 // 30s timeout
-});
-
-const parsed = completion.choices[0]?.message?.parsed;
-if (!parsed) {
-  throw new Error("Failed to parse extraction response from OpenAI");
-}
-
-return extractionSchema.parse(parsed);
-```
-
-❌ **DON'T:** Use deprecated beta namespace
+Implement the core workflow:
 
 ```typescript
-// ❌ DEPRECATED - Will be removed
-const completion = await openai.beta.chat.completions.parse({
-  // ...
-});
-```
+// Cache assistants to avoid recreation
+let extractionAssistantId: string | null = null;
+let responseAssistantId: string | null = null;
 
-## Hybrid Processing Strategy
+async function extractWithAssistant(maskedEmail: string, logContext: LogContext): Promise<ExtractionResultEnhanced> {
+  // Get or create extraction assistant
+  extractionAssistantId = await getOrCreateAssistant(
+    getExtractionAssistantConfig(),
+    extractionAssistantId,
+    logContext
+  );
 
-✅ **DO:** Always try deterministic extraction first
-
-```typescript
-// From hybrid-processor.ts
-let extraction = extractEmailDataDeterministic(rawEmail);
-let extractionMethod: "deterministic" | "openai" = "deterministic";
-
-// Only use OpenAI for complex cases
-const needsOpenAI =
-  !extraction.confidence_factors.standard_case ||
-  extraction.confidence_factors.clear_intent === false ||
-  extraction.policy_risks.length > 1 ||
-  (extraction.edge_case !== "none" && extraction.edge_case !== "sameie_concern");
-
-if (needsOpenAI) {
-  try {
-    extraction = await extractWithOpenAI(maskedEmail, logContext);
-    extractionMethod = "openai";
-  } catch (error) {
-    // Always fall back to deterministic
-    logWarn("OpenAI extraction failed, falling back to deterministic", logContext);
-  }
-}
-```
-
-## Complex Case Detection
-
-The system automatically detects when OpenAI is needed:
-
-### Standard Cases (Deterministic)
-- Clear cancellation intent
-- Standard moving reason
-- No edge cases
-- Complete information
-- Low policy risks
-
-### Complex Cases (OpenAI Fallback)
-- Unclear intent or ambiguous language
-- Multiple policy risks
-- Edge cases: corporate accounts, app access issues, future dates
-- Incomplete information
-- Non-standard scenarios
-
-## Enhanced Extraction Schemas
-
-✅ **DO:** Use enhanced schemas with comprehensive edge case support
-
-```typescript
-export const extractionSchemaEnhanced = z.object({
-  is_cancellation: z.boolean(),
-  reason: z.enum(["moving", "other", "unknown"]),
-  move_date: z.string().date().optional().nullable(),
-  language: z.enum(["no", "en", "sv"]), // Swedish support
-  edge_case: z.enum([
-    "none",
-    "no_app_access",
-    "corporate_account",
-    "future_move_date",
-    "already_canceled",
-    "sameie_concern"
-  ]),
-  urgency: z.enum(["immediate", "future", "unclear"]),
-  customer_concerns: z.array(z.string()).default([]),
-  policy_risks: z.array(z.string()).default([]),
-  confidence_factors: z.object({
-    clear_intent: z.boolean(),
-    complete_information: z.boolean(),
-    standard_case: z.boolean()
-  })
-});
-```
-
-## Schema Patterns
-
-✅ **DO:** Use `.optional().nullable()` for optional fields (correct order)
-
-```typescript
-export const extractionSchema = z.object({
-  move_date: z.string().date().optional().nullable(), // ✅ Correct order
-  policy_risks: z.array(z.string()).default([])
-});
-```
-
-❌ **DON'T:** Use wrong order (will cause errors)
-
-```typescript
-move_date: z.string().date().nullable().optional(), // ❌ Wrong order
-```
-
-## Edge Case Detection
-
-Handle special scenarios with pattern matching:
-
-```typescript
-function detectEdgeCase(email: string, extraction: ExtractionResult): string {
-  const emailLower = email.toLowerCase();
-
-  // Corporate account detection
-  if (emailLower.match(/bedrift|corporate|company|business|firma/)) {
-    return "corporate_account";
-  }
-
-  // App access issues
-  if (emailLower.match(/ikke fungerer|not working|app.*problem|login.*issue/)) {
-    return "no_app_access";
-  }
-
-  // Future move dates (>1 month)
-  if (extraction.move_date && getMonthsFromNow(extraction.move_date) > 1) {
-    return "future_move_date";
-  }
-
-  // Already canceled
-  if (emailLower.match(/allerede.*oppsagt|already.*cancel|avsluttet|terminated/)) {
-    return "already_canceled";
-  }
-
-  // Sameie concerns
-  if (emailLower.match(/sameie|housing association|hele|everyone|whole building/)) {
-    return "sameie_concern";
-  }
-
-  return "none";
-}
-```
-
-## Enhanced Draft Generation
-
-Use templates that handle edge cases:
-
-```typescript
-export function generateDraftEnhanced(params: EnhancedDraftParams): string {
-  const { language, reason, moveDate, edgeCase, customerConcerns } = params;
-
-  // Base template
-  let body = getBaseTemplate(language);
-
-  // Add reason-specific content
-  if (reason === "moving") {
-    body += getMovingContent(language);
-  }
-
-  // Handle edge cases
-  if (edgeCase === "corporate_account") {
-    body += getCorporateAccountContent(language);
-  }
-
-  if (edgeCase === "no_app_access") {
-    body += getAppAccessContent(language);
-  }
-
-  // Add policy information
-  body += getPolicyContent(language);
-
-  // Add move date information
-  if (moveDate) {
-    body += getMoveDateContent(moveDate, language);
-  }
-
-  return body;
-}
-```
-
-## Retry Logic with Exponential Backoff
-
-✅ **DO:** Implement retry logic for OpenAI API calls
-
-```typescript
-import { withRetry } from "@agents/core";
-
-const completion = await withRetry(
-  async () => {
-    return await openai.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
-      messages: [/* ... */],
-      response_format: zodResponseFormat(extractionSchema, "extraction"),
-      temperature: 0,
-      timeout: 30000
-    });
-  },
-  3, // maxRetries
-  1000 // baseDelay
-);
-```
-
-**Retry Strategy:**
-- Only retry on `rate_limit_exceeded` and `timeout` errors
-- Exponential backoff: 1s, 2s, 4s delays
-- Don't retry on quota/auth errors
-
-## Error Handling (Enhanced)
-
-Always handle OpenAI-specific error codes with structured logging:
-
-```typescript
-try {
-  const completion = await openai.chat.completions.parse({
-    // ... config
-    timeout: 30000
+  // Create thread with email
+  const thread = await openai.beta.threads.create({
+    messages: [{
+      role: "user",
+      content: `Analyze this customer email and extract structured information as JSON:\n\n${maskedEmail}`
+    }]
   });
 
-  const parsed = completion.choices[0]?.message?.parsed;
-  if (!parsed) {
-    throw new Error("Failed to parse extraction response from OpenAI");
+  // Run assistant (automatically uses file_search)
+  const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+    assistant_id: extractionAssistantId
+  });
+
+  if (run.status !== "completed") {
+    throw new Error(`Extraction run failed with status: ${run.status}`);
   }
 
-  return extractionSchema.parse(parsed);
-} catch (error: any) {
-  // Enhanced error handling with structured logging
-  if (error.code === "insufficient_quota") {
-    logError("OpenAI API quota exceeded", logContext, error);
-    throw new Error("OpenAI API quota exceeded. Please check your billing.");
-  } else if (error.code === "rate_limit_exceeded") {
-    logError("OpenAI API rate limit exceeded", logContext, error);
-    throw new Error("OpenAI API rate limit exceeded. Retry after delay.");
-  } else if (error.code === "timeout") {
-    logError("OpenAI API request timed out", logContext, error);
-    throw new Error("OpenAI API request timed out. Please try again.");
-  } else if (error.name === "ZodError") {
-    logError("Schema validation error", logContext, error);
-    throw new Error("Invalid extraction format from OpenAI");
+  // Get response and parse JSON
+  const messages = await openai.beta.threads.messages.list(thread.id);
+  const assistantMessage = messages.data[0];
+  
+  const textContent = assistantMessage.content.find(c => c.type === "text");
+  const responseText = textContent.text.value;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  
+  return extractionSchemaEnhanced.parse(JSON.parse(jsonMatch[0]));
+}
+
+async function generateResponseWithAssistant(extraction: ExtractionResultEnhanced, maskedEmail: string, logContext: LogContext): Promise<string> {
+  // Get or create response assistant
+  responseAssistantId = await getOrCreateAssistant(
+    getResponseAssistantConfig(),
+    responseAssistantId,
+    logContext
+  );
+
+  // Create thread
+  const thread = await openai.beta.threads.create({
+    messages: [{
+      role: "user",
+      content: `Generate a professional customer response for this cancellation request...`
+    }]
+  });
+
+  // Stream the response
+  const stream = openai.beta.threads.runs.stream(thread.id, {
+    assistant_id: responseAssistantId
+  });
+
+  let fullResponse = "";
+  for await (const event of stream) {
+    if (event.event === "thread.message.delta") {
+      const delta = event.data.delta;
+      if (delta.content?.[0]?.type === "text") {
+        fullResponse += delta.content[0].text.value;
+      }
+    }
   }
 
-  logError("OpenAI extraction error", logContext, error);
-  throw new Error(`Extraction failed: ${error.message || "Unknown error"}`);
+  return fullResponse.trim();
 }
 ```
 
-## Language Support
+## Best Practices
 
-Support multiple languages with detection:
+### Vector Store Integration
+
+✅ **DO:** Let assistants automatically search via file_search tool
 
 ```typescript
-// Language detection with Swedish support
-const norwegianIndicators = ['jeg', 'vi', 'du', 'har', 'til', 'med', 'og', 'en', 'er', 'på'];
-const swedishIndicators = ['jag', 'ska', 'vill', 'mitt', 'från', 'och', 'att', 'är', 'för'];
+// Assistants API handles vector store search automatically
+const assistant = await openai.beta.assistants.create({
+  tools: [{ type: "file_search" }],
+  tool_resources: {
+    file_search: {
+      vector_store_ids: [vectorStoreId]
+    }
+  }
+});
 
-let language: "no" | "en" | "sv";
-if (norwegianCount >= 2) {
-  language = "no";
-} else if (swedishCount >= 2) {
-  language = "sv";
-} else {
-  language = "en";
+// Assistant will use file_search during run.createAndPoll()
+```
+
+❌ **DON'T:** Manually fetch and inject vector store context
+
+Vector store retrieval is handled automatically by the Assistants API file_search tool.
+
+### Thread Management
+
+✅ **DO:** Create new threads for each request
+
+```typescript
+const thread = await openai.beta.threads.create({
+  messages: [{ role: "user", content: userMessage }]
+});
+
+const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+  assistant_id: assistantId
+});
+```
+
+❌ **DON'T:** Reuse threads across different requests
+
+Each request should have its own thread for isolation and proper context management.
+
+### Response Streaming
+
+✅ **DO:** Use streaming for real-time response generation
+
+```typescript
+const stream = openai.beta.threads.runs.stream(thread.id, {
+  assistant_id: assistantId
+});
+
+for await (const event of stream) {
+  if (event.event === "thread.message.delta") {
+    // Process streamed content
+  }
 }
 ```
 
-## Metrics Collection
+❌ **DON'T:** Use createAndPoll() for response generation
 
-✅ **DO:** Track processing methods and performance
+Use streaming for better real-time performance and user experience.
+
+### Temperature Settings
+
+- **Extraction**: `temperature: 0` (deterministic, consistent output)
+- **Response Generation**: `temperature: 0.3` (controlled creativity, personalization)
+
+### Error Handling
+
+✅ **DO:** Check run status and handle failures
 
 ```typescript
-// From metrics.ts
+const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+  assistant_id: assistantId
+});
+
+if (run.status !== "completed") {
+  throw new Error(`Run failed with status: ${run.status}`);
+}
+```
+
+❌ **DON'T:** Assume runs always complete successfully
+
+Check status and handle failure cases appropriately.
+
+## Processing Flow
+
+```
+Customer Email
+    ↓
+[PII Masking]
+    ↓
+[Extract with Assistants API]
+  - Create thread
+  - Run extraction assistant
+  - Auto-search vector store via file_search
+  - Parse JSON extraction
+    ↓
+[Validation]
+  - Is cancellation?
+  - Clear intent?
+  - Sufficient data?
+    ↓
+[Create Ticket in Database]
+    ↓
+[Generate Response with Assistants API]
+  - Create thread
+  - Run response assistant
+  - Stream response output
+  - Auto-search vector store for similar cases
+    ↓
+[Save Draft and Metrics]
+    ↓
+[Post to Slack for Review]
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# Required
+OPENAI_API_KEY=sk-...
+OPENAI_VECTOR_STORE_ID=vs_...
+
+# Optional: Pre-configured assistant IDs (auto-creates if not provided)
+OPENAI_EXTRACTION_ASSISTANT_ID=asst_...
+OPENAI_RESPONSE_ASSISTANT_ID=asst_...
+```
+
+### Assistant Templates
+
+Extraction assistant instructions should include:
+- Task description
+- Required extraction fields
+- Classification rules
+- Quality checks
+- Vector store search guidance
+
+Response assistant instructions should include:
+- Policy guidelines
+- Tone and style requirements
+- Response structure
+- Language support
+- Edge case handling
+- Vector store search guidance
+
+## Performance Considerations
+
+- **Latency**: Assistants API + vector store search adds ~3-5 seconds per request
+- **Cost**: Higher API usage (both extraction and generation use Assistants API)
+- **Reliability**: Automatic retry logic with exponential backoff (3 retries, 1s base delay)
+- **Scaling**: Thread cleanup is automatic; assistants are cached per request lifecycle
+
+## Monitoring & Metrics
+
+Track these metrics:
+
+```typescript
 metricsCollector.record({
-  extraction_method: extractionMethod,
+  extraction_method: "assistants-api",
   is_cancellation: extraction.is_cancellation,
   edge_case: extraction.edge_case,
   confidence,
   processing_time_ms: duration,
-  policy_compliant: validation.compliant,
-  language: extraction.language
+  policy_compliant: true,
+  language: extraction.language,
+  rag_context_used: true, // Always true with Assistants API
+  has_payment_issue: extraction.has_payment_issue
 });
 ```
 
-## Performance Benefits
+## Testing
 
-### Deterministic Processing
-- ⚡ **<500ms** processing time
-- 💰 **$0** API costs
-- 🎯 **100%** reliability
-- 🔧 **Easy** to debug and modify
-
-### Hybrid Approach
-- 🚀 **Best of both worlds**: Speed + accuracy
-- 📊 **Metrics-driven**: Track when AI is needed
-- 🛡️ **Fallback safety**: Always works even if OpenAI fails
-- 📈 **Cost optimization**: Only use AI when necessary
-
-## Model Selection (January 2025)
-
-- **Structured outputs**: `gpt-4o-2024-08-06` (current best)
-- **Temperature**: `0` for deterministic, policy-critical extractions
-- **Timeout**: `30000` (30s) for serverless environments
-- **Fine-tuning**: `gpt-4o-mini-2024-07-18` (cost-effective)
-- **OpenAI Version**: v5+ (latest with main namespace)
-
-## Testing Strategy
-
-### Classification Edge Cases
-
-Always test with these edge cases:
-- Feedback emails: "How would you rate the received customer service?"
-- Question emails: "How do I update my payment method?"
-- Support emails: "The app is not working"
-- Actual cancellations: "I am moving and want to cancel"
-
-### Processing Path Tests
-
-Test both processing paths:
+Test both assistants independently:
 
 ```typescript
-// Test deterministic path
-const standardEmail = "Hei, jeg skal flytte og vil si opp abonnementet mitt.";
-const result = await processEmailHybrid({ source: "test", customerEmail: "test@example.com", rawEmail: standardEmail });
-expect(result.extraction_method).toBe("deterministic");
+// Test extraction
+const extractionResult = await extractWithAssistant(maskedEmail, logContext);
+expect(extractionResult.is_cancellation).toBe(true);
+expect(extractionResult.reason).toBe("moving");
 
-// Test OpenAI fallback path
-const complexEmail = "I'm not sure if I want to cancel, but I might be moving to a different country next year...";
-const result2 = await processEmailHybrid({ source: "test", customerEmail: "test@example.com", rawEmail: complexEmail });
-expect(result2.extraction_method).toBe("openai");
+// Test response generation
+const response = await generateResponseWithAssistant(extraction, maskedEmail, logContext);
+expect(response.length).toBeGreaterThan(50);
+expect(response.toLowerCase()).toContain("elaway");
 ```
 
-### Golden Set Testing
+## Troubleshooting
 
-Maintain a golden set of test cases for regression testing:
+### Run fails with status "requires_action"
 
-```typescript
-interface GoldenExample {
-  email: string;
-  expected: {
-    is_cancellation: boolean;
-    reason: string;
-    language: string;
-  };
-}
-
-const goldenSet: GoldenExample[] = [
-  {
-    email: "Hei, jeg skal flytte til Oslo 15. mars.",
-    expected: {
-      is_cancellation: true,
-      reason: "moving",
-      language: "no"
-    }
-  }
-];
-```
-
-### Accuracy Metrics
-
-Track key metrics:
-
-- **Intent accuracy**: Cancellation vs. non-cancellation detection
-- **Field extraction**: Reason, move date, language
-- **Policy compliance**: End-of-month policy mentioned
+The assistant encountered a tool call (file_search) that needs to be handled:
 
 ```typescript
-const accuracy = (correct / total) * 100;
-
-if (accuracy < 90) {
-  console.error("✗ Accuracy below threshold (90%)");
-  process.exit(1);
+if (run.status === "requires_action") {
+  // Submit tool results and continue polling
+  // (handled automatically by createAndPoll)
 }
 ```
 
-### PII Masking Tests
+### No JSON in extraction response
 
-Always test PII masking:
+Ensure the extraction assistant instructions explicitly request JSON output and include proper formatting examples.
 
-```typescript
-import { maskPII } from "@agents/core";
+### Vector store searches returning no results
 
-test("masks email addresses", () => {
-  const input = "Contact me at test@example.com";
-  const output = maskPII(input);
-  expect(output).toBe("Contact me at [email]");
-  expect(output).not.toContain("@example.com");
-});
-```
-
-### Schema Validation Tests
-
-Test Zod schemas with both valid and invalid inputs:
-
-```typescript
-import { extractionSchema } from "@agents/prompts";
-
-test("validates extraction schema", () => {
-  const valid = {
-    is_cancellation: true,
-    reason: "moving",
-    move_date: "2024-03-15",
-    language: "no",
-    policy_risks: []
-  };
-
-  const result = extractionSchema.safeParse(valid);
-  expect(result.success).toBe(true);
-});
-```
-
-### Running Evaluations
-
-Always run evaluation after prompt changes:
-
-```bash
-# After modifying packages/prompts/src/templates-enhanced.ts
-pnpm eval
-```
+Check that:
+1. Vector store ID is correct
+2. Files are properly uploaded and indexed
+3. Query is specific enough for semantic matching
+4. File chunks contain relevant content
 
 ## References
 
-- apps/agent/src/hybrid-processor.ts - Main hybrid implementation
-- apps/agent/src/simplified-processor.ts - Pure deterministic fallback
-- apps/agent/src/metrics.ts - Performance metrics collection
-- packages/prompts/src/templates-enhanced.ts - Enhanced schemas and templates
-- packages/prompts/src/patterns.ts - Classification patterns
-- packages/core/src/index.ts - Retry logic and logging
-- ops/scripts/eval.ts - Evaluation implementation
-- SIMPLIFICATION_SUMMARY.md - Architecture migration details
+- `apps/agent/src/assistant-config.ts` - Assistant configurations
+- `apps/agent/src/assistants-processor.ts` - Main processor implementation
+- `apps/agent/src/tests/assistants-processor.test.ts` - Comprehensive tests
+- OpenAI Assistants API: https://platform.openai.com/docs/assistants
+- Vector Stores: https://platform.openai.com/docs/assistants/tools/file-search

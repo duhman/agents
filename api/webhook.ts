@@ -202,7 +202,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     // Process email through hybrid processor
     log("info", "Processing email through hybrid processor", { requestId });
-    
+
     let result: ProcessEmailResult;
     try {
       result = await processEmail({
@@ -212,22 +212,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       });
     } catch (error: any) {
       // Handle database connection errors with retry
-      if (error.message?.includes("connection") || 
-          error.message?.includes("ECONNREFUSED") || 
-          error.message?.includes("timeout") ||
-          error.code === "ECONNREFUSED" ||
-          error.code === "ETIMEDOUT") {
-        
-        log("warn", "Database connection error detected, attempting reset and retry", { 
-          requestId, 
+      if (
+        error.message?.includes("connection") ||
+        error.message?.includes("ECONNREFUSED") ||
+        error.message?.includes("timeout") ||
+        error.code === "ECONNREFUSED" ||
+        error.code === "ETIMEDOUT"
+      ) {
+        log("warn", "Database connection error detected, attempting reset and retry", {
+          requestId,
           error: error.message,
-          code: error.code 
+          code: error.code
         });
-        
+
         // Import resetDbClient dynamically to avoid circular imports
         const { resetDbClient } = await import("../packages/db/dist/client.js");
         await resetDbClient("webhook_connection_error");
-        
+
         // Retry once after reset
         log("info", "Retrying email processing after database reset", { requestId });
         result = await processEmail({
