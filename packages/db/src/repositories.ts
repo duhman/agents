@@ -41,6 +41,52 @@ export async function createHumanReview(data: {
   return review;
 }
 
+export async function getHumanReviewsByDecision(decision: "approve" | "edit" | "reject", limit?: number) {
+  let query = db.query.humanReviews.findMany({
+    where: eq(humanReviews.decision, decision),
+    orderBy: [humanReviews.createdAt]
+  });
+
+  if (limit) {
+    return query.then(results => results.slice(-limit));
+  }
+
+  return query;
+}
+
+export async function getHumanReviewsWithContext(limit?: number) {
+  const reviews = await db.query.humanReviews.findMany({
+    with: {
+      draft: {
+        columns: { id: true, draftText: true, language: true, confidence: true, model: true },
+        with: {
+          ticket: {
+            columns: { id: true, customerEmail: true, rawEmailMasked: true, reason: true, moveDate: true, source: true }
+          }
+        }
+      }
+    },
+    orderBy: [humanReviews.createdAt]
+  });
+
+  if (limit) {
+    return reviews.slice(-limit);
+  }
+
+  return reviews;
+}
+
+export async function getReviewStats() {
+  const allReviews = await db.query.humanReviews.findMany();
+
+  return {
+    total: allReviews.length,
+    approved: allReviews.filter(r => r.decision === "approve").length,
+    edited: allReviews.filter(r => r.decision === "edit").length,
+    rejected: allReviews.filter(r => r.decision === "reject").length
+  };
+}
+
 export async function getTicketById(id: string) {
   return db.query.tickets.findFirst({
     where: eq(tickets.id, id)

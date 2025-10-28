@@ -43,6 +43,31 @@ export declare function createHumanReview(data: {
     finalText: string;
     reviewerSlackId: string;
 }>;
+export declare function getHumanReviewsByDecision(decision: "approve" | "edit" | "reject", limit?: number): Promise<{
+    id: string;
+    createdAt: Date;
+    ticketId: string | null;
+    draftId: string | null;
+    decision: string;
+    finalText: string;
+    reviewerSlackId: string;
+}[]>;
+export declare function getHumanReviewsWithContext(limit?: number): Promise<{
+    id: string;
+    createdAt: Date;
+    ticketId: string | null;
+    draftId: string | null;
+    decision: string;
+    finalText: string;
+    reviewerSlackId: string;
+    draft: never;
+}[]>;
+export declare function getReviewStats(): Promise<{
+    total: number;
+    approved: number;
+    edited: number;
+    rejected: number;
+}>;
 export declare function getTicketById(id: string): Promise<{
     id: string;
     source: string;
