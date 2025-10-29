@@ -7,7 +7,7 @@ import {
 export const config = { runtime: "nodejs", regions: ["iad1"] };
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  if (req.method !== "POST") {
+  if (req.method !== "GET" && req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
