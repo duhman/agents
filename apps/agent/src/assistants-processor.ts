@@ -5,11 +5,21 @@ import {
   generateRequestId,
   logInfo,
   logError,
+  logWarn,
   withRetry,
   type LogContext
 } from "@agents/core";
 import { createTicket, createDraft } from "@agents/db";
-import { calculateConfidenceEnhanced, type ExtractionResultEnhanced } from "@agents/prompts";
+import {
+  calculateConfidenceEnhanced,
+  type ExtractionResultEnhanced,
+  detectCancellationIntentEnhanced,
+  detectPaymentIssue,
+  detectLanguage,
+  extractCustomerConcerns,
+  calculateConfidenceFactors,
+  detectEdgeCaseFromPatterns
+} from "@agents/prompts";
 import { metricsCollector } from "./metrics.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -48,7 +58,7 @@ export interface ProcessEmailResult {
   draft?: { id: string; draftText: string } | null;
   extraction?: ExtractionResultEnhanced;
   confidence?: number;
-  extraction_method?: "assistants-api";
+  extraction_method?: "assistants-api" | "deterministic-fallback";
   error?: string;
 }
 
@@ -62,6 +72,128 @@ function createTimeoutPromise<T>(ms: number, operationName: string): Promise<T> 
       ms
     )
   );
+}
+
+/**
+ * Deterministic extraction fallback when Assistants API times out
+ * Uses pattern matching for fast, reliable extraction
+ */
+function extractEmailDataDeterministic(email: string): ExtractionResultEnhanced {
+  const isCancellation = detectCancellationIntentEnhanced(email);
+  const hasPaymentIssue = detectPaymentIssue(email);
+  const language = detectLanguage(email);
+  const customerConcerns = extractCustomerConcerns(email);
+  const confidenceFactors = calculateConfidenceFactors(email);
+
+  const emailLower = email.toLowerCase();
+  const movingKeywords = [
+    "flytt",
+    "moving",
+    "relocat",
+    "move",
+    "new address",
+    "ny adresse",
+    "nya adress"
+  ];
+  const isMoving = movingKeywords.some(keyword => emailLower.includes(keyword));
+
+  let moveDate: string | null = null;
+  const datePatterns = [
+    /\b(\d{4})-(\d{2})-(\d{2})\b/,
+    /\b(\d{1,2})[./](\d{1,2})[./](\d{4})\b/,
+    /\b(\d{1,2})\.?\s+(januar|februar|mars|april|mai|juni|juli|august|september|oktober|november|desember)/i,
+    /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})\b/i,
+    /\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\b/i
+  ];
+
+  for (const pattern of datePatterns) {
+    const match = email.match(pattern);
+    if (match) {
+      if (pattern.source.includes("\\d{4}-\\d{2}-\\d{2}")) {
+        moveDate = match[0];
+      } else if (pattern.source.includes("[./]")) {
+        const [_, day, month, year] = match;
+        moveDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      } else {
+        moveDate = match[0];
+      }
+      break;
+    }
+  }
+
+  let reason: "moving" | "payment_issue" | "other" | "unknown";
+  if (isCancellation) {
+    if (hasPaymentIssue) {
+      reason = "payment_issue";
+    } else if (isMoving) {
+      reason = "moving";
+    } else {
+      reason = "other";
+    }
+  } else {
+    reason = "unknown";
+  }
+
+  const edgeCase = detectEdgeCaseFromPatterns(email) as
+    | "none"
+    | "no_app_access"
+    | "corporate_account"
+    | "future_move_date"
+    | "already_canceled"
+    | "sameie_concern"
+    | "payment_dispute";
+
+  const urgency: "immediate" | "future" | "unclear" = moveDate
+    ? (() => {
+        try {
+          const moveDateObj = new Date(moveDate);
+          const now = new Date();
+          const months =
+            (moveDateObj.getFullYear() - now.getFullYear()) * 12 +
+            (moveDateObj.getMonth() - now.getMonth());
+          return months > 1 ? "future" : "immediate";
+        } catch {
+          return "unclear";
+        }
+      })()
+    : isCancellation
+      ? "immediate"
+      : "unclear";
+
+  const paymentConcerns: string[] = [];
+  if (hasPaymentIssue) {
+    if (
+      emailLower.includes("refund") ||
+      emailLower.includes("refusjon") ||
+      emailLower.includes("återbetalning")
+    ) {
+      paymentConcerns.push("refund_request");
+    }
+    if (
+      emailLower.includes("double") ||
+      emailLower.includes("dobbel") ||
+      emailLower.includes("dubbel")
+    ) {
+      paymentConcerns.push("double_charge");
+    }
+    if (emailLower.includes("error") || emailLower.includes("feil") || emailLower.includes("fel")) {
+      paymentConcerns.push("billing_error");
+    }
+  }
+
+  return {
+    is_cancellation: isCancellation,
+    reason,
+    move_date: moveDate,
+    language,
+    edge_case: edgeCase,
+    has_payment_issue: hasPaymentIssue,
+    payment_concerns: paymentConcerns,
+    urgency,
+    customer_concerns: customerConcerns,
+    policy_risks: [],
+    confidence_factors: confidenceFactors
+  };
 }
 
 async function extractWithAssistant(
@@ -249,11 +381,38 @@ export async function processEmailWithAssistants(
     const maskedCustomerEmail = maskPII(customerEmail);
 
     // STEP 1: Extract with Assistants API (must complete within timeout)
-    const extraction = await withRetry(
-      async () => extractWithAssistant(maskedEmail, logContext),
-      3,
-      1000
-    );
+    let extraction: ExtractionResultEnhanced;
+    let extractionMethod: "assistants-api" | "deterministic-fallback" = "assistants-api";
+    
+    try {
+      extraction = await withRetry(
+        async () => extractWithAssistant(maskedEmail, logContext),
+        3,
+        1000
+      );
+    } catch (error: any) {
+      // Fallback to deterministic extraction on timeout or other failures
+      const isTimeout = error.message?.includes("timed out") || error.message?.includes("timeout");
+      logWarn(
+        isTimeout
+          ? "Assistants API extraction timed out, falling back to deterministic"
+          : "Assistants API extraction failed, falling back to deterministic",
+        logContext,
+        {
+          error: error.message,
+          fallbackReason: isTimeout ? "timeout" : "error"
+        }
+      );
+      
+      extraction = extractEmailDataDeterministic(rawEmail);
+      extractionMethod = "deterministic-fallback";
+      
+      logInfo("Deterministic extraction completed", logContext, {
+        isCancellation: extraction.is_cancellation,
+        reason: extraction.reason,
+        language: extraction.language
+      });
+    }
 
     logInfo("Email extraction completed", logContext, {
       isCancellation: extraction.is_cancellation,
@@ -270,7 +429,7 @@ export async function processEmailWithAssistants(
         ticket: null,
         draft: null,
         extraction,
-        extraction_method: "assistants-api",
+        extraction_method: extractionMethod,
         error: undefined
       };
     }
@@ -286,7 +445,7 @@ export async function processEmailWithAssistants(
         ticket: null,
         draft: null,
         extraction,
-        extraction_method: "assistants-api",
+        extraction_method: extractionMethod,
         error: undefined
       };
     }
@@ -340,16 +499,16 @@ export async function processEmailWithAssistants(
 
     const duration = Date.now() - startTime;
 
-    // Record metrics
+    // Record metrics (map deterministic-fallback to deterministic for metrics)
     metricsCollector.record({
-      extraction_method: "assistants-api",
+      extraction_method: extractionMethod === "deterministic-fallback" ? "deterministic" : extractionMethod,
       is_cancellation: extraction.is_cancellation,
       edge_case: extraction.edge_case,
       confidence,
       processing_time_ms: duration,
       policy_compliant: true,
       language: extraction.language,
-      rag_context_used: true,
+      rag_context_used: extractionMethod === "assistants-api",
       has_payment_issue: extraction.has_payment_issue,
       rag_context_count: 0
     });
@@ -357,7 +516,7 @@ export async function processEmailWithAssistants(
     logInfo("Email processing completed successfully", {
       ...logContext,
       duration,
-      extraction_method: "assistants-api"
+      extraction_method: extractionMethod
     });
 
     return {
@@ -366,7 +525,7 @@ export async function processEmailWithAssistants(
       draft: { id: draft.id, draftText },
       extraction,
       confidence,
-      extraction_method: "assistants-api",
+      extraction_method: extractionMethod,
       error: undefined
     };
   } catch (error: any) {
